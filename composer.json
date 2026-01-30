@@ -12,6 +12,7 @@
         "php": "^8.2",
         "ext-bcmath": "*",
         "ext-intl": "*",
+        "15web/filament-tree": "^1.0",
         "akaunting/laravel-money": "^6.0.2",
         "andrewdwallo/filament-companies": "^4.0",
         "andrewdwallo/filament-selectify": "^2.0",

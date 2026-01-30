@@ -28,6 +28,8 @@ use App\Filament\Company\Resources\Accounting\BudgetResource;
 use App\Filament\Company\Resources\Accounting\TransactionResource;
 use App\Filament\Company\Resources\Banking\AccountResource;
 use App\Filament\Company\Resources\Common\OfferingResource;
+use App\Filament\Company\Resources\Common\OfferingCategoryResource;
+use App\Filament\Company\Pages\OfferingCategory;
 use App\Filament\Company\Resources\Purchases\BillResource;
 use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
@@ -132,6 +134,8 @@ class CompanyPanelProvider extends PanelProvider
                         ...Reports::getNavigationItems(),
                         ...Settings::getNavigationItems(),
                         ...OfferingResource::getNavigationItems(),
+                        // ...OfferingCategoryResource::getNavigationItems(),
+                        ...OfferingCategory::getNavigationItems(),
                     ])
                     ->groups([
                         NavigationGroup::make('Sales')

@@ -99,6 +99,12 @@ class OfferingResource extends Resource
                     ->validationMessages([
                         'required' => 'The offering must be either sellable or purchasable.',
                     ]),
+                Forms\Components\Select::make('categories')
+                    ->relationship('categories', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->columnSpanFull(),
             ])->columns();
     }
 
