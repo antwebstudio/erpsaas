@@ -30,6 +30,11 @@ abstract class Document extends Model
         return $this->morphMany(DocumentLineItem::class, 'documentable')->orderBy('line_number');
     }
 
+    public function lineItemGroups(): MorphMany
+    {
+        return $this->morphMany(DocumentLineItemGroup::class, 'documentable')->orderBy('order');
+    }
+
     public function hasLineItems(): bool
     {
         return $this->lineItems()->exists();

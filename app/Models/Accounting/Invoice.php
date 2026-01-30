@@ -37,6 +37,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
+use App\Models\Accounting\DocumentLineItemGroup;
+
 
 #[CollectedBy(DocumentCollection::class)]
 #[ObservedBy(InvoiceObserver::class)]
@@ -672,7 +674,44 @@ class Invoice extends Document
 
     public function replicateLineItems(Model $target): void
     {
-        $this->lineItems->each(function (DocumentLineItem $lineItem) use ($target) {
+        // Replicate Groups
+        $this->lineItemGroups->each(function (DocumentLineItemGroup $group) use ($target) {
+            $replicaGroup = $group->replicate([
+                'documentable_id',
+                'documentable_type',
+                'created_by',
+                'updated_by',
+                'created_at',
+                'updated_at'
+            ]);
+            $replicaGroup->documentable_id = $target->id;
+            $replicaGroup->documentable_type = $target->getMorphClass();
+            $replicaGroup->save();
+
+            $group->items->each(function (DocumentLineItem $lineItem) use ($target, $replicaGroup) {
+                $replica = $lineItem->replicate([
+                    'documentable_id',
+                    'documentable_type',
+                    'group_id',
+                    'subtotal',
+                    'total',
+                    'created_by',
+                    'updated_by',
+                    'created_at',
+                    'updated_at',
+                ]);
+
+                $replica->documentable_id = $target->id;
+                $replica->documentable_type = $target->getMorphClass();
+                $replica->group_id = $replicaGroup->id;
+                $replica->save();
+
+                $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
+            });
+        });
+
+        // Replicate items without group
+        $this->lineItems()->whereNull('group_id')->each(function (DocumentLineItem $lineItem) use ($target) {
             $replica = $lineItem->replicate([
                 'documentable_id',
                 'documentable_type',

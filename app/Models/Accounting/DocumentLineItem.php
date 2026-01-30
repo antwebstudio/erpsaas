@@ -28,6 +28,9 @@ class DocumentLineItem extends Model
     protected $table = 'document_line_items';
 
     protected $fillable = [
+        'documentable_type',
+        'documentable_id',
+        'group_id',
         'company_id',
         'offering_id',
         'description',
@@ -58,6 +61,11 @@ class DocumentLineItem extends Model
     public function purchasableOffering(): BelongsTo
     {
         return $this->offering()->where('purchasable', true);
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(DocumentLineItemGroup::class, 'group_id');
     }
 
     public function adjustments(): MorphToMany

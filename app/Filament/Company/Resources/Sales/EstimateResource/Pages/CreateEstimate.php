@@ -45,7 +45,7 @@ class CreateEstimate extends CreateRecord
         /** @var Estimate $record */
         $record = parent::handleRecordCreation($data);
 
-        $this->handleLineItems($record, collect($data['lineItems'] ?? []));
+        $this->handleLineItems($record, collect($data['lineItemGroups'] ?? []));
 
         $totals = $this->updateDocumentTotals($record, $data);
 

@@ -185,189 +185,206 @@ class InvoiceResource extends Resource
                                     ->live(),
                             ])->grow(true),
                         ])->from('md'),
-                        CustomTableRepeater::make('lineItems')
-                            ->hiddenLabel()
-                            ->relationship()
+                        Forms\Components\Repeater::make('lineItemGroups')
+                            ->relationship('lineItemGroups')
                             ->saveRelationshipsUsing(null)
                             ->dehydrated(true)
-                            ->reorderable()
-                            ->orderColumn('line_number')
-                            ->reorderAtStart()
-                            ->cloneable()
-                            ->addActionLabel('Add an item')
-                            ->headers(function (Forms\Get $get) use ($settings) {
-                                $hasDiscounts = DocumentDiscountMethod::parse($get('discount_method'))->isPerLineItem();
-
-                                $headers = [
-                                    Header::make($settings->resolveColumnLabel('item_name', 'Items'))
-                                        ->width('30%'),
-                                    Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
-                                        ->width('10%'),
-                                    Header::make($settings->resolveColumnLabel('price_name', 'Price'))
-                                        ->width('10%'),
-                                ];
-
-                                if ($hasDiscounts) {
-                                    $headers[] = Header::make('Adjustments')->width('30%');
-                                } else {
-                                    $headers[] = Header::make('Taxes')->width('30%');
-                                }
-
-                                $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
-                                    ->width('10%')
-                                    ->align('right');
-
-                                return $headers;
-                            })
+                            ->orderColumn('order')
+                            ->defaultItems(1)
+                            ->label('Item Groups')
+                            ->hiddenLabel()
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                             ->schema([
-                                Forms\Components\Group::make([
-                                    CreateOfferingSelect::make('offering_id')
-                                        ->label('Item')
-                                        ->hiddenLabel()
-                                        ->placeholder('Select item')
-                                        ->required()
-                                        ->live()
-                                        ->inlineSuffix()
-                                        ->sellable()
-                                        ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
-                                            $offeringId = $state;
-                                            $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
-                                            $isPerLineItem = $discountMethod->isPerLineItem();
-
-                                            $existingTaxIds = [];
-                                            $existingDiscountIds = [];
-
-                                            if ($record) {
-                                                $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
-                                                if ($isPerLineItem) {
-                                                    $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
-                                                }
-                                            }
-
-                                            $with = [
-                                                'salesTaxes' => static function ($query) use ($existingTaxIds) {
-                                                    $query->where(static function ($query) use ($existingTaxIds) {
-                                                        $query->where('status', AdjustmentStatus::Active)
-                                                            ->orWhereIn('adjustments.id', $existingTaxIds);
-                                                    });
-                                                },
-                                            ];
-
-                                            if ($isPerLineItem) {
-                                                $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
-                                                    $query->where(static function ($query) use ($existingDiscountIds) {
-                                                        $query->where('status', AdjustmentStatus::Active)
-                                                            ->orWhereIn('adjustments.id', $existingDiscountIds);
-                                                    });
-                                                };
-                                            }
-
-                                            $offeringRecord = Offering::with($with)->find($offeringId);
-
-                                            if (! $offeringRecord) {
-                                                return;
-                                            }
-
-                                            $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
-
-                                            $set('description', $offeringRecord->description);
-                                            $set('unit_price', $unitPrice);
-                                            $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
-
-                                            if ($isPerLineItem) {
-                                                $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
-                                            }
-                                        }),
-                                    Forms\Components\TextInput::make('description')
-                                        ->placeholder('Enter item description')
-                                        ->hiddenLabel(),
-                                ])->columnSpan(1),
-                                Forms\Components\TextInput::make('quantity')
-                                    ->required()
-                                    ->numeric()
-                                    ->live()
-                                    ->maxValue(9999999999.99)
-                                    ->default(1),
-                                Forms\Components\TextInput::make('unit_price')
+                                Forms\Components\Hidden::make('id'),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Section Name (Optional)')
+                                    ->placeholder('e.g. Materials, Labor')
+                                    ->columnSpanFull(),
+                                CustomTableRepeater::make('items')
                                     ->hiddenLabel()
-                                    ->money(useAffix: false)
-                                    ->live()
-                                    ->default(0),
-                                Forms\Components\Group::make([
-                                    CreateAdjustmentSelect::make('salesTaxes')
-                                        ->label('Taxes')
-                                        ->hiddenLabel()
-                                        ->placeholder('Select taxes')
-                                        ->category(AdjustmentCategory::Tax)
-                                        ->type(AdjustmentType::Sales)
-                                        ->adjustmentsRelationship('salesTaxes')
-                                        ->saveRelationshipsUsing(null)
-                                        ->dehydrated(true)
-                                        ->inlineSuffix()
-                                        ->preload()
-                                        ->multiple()
-                                        ->live()
-                                        ->searchable(),
-                                    CreateAdjustmentSelect::make('salesDiscounts')
-                                        ->label('Discounts')
-                                        ->hiddenLabel()
-                                        ->placeholder('Select discounts')
-                                        ->category(AdjustmentCategory::Discount)
-                                        ->type(AdjustmentType::Sales)
-                                        ->adjustmentsRelationship('salesDiscounts')
-                                        ->saveRelationshipsUsing(null)
-                                        ->dehydrated(true)
-                                        ->inlineSuffix()
-                                        ->multiple()
-                                        ->live()
-                                        ->hidden(function (Forms\Get $get) {
-                                            $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
+                                    ->relationship()
+                                    ->saveRelationshipsUsing(null)
+                                    ->dehydrated(true)
+                                    ->reorderable()
+                                    ->orderColumn('line_number')
+                                    ->reorderAtStart()
+                                    ->cloneable()
+                                    ->addActionLabel('Add an item')
+                                    ->headers(function (Forms\Get $get) use ($settings) {
+                                        $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
+                                        $hasDiscounts = $discountMethod->isPerLineItem();
 
-                                            return $discountMethod->isPerDocument();
-                                        })
-                                        ->searchable(),
-                                ])->columnSpan(1),
-                                Forms\Components\Placeholder::make('total')
-                                    ->hiddenLabel()
-                                    ->extraAttributes(['class' => 'text-left sm:text-right'])
-                                    ->content(function (Forms\Get $get) {
-                                        $quantity = max((float) ($get('quantity') ?? 0), 0);
-                                        $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
-                                            ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
-                                            : 0;
-                                        $salesTaxes = $get('salesTaxes') ?? [];
-                                        $salesDiscounts = $get('salesDiscounts') ?? [];
-                                        $currencyCode = $get('../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
+                                        $headers = [
+                                            Header::make($settings->resolveColumnLabel('item_name', 'Items'))
+                                                ->width('30%'),
+                                            Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
+                                                ->width('10%'),
+                                            Header::make($settings->resolveColumnLabel('price_name', 'Price'))
+                                                ->width('10%'),
+                                        ];
 
-                                        $subtotal = $quantity * $unitPrice;
+                                        if ($hasDiscounts) {
+                                            $headers[] = Header::make('Adjustments')->width('30%');
+                                        } else {
+                                            $headers[] = Header::make('Taxes')->width('30%');
+                                        }
 
-                                        $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
+                                        $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
+                                            ->width('10%')
+                                            ->align('right');
 
-                                        $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
-                                            ->get()
-                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                if ($adjustment->computation->isPercentage()) {
-                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                } else {
-                                                    return $adjustment->getRawOriginal('rate');
-                                                }
-                                            });
+                                        return $headers;
+                                    })
+                                    ->schema([
+                                        Forms\Components\Hidden::make('id'),
+                                        Forms\Components\Group::make([
+                                            CreateOfferingSelect::make('offering_id')
+                                                ->label('Item')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select item')
+                                                ->live()
+                                                ->inlineSuffix()
+                                                ->sellable()
+                                                ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
+                                                    $offeringId = $state;
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+                                                    $isPerLineItem = $discountMethod->isPerLineItem();
 
-                                        $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
-                                            ->get()
-                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                if ($adjustment->computation->isPercentage()) {
-                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                } else {
-                                                    return $adjustment->getRawOriginal('rate');
-                                                }
-                                            });
+                                                    $existingTaxIds = [];
+                                                    $existingDiscountIds = [];
 
-                                        // Final total
-                                        $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
+                                                    if ($record) {
+                                                        $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
+                                                        if ($isPerLineItem) {
+                                                            $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
+                                                        }
+                                                    }
 
-                                        return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
-                                    }),
+                                                    $with = [
+                                                        'salesTaxes' => static function ($query) use ($existingTaxIds) {
+                                                            $query->where(static function ($query) use ($existingTaxIds) {
+                                                                $query->where('status', AdjustmentStatus::Active)
+                                                                    ->orWhereIn('adjustments.id', $existingTaxIds);
+                                                            });
+                                                        },
+                                                    ];
+
+                                                    if ($isPerLineItem) {
+                                                        $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
+                                                            $query->where(static function ($query) use ($existingDiscountIds) {
+                                                                $query->where('status', AdjustmentStatus::Active)
+                                                                    ->orWhereIn('adjustments.id', $existingDiscountIds);
+                                                            });
+                                                        };
+                                                    }
+
+                                                    $offeringRecord = Offering::with($with)->find($offeringId);
+
+                                                    if (! $offeringRecord) {
+                                                        return;
+                                                    }
+
+                                                    $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
+
+                                                    $set('description', $offeringRecord->description);
+                                                    $set('unit_price', $unitPrice);
+                                                    $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
+
+                                                    if ($isPerLineItem) {
+                                                        $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
+                                                    }
+                                                }),
+                                            Forms\Components\TextInput::make('description')
+                                                ->placeholder('Enter item description')
+                                                ->hiddenLabel(),
+                                        ])->columnSpan(1),
+                                        Forms\Components\TextInput::make('quantity')
+                                            ->required()
+                                            ->numeric()
+                                            ->live()
+                                            ->maxValue(9999999999.99)
+                                            ->default(1),
+                                        Forms\Components\TextInput::make('unit_price')
+                                            ->hiddenLabel()
+                                            ->money(useAffix: false)
+                                            ->live()
+                                            ->default(0),
+                                        Forms\Components\Group::make([
+                                            CreateAdjustmentSelect::make('salesTaxes')
+                                                ->label('Taxes')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select taxes')
+                                                ->category(AdjustmentCategory::Tax)
+                                                ->type(AdjustmentType::Sales)
+                                                ->adjustmentsRelationship('salesTaxes')
+                                                ->saveRelationshipsUsing(null)
+                                                ->dehydrated(true)
+                                                ->inlineSuffix()
+                                                ->preload()
+                                                ->multiple()
+                                                ->live()
+                                                ->searchable(),
+                                            CreateAdjustmentSelect::make('salesDiscounts')
+                                                ->label('Discounts')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select discounts')
+                                                ->category(AdjustmentCategory::Discount)
+                                                ->type(AdjustmentType::Sales)
+                                                ->adjustmentsRelationship('salesDiscounts')
+                                                ->saveRelationshipsUsing(null)
+                                                ->dehydrated(true)
+                                                ->inlineSuffix()
+                                                ->multiple()
+                                                ->live()
+                                                ->hidden(function (Forms\Get $get) {
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+
+                                                    return $discountMethod->isPerDocument();
+                                                })
+                                                ->searchable(),
+                                        ])->columnSpan(1),
+                                        Forms\Components\Placeholder::make('total')
+                                            ->hiddenLabel()
+                                            ->extraAttributes(['class' => 'text-left sm:text-right'])
+                                            ->content(function (Forms\Get $get) {
+                                                $quantity = max((float) ($get('quantity') ?? 0), 0);
+                                                $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
+                                                    ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
+                                                    : 0;
+                                                $salesTaxes = $get('salesTaxes') ?? [];
+                                                $salesDiscounts = $get('salesDiscounts') ?? [];
+                                                $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
+
+                                                $subtotal = $quantity * $unitPrice;
+
+                                                $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
+
+                                                $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
+                                                    ->get()
+                                                    ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
+                                                        if ($adjustment->computation->isPercentage()) {
+                                                            return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
+                                                        } else {
+                                                            return $adjustment->getRawOriginal('rate');
+                                                        }
+                                                    });
+
+                                                $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
+                                                    ->get()
+                                                    ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
+                                                        if ($adjustment->computation->isPercentage()) {
+                                                            return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
+                                                        } else {
+                                                            return $adjustment->getRawOriginal('rate');
+                                                        }
+                                                    });
+
+                                                // Final total
+                                                $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
+
+                                                return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
+                                            }),
+                                    ]),
                             ]),
                         DocumentTotals::make()
                             ->type(DocumentType::Invoice),
@@ -541,15 +558,10 @@ class InvoiceResource extends Resource
                             $replica->date = company_today();
                             $replica->due_date = company_today()->addDays($replica->company->defaultInvoice->payment_terms->getDays());
                         })
-                        ->withReplicatedRelationships(['lineItems'])
-                        ->withExcludedRelationshipAttributes('lineItems', [
-                            'subtotal',
-                            'total',
-                            'created_by',
-                            'updated_by',
-                            'created_at',
-                            'updated_at',
-                        ]),
+                        ->afterReplicaSaved(function (Invoice $original, Invoice $replica) {
+                            $original->replicateLineItems($replica);
+                        }),
+
                     Tables\Actions\BulkAction::make('approveDrafts')
                         ->label('Approve')
                         ->icon('heroicon-o-check-circle')

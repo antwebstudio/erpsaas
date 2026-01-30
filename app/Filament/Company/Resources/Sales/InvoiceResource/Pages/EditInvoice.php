@@ -33,7 +33,7 @@ class EditInvoice extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var Invoice $record */
-        $lineItems = collect($data['lineItems'] ?? []);
+        $lineItems = collect($data['lineItemGroups'] ?? []);
 
         $this->deleteRemovedLineItems($record, $lineItems);
 

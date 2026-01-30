@@ -25,8 +25,13 @@ class DocumentTotalViewModel
 
         $lineItems = collect($this->data['lineItems'] ?? []);
 
-        $subtotalInCents = $lineItems->sum(fn ($item) => $this->calculateLineSubtotalInCents($item, $currencyCode));
+        if (isset($this->data['lineItemGroups'])) {
+            $lineItems = collect($this->data['lineItemGroups'])
+                ->pluck('items')
+                ->flatten(1);
+        }
 
+        $subtotalInCents = $lineItems->sum(fn ($item) => $this->calculateLineSubtotalInCents($item, $currencyCode));
         $taxTotalInCents = $this->calculateAdjustmentsTotalInCents($lineItems, $this->documentType->getTaxKey(), $currencyCode);
         $discountTotalInCents = $this->calculateDiscountTotalInCents($lineItems, $subtotalInCents, $currencyCode);
 

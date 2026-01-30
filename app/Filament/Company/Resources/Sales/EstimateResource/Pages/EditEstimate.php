@@ -33,7 +33,7 @@ class EditEstimate extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         /** @var Estimate $record */
-        $lineItems = collect($data['lineItems'] ?? []);
+        $lineItems = collect($data['lineItemGroups'] ?? []);
 
         $this->deleteRemovedLineItems($record, $lineItems);
 
