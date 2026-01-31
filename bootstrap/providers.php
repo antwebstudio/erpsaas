@@ -9,4 +9,7 @@ return [
     App\Providers\SquireServiceProvider::class,
     App\Providers\TranslationServiceProvider::class,
     App\Providers\CurrencyServiceProvider::class,
+    
+    Studio15\FilamentTree\FilamentTreeServiceProvider::class,
+
 ];

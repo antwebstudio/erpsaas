@@ -9,6 +9,7 @@ use App\Models\Banking\ConnectedBankAccount;
 use App\Models\Common\Client;
 use App\Models\Common\Contact;
 use App\Models\Common\Offering;
+use App\Models\Common\OfferingCategory;
 use App\Models\Core\Department;
 use App\Models\Setting\CompanyDefault;
 use App\Models\Setting\CompanyProfile;
@@ -201,6 +202,11 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     public function offerings(): HasMany
     {
         return $this->hasMany(Offering::class, 'company_id');
+    }
+
+    public function offeringCategories(): HasMany
+    {
+        return $this->hasMany(OfferingCategory::class, 'company_id');
     }
 
     public function vendors(): HasMany

@@ -4,8 +4,74 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9277341829a5daccd3c5f7747ba86a91",
+    "content-hash": "37ba83abc3624824bbc1e0657faa90f8",
     "packages": [
+        {
+            "name": "15web/filament-tree",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/15web/filament-tree.git",
+                "reference": "a9fd9d8be83691db54c2723d2fa37712b10fd63f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/15web/filament-tree/zipball/a9fd9d8be83691db54c2723d2fa37712b10fd63f",
+                "reference": "a9fd9d8be83691db54c2723d2fa37712b10fd63f",
+                "shasum": ""
+            },
+            "require": {
+                "filament/support": "^3.2",
+                "illuminate/contracts": "^11.0 || ^12.0",
+                "kalnoy/nestedset": "^6.0.5",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.14.0"
+            },
+            "require-dev": {
+                "driftingly/rector-laravel": "^2.0",
+                "ergebnis/composer-normalize": "^2.47",
+                "friendsofphp/php-cs-fixer": "^3.73",
+                "orchestra/testbench": "^9.0 || ^10.0",
+                "rector/rector": "^2.0",
+                "webmozart/assert": "^1.11"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Studio15\\FilamentTree\\FilamentTreeServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Studio15\\FilamentTree\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "15web",
+                    "email": "info@15web.ru",
+                    "homepage": "https://www.15web.ru"
+                }
+            ],
+            "description": "Tree builder for Eloquent models",
+            "homepage": "https://github.com/15web/filament-tree",
+            "keywords": [
+                "filament",
+                "laravel",
+                "tree"
+            ],
+            "support": {
+                "issues": "https://github.com/15web/filament-tree/issues",
+                "source": "https://github.com/15web/filament-tree/tree/1.0.3"
+            },
+            "time": "2025-05-23T07:06:49+00:00"
+        },
         {
             "name": "akaunting/laravel-money",
             "version": "6.0.2",
@@ -2982,6 +3048,69 @@
                 }
             ],
             "time": "2025-08-28T14:15:53+00:00"
+        },
+        {
+            "name": "kalnoy/nestedset",
+            "version": "v6.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lazychaser/laravel-nestedset.git",
+                "reference": "3cfc56a9759fb592bc903056166bfc0867f9e679"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lazychaser/laravel-nestedset/zipball/3cfc56a9759fb592bc903056166bfc0867f9e679",
+                "reference": "3cfc56a9759fb592bc903056166bfc0867f9e679",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/events": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "7.*|8.*|9.*|^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kalnoy\\Nestedset\\NestedSetServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "v5.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Kalnoy\\Nestedset\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexander Kalnoy",
+                    "email": "lazychaser@gmail.com"
+                }
+            ],
+            "description": "Nested Set Model for Laravel 5.7 and up",
+            "keywords": [
+                "database",
+                "hierarchy",
+                "laravel",
+                "nested sets",
+                "nsm"
+            ],
+            "support": {
+                "issues": "https://github.com/lazychaser/laravel-nestedset/issues",
+                "source": "https://github.com/lazychaser/laravel-nestedset/tree/v6.0.6"
+            },
+            "time": "2025-04-22T19:38:02+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
@@ -14028,7 +14157,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -14036,6 +14165,6 @@
         "ext-bcmath": "*",
         "ext-intl": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
