@@ -44,6 +44,9 @@ class UserPanelProvider extends PanelProvider
                         return $builder
                             ->items([
                                 ...Account::getNavigationItems(),
+                                NavigationItem::make('Quotation Builder')
+                                    ->url(\App\Filament\User\Pages\CreateQuotation::getUrl())
+                                    ->icon('heroicon-o-document-text'),
                                 NavigationItem::make('company')
                                     ->label('Company Dashboard')
                                     ->icon('heroicon-s-building-office-2')
