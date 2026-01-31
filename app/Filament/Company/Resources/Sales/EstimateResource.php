@@ -180,12 +180,14 @@ class EstimateResource extends Resource
                         Forms\Components\Repeater::make('lineItemGroups')
                             ->relationship('lineItemGroups')
                             ->saveRelationshipsUsing(null)
+                            ->dehydrated(true)
                             ->orderColumn('order')
                             ->defaultItems(1)
                             ->label('Item Groups')
                             ->hiddenLabel()
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                             ->schema([
+                                Forms\Components\Hidden::make('id'),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Section Name (Optional)')
                                     ->placeholder('e.g. Materials, Labor')
@@ -229,6 +231,7 @@ class EstimateResource extends Resource
                                         return $headers;
                                     })
                                     ->schema([
+                                        Forms\Components\Hidden::make('id'),
                                         Forms\Components\Group::make([
                                             CreateOfferingSelect::make('offering_id')
                                                 ->label('Item')
