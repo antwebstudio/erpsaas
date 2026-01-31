@@ -22,6 +22,7 @@ class CompanyDefault extends Model
     protected $fillable = [
         'company_id',
         'bank_account_id',
+        'income_account_id',
         'currency_code',
         'created_by',
         'updated_by',
@@ -30,6 +31,11 @@ class CompanyDefault extends Model
     public function bankAccount(): BelongsTo
     {
         return $this->belongsTo(BankAccount::class, 'bank_account_id');
+    }
+
+    public function incomeAccount(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Accounting\Account::class, 'income_account_id');
     }
 
     public function currency(): BelongsTo

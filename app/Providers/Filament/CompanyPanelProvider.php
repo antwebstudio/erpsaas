@@ -33,6 +33,9 @@ use App\Filament\Company\Resources\Common\OfferingResource;
 use App\Filament\Company\Resources\Core\UserResource;
 use App\Filament\Company\Resources\Common\OfferingCategoryResource;
 use App\Filament\Company\Pages\OfferingCategory;
+use App\Filament\Company\Resources\Common\JobScopeResource;
+use App\Filament\Company\Resources\Common\JobScopeDescriptionResource;
+use App\Filament\Company\Resources\Common\JobScopeOptionResource;
 use App\Filament\Company\Resources\Purchases\BillResource;
 use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
@@ -141,6 +144,9 @@ class CompanyPanelProvider extends PanelProvider
                         // ...OfferingCategoryResource::getNavigationItems(),
                         ...OfferingCategory::getNavigationItems(),
                         ...UserResource::getNavigationItems(),
+                        ...JobScopeResource::getNavigationItems(),
+                        ...JobScopeDescriptionResource::getNavigationItems(),
+                        ...JobScopeOptionResource::getNavigationItems(),
                     ])
                     ->groups([
                         NavigationGroup::make('Sales')

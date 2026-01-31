@@ -196,6 +196,15 @@
             <div class="grid md:grid-cols-2 gap-8 mb-8">
                 <div class="space-y-4">
                     <div>
+                        <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Select Client <span class="text-red-500">*</span></label>
+                        <select x-model="data.client_id" class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500">
+                             <option value="">-- Select Client --</option>
+                             <template x-for="client in data.clients" :key="client.id">
+                                 <option :value="client.id" x-text="client.name"></option>
+                             </template>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Select Terms & Conditions Template</label>
                         <select class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500">
                             <option>Standard Construction Terms (2024)</option>
@@ -222,7 +231,10 @@
             <!-- Final Actions -->
             <div class="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
                 <button @click="step = 2" class="text-xs font-bold underline uppercase text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Back to Edit</button>
-                <button @click="submitQuotation" class="px-10 py-4 bg-green-600 hover:bg-green-700 text-white font-bold uppercase text-lg shadow-lg  rounded-xl transition-transform hover:-translate-y-1">
+                <button @click="submitQuotation" 
+                        :disabled="!data.client_id"
+                        :class="!data.client_id ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-green-600 hover:bg-green-700 hover:-translate-y-1'"
+                        class="px-10 py-4 text-white font-bold uppercase text-lg shadow-lg rounded-xl transition-all">
                     Create Quotation
                 </button>
             </div>

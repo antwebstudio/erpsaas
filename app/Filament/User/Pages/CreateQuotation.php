@@ -46,6 +46,22 @@ class CreateQuotation extends Page
             ->with(['children.offerings']) // Eager load Descriptions (children) and their Items (offerings)
             ->get();
 
+        // Fetch Clients
+        // Assuming Client model has global scope or tenant scope handled by CompanyOwned trait/middleware
+        $clients = \App\Models\Common\Client::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $this->data['clients'] = $clients->map(function ($client) {
+            return [
+                'id' => $client->id,
+                'name' => $client->name,
+            ];
+        })->toArray();
+
+        // Initialize client_id
+        $this->data['client_id'] = null;
+
         $this->data['scopes'] = $scopes->map(function ($scope) {
             return [
                 'id' => $scope->id,
@@ -61,8 +77,8 @@ class CreateQuotation extends Page
                             return [
                                 'id' => $item->id,
                                 'name' => $item->name,
-                                'qty' => 0,
-                                'uom' => $item->unit ?? 'ls',
+                                'qty' => 1,
+                                'uom' => $item->unit,
                                 'price' => isset($item->price) ? $item->price / 100 : 0,
                                 'selected' => false,
                             ];
@@ -101,14 +117,27 @@ class CreateQuotation extends Page
             return;
         }
 
+        if (empty($this->data['client_id'])) {
+            Notification::make()
+                ->title('No client selected')
+                ->body('Please select a client to create a quotation.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         $user = Auth::user();
         $company = $user->currentCompany;
-
+        
+        $settings = $company->defaultEstimate;
+        
         // 2. Create Estimate
         $estimate = Estimate::create([
             'company_id' => $company->id,
-            'client_id' => null, // Or a default client if applicable? Leaving null for now or requires adjustment
+            'client_id' => $this->data['client_id'],
             'estimate_number' => Estimate::getNextDocumentNumber($company),
+            'header' => $settings->header,
+            'subheader' => $settings->subheader,
             'date' => now(),
             'expiration_date' => now()->addDays(30), // Default 30 days
             'status' => EstimateStatus::Draft,
@@ -158,9 +187,11 @@ class CreateQuotation extends Page
 
                      $estimate->lineItems()->create([
                          'group_id' => $scopeGroup?->id,
+                         'offering_id' => $item['id'],
                          'name' => $item['name'], 
                          'description' => $item['name'], // Use item name (offering) as description
                          'quantity' => $item['qty'],
+                         'unit' => $item['uom'],
                          'unit_price' => $itemPrice,
                          'subtotal' => $lineTotal,
                          'total' => $lineTotal,
