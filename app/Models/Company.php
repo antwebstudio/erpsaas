@@ -213,4 +213,9 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     {
         return $this->hasMany(Common\Vendor::class, 'company_id');
     }
+
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class, 'company_id');
+    }
 }

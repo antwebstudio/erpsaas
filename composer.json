@@ -19,6 +19,7 @@
         "andrewdwallo/transmatic": "^1.1",
         "awcodes/filament-table-repeater": "^3.0",
         "barryvdh/laravel-snappy": "^1.0",
+        "bezhansalleh/filament-shield": "*",
         "codewithdennis/filament-simple-alert": "^3.0",
         "fakerphp/faker": "^1.24",
         "filament/filament": "^3.2",

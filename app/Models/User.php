@@ -21,6 +21,7 @@ use Wallo\FilamentCompanies\HasCompanies;
 use Wallo\FilamentCompanies\HasConnectedAccounts;
 use Wallo\FilamentCompanies\HasProfilePhoto;
 use Wallo\FilamentCompanies\SetsProfilePhotoFromUrl;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaultTenant, HasTenants
 {
@@ -30,7 +31,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     use HasFactory;
     use HasProfilePhoto;
     use Notifiable;
-    use SetsProfilePhotoFromUrl;
+    use SetsProfilePhotoFromUrl;    
+    use HasRoles;
 
     /**
      * The attributes that are mass assignable.

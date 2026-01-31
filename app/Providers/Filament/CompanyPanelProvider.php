@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Actions\FilamentCompanies\AddCompanyEmployee;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Actions\FilamentCompanies\CreateConnectedAccount;
 use App\Actions\FilamentCompanies\CreateNewUser;
 use App\Actions\FilamentCompanies\CreateUserFromProvider;
@@ -28,6 +30,7 @@ use App\Filament\Company\Resources\Accounting\BudgetResource;
 use App\Filament\Company\Resources\Accounting\TransactionResource;
 use App\Filament\Company\Resources\Banking\AccountResource;
 use App\Filament\Company\Resources\Common\OfferingResource;
+use App\Filament\Company\Resources\Core\UserResource;
 use App\Filament\Company\Resources\Common\OfferingCategoryResource;
 use App\Filament\Company\Pages\OfferingCategory;
 use App\Filament\Company\Resources\Purchases\BillResource;
@@ -96,6 +99,7 @@ class CompanyPanelProvider extends PanelProvider
             })
             ->tenantMenu(false)
             ->plugins([
+                FilamentShieldPlugin::make(),
                 FilamentCompanies::make()
                     ->userPanel('user')
                     ->switchCurrentCompany()
@@ -136,6 +140,7 @@ class CompanyPanelProvider extends PanelProvider
                         ...OfferingResource::getNavigationItems(),
                         // ...OfferingCategoryResource::getNavigationItems(),
                         ...OfferingCategory::getNavigationItems(),
+                        ...UserResource::getNavigationItems(),
                     ])
                     ->groups([
                         NavigationGroup::make('Sales')
@@ -208,6 +213,7 @@ class CompanyPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->tenantMiddleware([
+                SyncShieldTenant::class,
                 ConfigureCurrentCompany::class,
             ], isPersistent: true)
             ->authMiddleware([
