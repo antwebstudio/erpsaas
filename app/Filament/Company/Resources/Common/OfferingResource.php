@@ -79,6 +79,10 @@ class OfferingResource extends Resource
                     ->required()
                     ->columnStart(1)
                     ->maxLength(255),
+                Forms\Components\TextInput::make('unit')
+                    ->label('Unit of Measurement')
+                    ->placeholder('e.g. kg, pcs, hours')
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->money(),

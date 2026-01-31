@@ -34,6 +34,7 @@ trait ManagesLineItems
                 'description' => $itemData['description'],
                 'quantity' => $itemData['quantity'],
                 'unit_price' => $itemData['unit_price'],
+                'unit' => $itemData['unit'] ?? null,
                 'line_number' => $index + 1,
             ]);
 
@@ -98,6 +99,7 @@ trait ManagesLineItems
                      'description' => $itemData['description'] ?? null,
                      'quantity' => $itemData['quantity'],
                      'unit_price' => $itemData['unit_price'],
+                     'unit' => $itemData['unit'] ?? null,
                      'line_number' => $itemIndex,
                  ]);
                  

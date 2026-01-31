@@ -41,6 +41,7 @@ class DocumentLineItem extends Model
         'line_number',
         'created_by',
         'updated_by',
+        'unit',
     ];
 
     public function documentable(): MorphTo

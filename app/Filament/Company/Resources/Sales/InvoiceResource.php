@@ -217,6 +217,9 @@ class InvoiceResource extends Resource
                                         $headers = [
                                             Header::make($settings->resolveColumnLabel('item_name', 'Items'))
                                                 ->width('30%'),
+                                            Header::make('Unit')
+                                                ->width('10%')
+                                                ->markAsRequired(false),
                                             Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
                                                 ->width('10%'),
                                             Header::make($settings->resolveColumnLabel('price_name', 'Price'))
@@ -287,6 +290,7 @@ class InvoiceResource extends Resource
                                                     $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
 
                                                     $set('description', $offeringRecord->description);
+                                                    $set('unit', $offeringRecord->unit);
                                                     $set('unit_price', $unitPrice);
                                                     $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
 
@@ -298,6 +302,9 @@ class InvoiceResource extends Resource
                                                 ->placeholder('Enter item description')
                                                 ->hiddenLabel(),
                                         ])->columnSpan(1),
+                                        Forms\Components\TextInput::make('unit')
+                                            ->placeholder('Unit')
+                                            ->hiddenLabel(),
                                         Forms\Components\TextInput::make('quantity')
                                             ->required()
                                             ->numeric()

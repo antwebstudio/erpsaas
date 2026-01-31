@@ -36,6 +36,7 @@ class Offering extends Model
         'expense_account_id',
         'created_by',
         'updated_by',
+        'unit',
     ];
 
     protected $casts = [
