@@ -39,6 +39,7 @@ use App\Filament\Company\Resources\Common\JobScopeOptionResource;
 use App\Filament\Company\Resources\Purchases\BillResource;
 use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
+use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource;
@@ -153,6 +154,7 @@ class CompanyPanelProvider extends PanelProvider
                             ->label('Sales')
                             ->icon('heroicon-o-currency-dollar')
                             ->items([
+                                ...LeadResource::getNavigationItems(),
                                 ...ClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),
                                 ...InvoiceResource::getNavigationItems(),

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Company\Resources\Sales;
 
-use App\Filament\Company\Resources\Sales\ClientResource\Pages;
+use App\Filament\Company\Resources\Sales\LeadResource\Pages;
 use App\Filament\Exports\Common\ClientExporter;
 use App\Filament\Forms\Components\AddressFields;
 use App\Filament\Forms\Components\CreateCurrencySelect;
@@ -11,6 +11,7 @@ use App\Filament\Forms\Components\PhoneBuilder;
 use App\Filament\Tables\Columns;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
+use App\Models\Common\Lead;
 use App\Utilities\Currency\CurrencyConverter;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -20,12 +21,14 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-
-class ClientResource extends Resource
+// ...
+class LeadResource extends Resource
 {
-    protected static ?string $model = Client::class;
+    protected static ?string $model = Lead::class;
 
+    protected static ?string $modelLabel = 'Lead';
 
+    protected static ?string $slug = 'leads';
 
     public static function form(Form $form): Form
     {
@@ -37,14 +40,14 @@ class ClientResource extends Resource
                             ->columns()
                             ->schema([
                                 Forms\Components\TextInput::make('name')
-                                    ->label('Client name')
+                                    ->label('Lead name')
                                     ->required()
                                     ->maxLength(255),
-                                Forms\Components\TextInput::make('account_number')
-                                    ->maxLength(255)
-                                    ->columnStart(1),
-                                Forms\Components\TextInput::make('website')
-                                    ->maxLength(255),
+                                // Forms\Components\TextInput::make('account_number')
+                                //     ->maxLength(255)
+                                //     ->columnStart(1),
+                                // Forms\Components\TextInput::make('website')
+                                //     ->maxLength(255),
                                 Forms\Components\Textarea::make('notes')
                                     ->columnSpanFull(),
                             ]),
@@ -171,79 +174,79 @@ class ClientResource extends Resource
                                     ->blockNumbers(false),
                             ]),
                     ])->columns(1),
-                Forms\Components\Section::make('Billing')
-                    ->schema([
-                        CreateCurrencySelect::make('currency_code')
-                            ->softRequired(),
-                        CustomSection::make('Billing Address')
-                            ->relationship('billingAddress')
-                            ->saveRelationshipsUsing(null)
-                            ->saveRelationshipsBeforeChildrenUsing(null)
-                            ->dehydrated(true)
-                            ->contained(false)
-                            ->schema([
-                                Forms\Components\Hidden::make('type')
-                                    ->default('billing'),
-                                AddressFields::make(),
-                            ])->columns(),
-                    ])
-                    ->columns(1),
-                Forms\Components\Section::make('Shipping')
-                    ->relationship('shippingAddress')
-                    ->saveRelationshipsUsing(null)
-                    ->saveRelationshipsBeforeChildrenUsing(null)
-                    ->dehydrated(true)
-                    ->schema([
-                        Forms\Components\Hidden::make('type')
-                            ->default('shipping'),
-                        Forms\Components\TextInput::make('recipient')
-                            ->label('Recipient')
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('phone')
-                            ->label('Phone')
-                            ->maxLength(255),
-                        CustomSection::make('Shipping Address')
-                            ->contained(false)
-                            ->schema([
-                                Forms\Components\Checkbox::make('same_as_billing')
-                                    ->label('Same as billing address')
-                                    ->live()
-                                    ->afterStateHydrated(function (?Address $record, Forms\Components\Checkbox $component) {
-                                        if (! $record || $record->parent_address_id) {
-                                            return $component->state(true);
-                                        }
+                // Forms\Components\Section::make('Billing')
+                //     ->schema([
+                //         CreateCurrencySelect::make('currency_code')
+                //             ->softRequired(),
+                //         CustomSection::make('Billing Address')
+                //             ->relationship('billingAddress')
+                //             ->saveRelationshipsUsing(null)
+                //             ->saveRelationshipsBeforeChildrenUsing(null)
+                //             ->dehydrated(true)
+                //             ->contained(false)
+                //             ->schema([
+                //                 Forms\Components\Hidden::make('type')
+                //                     ->default('billing'),
+                //                 AddressFields::make(),
+                //             ])->columns(),
+                //     ])
+                //     ->columns(1),
+                // Forms\Components\Section::make('Shipping')
+                //     ->relationship('shippingAddress')
+                //     ->saveRelationshipsUsing(null)
+                //     ->saveRelationshipsBeforeChildrenUsing(null)
+                //     ->dehydrated(true)
+                //     ->schema([
+                //         Forms\Components\Hidden::make('type')
+                //             ->default('shipping'),
+                //         Forms\Components\TextInput::make('recipient')
+                //             ->label('Recipient')
+                //             ->maxLength(255),
+                //         Forms\Components\TextInput::make('phone')
+                //             ->label('Phone')
+                //             ->maxLength(255),
+                //         CustomSection::make('Shipping Address')
+                //             ->contained(false)
+                //             ->schema([
+                //                 Forms\Components\Checkbox::make('same_as_billing')
+                //                     ->label('Same as billing address')
+                //                     ->live()
+                //                     ->afterStateHydrated(function (?Address $record, Forms\Components\Checkbox $component) {
+                //                         if (! $record || $record->parent_address_id) {
+                //                             return $component->state(true);
+                //                         }
 
-                                        return $component->state(false);
-                                    })
-                                    ->afterStateUpdated(static function (Get $get, Set $set, $state) {
-                                        if ($state) {
-                                            return;
-                                        }
+                //                         return $component->state(false);
+                //                     })
+                //                     ->afterStateUpdated(static function (Get $get, Set $set, $state) {
+                //                         if ($state) {
+                //                             return;
+                //                         }
 
-                                        $billingAddress = $get('../billingAddress');
+                //                         $billingAddress = $get('../billingAddress');
 
-                                        $fieldsToSync = [
-                                            'address_line_1',
-                                            'address_line_2',
-                                            'country_code',
-                                            'state_id',
-                                            'city',
-                                            'postal_code',
-                                        ];
+                //                         $fieldsToSync = [
+                //                             'address_line_1',
+                //                             'address_line_2',
+                //                             'country_code',
+                //                             'state_id',
+                //                             'city',
+                //                             'postal_code',
+                //                         ];
 
-                                        foreach ($fieldsToSync as $field) {
-                                            $set($field, $billingAddress[$field]);
-                                        }
-                                    })
-                                    ->columnSpanFull(),
-                                AddressFields::make()
-                                    ->visible(static fn (Get $get) => ! $get('same_as_billing')),
-                                Forms\Components\Textarea::make('notes')
-                                    ->label('Delivery instructions')
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
-                            ])->columns(),
-                    ])->columns(),
+                //                         foreach ($fieldsToSync as $field) {
+                //                             $set($field, $billingAddress[$field]);
+                //                         }
+                //                     })
+                //                     ->columnSpanFull(),
+                //                 AddressFields::make()
+                //                     ->visible(static fn (Get $get) => ! $get('same_as_billing')),
+                //                 Forms\Components\Textarea::make('notes')
+                //                     ->label('Delivery instructions')
+                //                     ->maxLength(255)
+                //                     ->columnSpanFull(),
+                //             ])->columns(),
+                //     ])->columns(),
             ]);
     }
 
@@ -330,10 +333,10 @@ class ClientResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListClients::route('/'),
-            'create' => Pages\CreateClient::route('/create'),
-            'view' => Pages\ViewClient::route('/{record}'),
-            'edit' => Pages\EditClient::route('/{record}/edit'),
+            'index' => Pages\ListLeads::route('/'),
+            'create' => Pages\CreateLead::route('/create'),
+            'view' => Pages\ViewLead::route('/{record}'),
+            'edit' => Pages\EditLead::route('/{record}/edit'),
         ];
     }
 }

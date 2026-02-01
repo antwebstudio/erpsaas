@@ -27,6 +27,7 @@ class Client extends Model
 
     protected $fillable = [
         'company_id',
+        'type',
         'name',
         'currency_code',
         'account_number',
@@ -36,10 +37,19 @@ class Client extends Model
         'updated_by',
     ];
 
+    protected static function booted(): void
+    {
+        if (static::class === Client::class) {
+            static::addGlobalScope('type', function ($builder) {
+                $builder->where('type', 'client');
+            });
+        }
+    }
+
     public static function createWithRelations(array $data): self
     {
         /** @var Client $client */
-        $client = self::create($data);
+        $client = static::create($data);
 
         if (isset($data['primaryContact'], $data['primaryContact']['first_name'])) {
             $client->primaryContact()->create([

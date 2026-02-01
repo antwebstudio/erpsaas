@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Filament\Company\Resources\Sales\ClientResource\Pages;
+namespace App\Filament\Company\Resources\Sales\LeadResource\Pages;
 
 use App\Concerns\HandlePageRedirect;
-use App\Filament\Company\Resources\Sales\ClientResource;
-use App\Models\Common\Client;
+use App\Filament\Company\Resources\Sales\LeadResource;
+use App\Models\Common\Lead;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Model;
 
-class CreateClient extends CreateRecord
+class CreateLead extends CreateRecord
 {
     use HandlePageRedirect;
 
-    protected static string $resource = ClientResource::class;
+    protected static string $resource = LeadResource::class;
 
     public function getMaxContentWidth(): MaxWidth | string | null
     {
@@ -22,7 +22,7 @@ class CreateClient extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        $data['type'] = 'client';
-        return Client::createWithRelations($data);
+        $data['type'] = 'lead';
+        return Lead::createWithRelations($data);
     }
 }
