@@ -23,6 +23,7 @@ use App\Filament\Company\Clusters\Settings;
 use App\Filament\Company\Pages\Accounting\AccountChart;
 use App\Filament\Company\Pages\CreateCompany;
 use App\Filament\Company\Pages\ManageCompany;
+use App\Filament\Company\Pages\WelcomePage;
 use App\Filament\Company\Pages\Reports;
 use App\Filament\Company\Pages\Service\ConnectedAccount;
 use App\Filament\Company\Pages\Service\LiveCurrency;
@@ -139,6 +140,7 @@ class CompanyPanelProvider extends PanelProvider
             ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
                 return $builder
                     ->items([
+                        ...WelcomePage::getNavigationItems(),
                         ...Reports::getNavigationItems(),
                         ...Settings::getNavigationItems(),
                         ...OfferingResource::getNavigationItems(),
@@ -202,6 +204,7 @@ class CompanyPanelProvider extends PanelProvider
             ->discoverClusters(in: app_path('Filament/Company/Clusters'), for: 'App\\Filament\\Company\\Clusters')
             ->pages([
                 // Pages\Dashboard::class,
+                WelcomePage::class,
             ])
             ->authGuard('web')
             ->discoverWidgets(in: app_path('Filament/Company/Widgets'), for: 'App\\Filament\\Company\\Widgets')
