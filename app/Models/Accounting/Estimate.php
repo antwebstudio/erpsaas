@@ -12,6 +12,7 @@ use App\Enums\Accounting\InvoiceStatus;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Models\Common\Client;
+use App\Models\Common\ClientAndLead;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
 use App\Observers\EstimateObserver;
@@ -96,6 +97,11 @@ class Estimate extends Document
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function clientAndLead(): BelongsTo
+    {
+        return $this->belongsTo(ClientAndLead::class, 'client_id');
     }
 
     public function invoice(): HasOne

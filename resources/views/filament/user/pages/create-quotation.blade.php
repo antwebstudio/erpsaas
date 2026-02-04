@@ -21,10 +21,12 @@
             
             <div class="grid grid-cols-2 gap-2">
                 <template x-for="(scope, index) in data.scopes" :key="index">
-                    <label class="flex items-start gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <label 
+                        :class="scope.selected ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 border-gray-900 dark:border-white' : 'border-gray-200 dark:border-gray-700'"
+                        class="flex items-start gap-2 p-2 border rounded cursor-pointer hover:bg-gray-900 dark:hover:bg-gray-100 dark:hover:text-gray-900 transition-colors hover:text-white">
                         <input type="checkbox" x-model="scope.selected" class="mt-0.5 h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
                         <div>
-                            <span class="font-bold text-sm text-gray-900 dark:text-white" x-text="scope.name"></span>
+                            <span class="font-bold text-sm" x-text="scope.name"></span>
                             <!-- <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5" x-text="scope.descriptions.length + ' categories'"></p> -->
                         </div>
                     </label>
@@ -52,7 +54,9 @@
                                     
                                     <div class="grid gap-3">
                                         <template x-for="(item, iIndex) in desc.items" :key="item.id">
-                                            <div class="border border-gray-200 dark:border-gray-700 p-4 rounded-lg flex flex-col md:flex-row gap-4 items-start md:items-center bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                                            <div 
+                                                :class="item.selected ? 'bg-gray-100 dark:bg-gray-700 border-primary-500 dark:border-primary-400' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'"
+                                                class="border p-4 rounded-lg flex flex-col md:flex-row gap-4 items-start md:items-center shadow-sm hover:shadow-md transition-shadow hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                                  <!-- Selection & Name Edit -->
                                                 <div class="flex items-start gap-3 flex-grow w-full md:w-auto">
                                                     <input type="checkbox" x-model="item.selected" class="mt-1 h-5 w-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
@@ -147,13 +151,15 @@
             <div class="grid md:grid-cols-2 gap-8 mb-8">
                 <div class="space-y-4">
                     <div>
-                        <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Select Client <span class="text-red-500">*</span></label>
+                        <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Client</label>
+                        <div x-text="data.client_name"></div>
+                        <!-- <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Select Client <span class="text-red-500">*</span></label>
                         <select x-model="data.client_id" class="w-full p-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500">
                              <option value="">-- Select Client --</option>
                              <template x-for="client in data.clients" :key="client.id">
                                  <option :value="client.id" x-text="client.name"></option>
                              </template>
-                        </select>
+                        </select> -->
                     </div>
                     <div>
                         <label class="block font-bold text-xs uppercase mb-1 text-gray-500 dark:text-gray-400">Select Terms & Conditions Template</label>

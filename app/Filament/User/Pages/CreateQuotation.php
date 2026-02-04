@@ -29,10 +29,11 @@ class CreateQuotation extends Page
 
     public function mount()
     {
-        $this->loadData();
+        $clientId = request()->query('client');
+        $this->loadData($clientId ? (int) $clientId : null);
     }
 
-    public function loadData()
+    public function loadData(?int $clientId = null)
     {
         // Fetch Root Scopes (Offering Categories with no parent)
         // Adjust logic based on your actual data structure for specific "Scopes" if needed
@@ -46,21 +47,24 @@ class CreateQuotation extends Page
             ->with(['children.offerings']) // Eager load Descriptions (children) and their Items (offerings)
             ->get();
 
-        // Fetch Clients
-        // Assuming Client model has global scope or tenant scope handled by CompanyOwned trait/middleware
+        // Fetch Clients and Leads
+        // Use withoutGlobalScope to bypass the type filtering and get both clients and leads
         $clients = \App\Models\Common\Client::query()
+            ->withoutGlobalScope('type')
+            ->orderBy('type') // Leads first, then Clients
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'type']);
 
         $this->data['clients'] = $clients->map(function ($client) {
             return [
                 'id' => $client->id,
-                'name' => $client->name,
+                'name' => $client->name . ' (' . ucfirst($client->type) . ')',
             ];
         })->toArray();
 
-        // Initialize client_id
-        $this->data['client_id'] = null;
+        // Initialize client_id from parameter or default to null
+        $this->data['client_id'] = (int) $clientId;
+        $this->data['client_name'] = isset($clientId) ? $clients->find($clientId)->name : null;
 
         $this->data['scopes'] = $scopes->map(function ($scope) {
             return [

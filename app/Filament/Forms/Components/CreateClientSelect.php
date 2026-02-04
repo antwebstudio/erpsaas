@@ -22,7 +22,7 @@ class CreateClientSelect extends Select
             ->createOptionForm(fn (Form $form) => $this->createClientForm($form))
             ->createOptionAction(fn (Action $action) => $this->createClientAction($action));
 
-        $this->relationship('client', 'name');
+        $this->relationship('clientAndLead', 'name');
 
         $this->createOptionUsing(static function (array $data) {
             return DB::transaction(static function () use ($data) {
