@@ -29,57 +29,20 @@
             </div>
 
             <div class="mt-8 text-right">
-                <button @click="goToLevel2()" 
+                <button @click="goToConfigureItems()" 
                         :disabled="!hasSelectedScopes"
                         :class="!hasSelectedScopes ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-900 dark:hover:bg-gray-100 hover:text-white dark:hover:text-gray-900'"
                         class="px-8 py-3 border border-gray-900 dark:border-white text-gray-900 dark:text-white font-bold uppercase transition-all rounded-lg">
-                    Next: Select Descriptions →
+                    Next: Configure Items →
                 </button>
             </div>
         </div>
 
-        <!-- Step 1: Scope Descriptions (Level 2) -->
+        <!-- Step 1 removed - descriptions are auto-selected -->
+
+        <!-- Step 1: Item Details (Level 3) -->
         <div x-show="step === 1" x-transition>
-            <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">2. Select Descriptions</h2>
-            <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">Select the description categories for each scope. You can edit the description text.</p>
-
-            <div class="space-y-8">
-                <template x-for="(scope, sIndex) in data.scopes" :key="scope.id">
-                    <div x-show="scope.selected" class="border border-gray-200 dark:border-gray-700 rounded-lg p-5 relative mt-6">
-                        <div class="absolute -top-3 left-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-2 text-xs font-bold uppercase rounded" x-text="scope.name"></div>
-                        
-                        <div class="mt-2 space-y-4">
-                            <template x-for="(desc, dIndex) in scope.descriptions" :key="desc.id">
-                                <div class="flex items-start gap-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                    <input type="checkbox" x-model="desc.selected" class="mt-1.5 h-5 w-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
-                                    <div class="w-full">
-                                        <textarea x-model="desc.text" 
-                                                  rows="2"
-                                                  class="w-full p-2 text-sm bg-transparent border-none focus:ring-0 text-gray-900 dark:text-gray-100 resize-y placeholder-gray-400"
-                                                  placeholder="Description text..."></textarea>
-                                        <div class="text-[10px] text-gray-400 dark:text-gray-500 text-right mt-1" x-text="desc.items.length + ' sub-options available'"></div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="mt-8 flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button @click="step = 0" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
-                <button @click="goToLevel3()" 
-                        :disabled="!hasSelectedDescriptions"
-                         :class="!hasSelectedDescriptions ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-900 dark:hover:bg-gray-100 hover:text-white dark:hover:text-gray-900'"
-                        class="px-6 py-2 border border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm uppercase font-bold transition-all rounded-lg">
-                    Next: Select Items & Details →
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 2: Item Details (Level 3) -->
-        <div x-show="step === 2" x-transition>
-            <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">3. Configure Items</h2>
+            <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">2. Configure Items</h2>
             <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">Select specific items and enter Quantity, UOM, and Unit Price.</p>
 
             <div class="space-y-10">
@@ -102,7 +65,7 @@
                                                 </div>
 
                                                 <!-- Inputs (Only show if selected) -->
-                                                <div x-show="item.selected" class="grid grid-cols-3 gap-3 w-full md:w-auto flex-shrink-0" x-transition>
+                                                <div x-show="false && item.selected" class="grid grid-cols-3 gap-3 w-full md:w-auto flex-shrink-0" x-transition>
                                                     <div>
                                                         <label class="text-[9px] uppercase font-bold block text-gray-500 dark:text-gray-400">Qty</label>
                                                         <input type="number" x-model="item.qty" class="w-20 p-1 text-right text-sm bg-transparent border-0 border-b border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-0 text-gray-900 dark:text-white">
@@ -118,7 +81,7 @@
                                                 </div>
                                                 
                                                 <!-- Subtotal -->
-                                                <div x-show="item.selected" class="w-28 text-right font-mono font-bold text-sm text-gray-900 dark:text-white">
+                                                <div x-show="false && item.selected" class="w-28 text-right font-mono font-bold text-sm text-gray-900 dark:text-white">
                                                     <span x-text="'$' + (item.qty * item.price).toLocaleString()"></span>
                                                 </div>
                                             </div>
@@ -132,7 +95,7 @@
             </div>
 
             <div class="mt-8 flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button @click="step = 1" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
+                <button @click="step = 0" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
                 <button @click="goToConfirmation()" 
                         class="px-8 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 uppercase font-bold text-sm shadow-md rounded-lg">
                     Review & Confirm →
@@ -140,8 +103,8 @@
             </div>
         </div>
 
-        <!-- Step 3: Confirmation Page -->
-        <div x-show="step === 3" x-transition>
+        <!-- Step 2: Confirmation Page -->
+        <div x-show="step === 2" x-transition>
             <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white border-l-4 border-primary-500 pl-4">Quotation Confirmation</h2>
 
             <!-- Final Editable Review -->
@@ -169,16 +132,16 @@
                                             <template x-for="item in desc.items" :key="item.id">
                                                 <tr x-show="item.selected" class="border-b border-gray-200 dark:border-gray-700 last:border-0 hover:bg-gray-100 dark:hover:bg-gray-700/50">
                                                     <td class="py-2 pr-2">
-                                                        <input type="text" x-model="item.name" class="w-full bg-transparent border-none focus:ring-0 p-1">
+                                                        <input type="text" x-model="item.name" class="w-full border-none focus:ring-0 p-1">
                                                     </td>
                                                     <td class="py-2 text-center">
-                                                        <input type="number" x-model="item.qty" class="w-16 text-center bg-transparent border-none focus:ring-0 p-1">
+                                                        <input type="number" x-model="item.qty" class="w-16 text-center border-none focus:ring-0 p-1">
                                                     </td>
                                                     <td class="py-2 text-center">
-                                                        <input type="text" x-model="item.uom" class="w-12 text-center bg-transparent border-none focus:ring-0 p-1 uppercase">
+                                                        <input type="text" x-model="item.uom" class="w-12 text-center border-none focus:ring-0 p-1 uppercase">
                                                     </td>
                                                     <td class="py-2 text-right">
-                                                        <input type="number" x-model="item.price" class="w-20 text-right bg-transparent border-none focus:ring-0 p-1">
+                                                        <input type="number" x-model="item.price" class="w-20 text-right border-none focus:ring-0 p-1">
                                                     </td>
                                                     <td class="py-2 text-right font-bold font-mono" x-text="'$' + (item.qty * item.price).toLocaleString()"></td>
                                                 </tr>
@@ -230,7 +193,7 @@
 
             <!-- Final Actions -->
             <div class="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button @click="step = 2" class="text-xs font-bold underline uppercase text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Back to Edit</button>
+                <button @click="step = 1" class="text-xs font-bold underline uppercase text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Back to Edit</button>
                 <button @click="submitQuotation" 
                         :disabled="!data.client_id"
                         :class="!data.client_id ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-green-600 hover:bg-green-700 hover:-translate-y-1'"
@@ -249,7 +212,7 @@
             data: initialData,
 
             get currentStepLabel() {
-                return ['Scope Selection', 'Descriptions', 'Item Details', 'Confirmation'][this.step];
+                return ['Scope Selection', 'Item Details', 'Confirmation'][this.step];
             },
 
             get hasSelectedScopes() {
@@ -264,16 +227,22 @@
                  return scope.descriptions.some(d => d.selected && d.items.some(i => i.selected));
             },
 
-            goToLevel2() {
-                if(this.hasSelectedScopes) this.step = 1;
-            },
-
-            goToLevel3() {
-                if(this.hasSelectedDescriptions) this.step = 2;
+            goToConfigureItems() {
+                if(this.hasSelectedScopes) {
+                    // Auto-select all descriptions within selected scopes
+                    this.data.scopes.forEach(scope => {
+                        if(scope.selected) {
+                            scope.descriptions.forEach(desc => {
+                                desc.selected = true;
+                            });
+                        }
+                    });
+                    this.step = 1; // Go to Configure Items (formerly step 2)
+                }
             },
             
             goToConfirmation() {
-                this.step = 3;
+                this.step = 2; // Go to Confirmation (formerly step 3)
             },
 
             calculateGrandTotal() {
