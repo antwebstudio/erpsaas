@@ -1,8 +1,8 @@
 <x-filament-panels::page>
-    <div x-data="renoWizard(@js($data))" class="w-full mx-auto border border-gray-200 dark:border-gray-700 p-6 shadow-sm bg-white dark:bg-gray-900 text-gray-950 dark:text-white min-h-screen rounded-xl">
+    <div x-data="renoWizard(@js($data))" class="w-full mx-auto border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-900 text-gray-950 dark:text-white rounded-xl" style="padding-bottom: 5rem;">
         
         <!-- Header -->
-        <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6 flex justify-between items-end">
+        <div class="border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-end">
             <div>
                 <h1 class="text-2xl font-bold uppercase tracking-tighter">User Quotation Builder</h1>
                 <p class="text-sm mt-1 text-gray-500 dark:text-gray-400">Multi-Level Scope Selection System</p>
@@ -12,30 +12,25 @@
             </div>
         </div>
 
+        <!-- Content Area -->
+        <div class="px-6 py-4">
+
         <!-- Step 0: Main Work Scopes (Level 1) -->
         <div x-show="step === 0" x-transition>
             <h2 class="text-xl font-bold mb-6 text-gray-900 dark:text-white">1. Select Work Scopes</h2>
             
-            <div class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-2 gap-2">
                 <template x-for="(scope, index) in data.scopes" :key="index">
-                    <label class="flex items-start gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <input type="checkbox" x-model="scope.selected" class="mt-1 h-5 w-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
+                    <label class="flex items-start gap-2 p-2 border border-gray-200 dark:border-gray-700 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <input type="checkbox" x-model="scope.selected" class="mt-0.5 h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
                         <div>
-                            <span class="font-bold text-lg text-gray-900 dark:text-white" x-text="scope.name"></span>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-text="scope.descriptions.length + ' Description Categories Available'"></p>
+                            <span class="font-bold text-sm text-gray-900 dark:text-white" x-text="scope.name"></span>
+                            <!-- <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5" x-text="scope.descriptions.length + ' categories'"></p> -->
                         </div>
                     </label>
                 </template>
             </div>
 
-            <div class="mt-8 text-right">
-                <button @click="goToConfigureItems()" 
-                        :disabled="!hasSelectedScopes"
-                        :class="!hasSelectedScopes ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-900 dark:hover:bg-gray-100 hover:text-white dark:hover:text-gray-900'"
-                        class="px-8 py-3 border border-gray-900 dark:border-white text-gray-900 dark:text-white font-bold uppercase transition-all rounded-lg">
-                    Next: Configure Items →
-                </button>
-            </div>
         </div>
 
         <!-- Step 1 removed - descriptions are auto-selected -->
@@ -94,13 +89,6 @@
                 </template>
             </div>
 
-            <div class="mt-8 flex justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button @click="step = 0" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
-                <button @click="goToConfirmation()" 
-                        class="px-8 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 uppercase font-bold text-sm shadow-md rounded-lg">
-                    Review & Confirm →
-                </button>
-            </div>
         </div>
 
         <!-- Step 2: Confirmation Page -->
@@ -191,8 +179,34 @@
                 </div>
             </div>
 
-            <!-- Final Actions -->
-            <div class="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
+        </div>
+
+        </div><!-- End Content Area -->
+
+        <!-- Fixed Footer with Navigation Buttons -->
+        <div class="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 shadow-lg z-50">
+            <div class="w-full mx-auto">
+                <!-- Step 0 Buttons -->
+                <div x-show="step === 0" class="flex justify-end">
+                <button @click="goToConfigureItems()" 
+                        :disabled="!hasSelectedScopes"
+                        :class="!hasSelectedScopes ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-900 dark:hover:bg-gray-100 hover:text-white dark:hover:text-gray-900'"
+                        class="px-8 py-3 border border-gray-900 dark:border-white text-gray-900 dark:text-white font-bold uppercase transition-all rounded-lg">
+                    Next: Configure Items →
+                </button>
+            </div>
+
+            <!-- Step 1 Buttons -->
+            <div x-show="step === 1" class="flex justify-between">
+                <button @click="step = 0" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
+                <button @click="goToConfirmation()" 
+                        class="px-8 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 uppercase font-bold text-sm shadow-md rounded-lg">
+                    Review & Confirm →
+                </button>
+            </div>
+
+            <!-- Step 2 Buttons -->
+            <div x-show="step === 2" class="flex justify-between items-center">
                 <button @click="step = 1" class="text-xs font-bold underline uppercase text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Back to Edit</button>
                 <button @click="submitQuotation" 
                         :disabled="!data.client_id"
@@ -200,6 +214,7 @@
                         class="px-10 py-4 text-white font-bold uppercase text-lg shadow-lg rounded-xl transition-all">
                     Create Quotation
                 </button>
+            </div>
             </div>
         </div>
 
