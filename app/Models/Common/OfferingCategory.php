@@ -49,6 +49,11 @@ class OfferingCategory extends Model
         return $this->belongsToMany(Offering::class, 'offering_offering_category', 'offering_category_id', 'offering_id');
     }
 
+    public function documentLineItemGroups(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Accounting\DocumentLineItemGroup::class);
+    }
+
     public static function getTreeLabelAttribute(): string
     {
         return 'name';

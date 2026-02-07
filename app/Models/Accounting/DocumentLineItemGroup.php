@@ -6,6 +6,7 @@ use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -21,6 +22,7 @@ class DocumentLineItemGroup extends Model
         'company_id',
         'documentable_type',
         'documentable_id',
+        'offering_category_id',
         'name',
         'order',
         'created_by',
@@ -35,5 +37,10 @@ class DocumentLineItemGroup extends Model
     public function items(): HasMany
     {
         return $this->hasMany(DocumentLineItem::class, 'group_id')->orderBy('line_number');
+    }
+
+    public function offeringCategory(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Common\OfferingCategory::class);
     }
 }
