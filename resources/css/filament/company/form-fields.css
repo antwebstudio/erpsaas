@@ -19,6 +19,16 @@
     @apply divide-y divide-gray-200 rounded-xl bg-white dark:bg-gray-900;
 }
 
+.item-group-darker {
+    .fi-fo-repeater-item {
+        /* @apply bg-gray-300/50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10; */
+        
+        .fi-fo-repeater-item-header {
+            @apply bg-gray-200/50 dark:bg-white/5;
+        }
+    }
+}
+
 /* Report Field Styles */
 .fi-fo-field-wrp.report-hidden-label > div.grid.gap-y-2 > div.flex.items-center {
     @apply hidden;

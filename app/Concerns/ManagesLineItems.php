@@ -35,6 +35,7 @@ trait ManagesLineItems
                 'quantity' => $itemData['quantity'],
                 'unit_price' => $itemData['unit_price'],
                 'unit' => $itemData['unit'] ?? null,
+                'is_locked' => $itemData['is_locked'] ?? 0,
                 'line_number' => $index + 1,
             ]);
 
@@ -100,6 +101,7 @@ trait ManagesLineItems
                      'quantity' => $itemData['quantity'],
                      'unit_price' => $itemData['unit_price'],
                      'unit' => $itemData['unit'] ?? null,
+                     'is_locked' => $itemData['is_locked'] ?? 0,
                      'line_number' => $itemIndex,
                  ]);
                  
@@ -141,10 +143,7 @@ trait ManagesLineItems
         // Delete removed groups
         $existingGroupIds = $record->lineItemGroups->pluck('id');
         
-        $updatedGroupIds = $groups->keys()
-            ->filter(fn ($id) => \Illuminate\Support\Str::isUuid($id))
-            ->merge($groups->pluck('id'))
-            ->filter();
+        $updatedGroupIds = $groups->pluck('id')->filter()->toArray();
 
         $groupsToDelete = $existingGroupIds->diff($updatedGroupIds);
 
@@ -156,11 +155,8 @@ trait ManagesLineItems
 
         // Delete removed items from remaining groups
         $allUpdatedItemIds = $groups->pluck('items')
-             ->flatMap(fn ($items) => 
-                 collect($items)->keys()->filter(fn ($id) => \Illuminate\Support\Str::isUuid($id))
-                 ->merge(collect($items)->pluck('id'))
-             )
-            ->filter();
+             ->flatMap(fn ($items) => collect($items)->pluck('id'))
+             ->filter();
             
         $existingItemIds = $record->lineItems()->pluck('id'); // Get ALL items for doc
 

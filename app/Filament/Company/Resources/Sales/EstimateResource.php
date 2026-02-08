@@ -178,6 +178,7 @@ class EstimateResource extends Resource
                             ])->grow(true),
                         ])->from('md'),
                         Forms\Components\Repeater::make('lineItemGroups')
+                            ->extraAttributes(['class' => 'item-group-darker'])
                             ->relationship('lineItemGroups')
                             ->saveRelationshipsUsing(null)
                             ->dehydrated(true)
@@ -188,439 +189,442 @@ class EstimateResource extends Resource
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                             ->schema([
                                 Forms\Components\Hidden::make('id'),
-                                Forms\Components\Hidden::make('offering_category_id'),
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Section Name (Optional)')
-                                    ->placeholder('e.g. Materials, Labor')
-                                    ->columnSpanFull(),
-                                CustomTableRepeater::make('items')
-                                    ->hiddenLabel()
-                                    ->relationship()
-                                    ->saveRelationshipsUsing(null)
-                                    ->dehydrated(true)
-                                    ->reorderable()
-                                    ->orderColumn('line_number')
-                                    ->reorderAtStart()
-                                    ->cloneable()
-                                    ->addActionLabel('Add an item')
-                                    ->headers(function (Forms\Get $get) use ($settings) {
-                                        $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
-                                        $hasDiscounts = $discountMethod->isPerLineItem();
-
-                                        $headers = [
-                                            Header::make($settings->resolveColumnLabel('item_name', 'Items'))
-                                                ->width('30%'),
-                                            Header::make('Unit')
-                                                ->width('10%')
-                                                ->markAsRequired(false),
-                                            Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
-                                                ->width('10%'),
-                                            Header::make($settings->resolveColumnLabel('price_name', 'Price'))
-                                                ->width('10%'),
-                                        ];
-
-                                        if ($hasDiscounts) {
-                                            $headers[] = Header::make('Adjustments')->width('30%');
-                                        } else {
-                                            $headers[] = Header::make('Taxes')->width('30%');
-                                        }
-
-                                        $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
-                                            ->width('10%')
-                                            ->align('right');
-
-                                        return $headers;
-                                    })
-                                    ->schema([
-                                        Forms\Components\Hidden::make('id'),
-                                        Forms\Components\Group::make([
-                                            CreateOfferingSelect::make('offering_id')
-                                                ->label('Item')
-                                                ->hiddenLabel()
-                                                ->placeholder('Select item')
-                                                ->required()
-                                                ->live()
-                                                ->inlineSuffix()
-                                                ->sellable()
-                                                ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
-                                                    $offeringId = $state;
-                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
-                                                    $isPerLineItem = $discountMethod->isPerLineItem();
-
-                                                    $existingTaxIds = [];
-                                                    $existingDiscountIds = [];
-
-                                                    if ($record) {
-                                                        $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
-                                                        if ($isPerLineItem) {
-                                                            $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
-                                                        }
-                                                    }
-
-                                                    $with = [
-                                                        'salesTaxes' => static function ($query) use ($existingTaxIds) {
-                                                            $query->where(static function ($query) use ($existingTaxIds) {
-                                                                $query->where('status', AdjustmentStatus::Active)
-                                                                    ->orWhereIn('adjustments.id', $existingTaxIds);
-                                                            });
-                                                        },
-                                                    ];
-
-                                                    if ($isPerLineItem) {
-                                                        $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
-                                                            $query->where(static function ($query) use ($existingDiscountIds) {
-                                                                $query->where('status', AdjustmentStatus::Active)
-                                                                    ->orWhereIn('adjustments.id', $existingDiscountIds);
-                                                            });
-                                                        };
-                                                    }
-
-                                                    $offeringRecord = Offering::with($with)->find($offeringId);
-
-                                                    if (! $offeringRecord) {
-                                                        return;
-                                                    }
-
-                                                    $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
-
-                                                    $set('description', $offeringRecord->description);
-                                                    $set('unit', $offeringRecord->unit);
-                                                    $set('unit_price', $unitPrice);
-                                                    $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
-
-                                                    if ($isPerLineItem) {
-                                                        $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
-                                                    }
-                                                }),
-                                            Forms\Components\TextInput::make('description')
-                                                ->placeholder('Enter item description')
-                                                ->hiddenLabel(),
-                                        ])->columnSpan(1),
-                                        Forms\Components\TextInput::make('unit')
-                                            ->placeholder('Unit')
-                                            ->hiddenLabel(),
-                                        Forms\Components\TextInput::make('quantity')
-                                            ->required()
-                                            ->numeric()
-                                            ->live()
-                                            ->maxValue(9999999999.99)
-                                            ->default(1),
-                                        Forms\Components\TextInput::make('unit_price')
+                                        Forms\Components\Hidden::make('offering_category_id'),
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Section Name (Optional)')
+                                            ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                            ->placeholder('e.g. Materials, Labor')
+                                            ->columnSpanFull(),
+                                        CustomTableRepeater::make('items')
                                             ->hiddenLabel()
-                                            ->money(useAffix: false)
-                                            ->live()
-                                            ->default(0),
-                                        Forms\Components\Group::make([
-                                            CreateAdjustmentSelect::make('salesTaxes')
-                                                ->label('Taxes')
-                                                ->hiddenLabel()
-                                                ->placeholder('Select taxes')
-                                                ->category(AdjustmentCategory::Tax)
-                                                ->type(AdjustmentType::Sales)
-                                                ->adjustmentsRelationship('salesTaxes')
-                                                ->saveRelationshipsUsing(null)
-                                                ->dehydrated(true)
-                                                ->inlineSuffix()
-                                                ->preload()
-                                                ->multiple()
-                                                ->live()
-                                                ->searchable(),
-                                            CreateAdjustmentSelect::make('salesDiscounts')
-                                                ->label('Discounts')
-                                                ->hiddenLabel()
-                                                ->placeholder('Select discounts')
-                                                ->category(AdjustmentCategory::Discount)
-                                                ->type(AdjustmentType::Sales)
-                                                ->adjustmentsRelationship('salesDiscounts')
-                                                ->saveRelationshipsUsing(null)
-                                                ->dehydrated(true)
-                                                ->inlineSuffix()
-                                                ->multiple()
-                                                ->live()
-                                                ->hidden(function (Forms\Get $get) {
-                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+                                            ->relationship()
+                                            ->saveRelationshipsUsing(null)
+                                            ->dehydrated(true)
+                                            ->reorderable()
+                                            ->orderColumn('line_number')
+                                            ->reorderAtStart()
+                                            ->cloneable()
+                                            ->addActionLabel('Add an item')
+                                            ->headers(function (Forms\Get $get) use ($settings) {
+                                                $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
+                                                $hasDiscounts = $discountMethod->isPerLineItem();
 
-                                                    return $discountMethod->isPerDocument();
-                                                })
-                                                ->searchable(),
-                                        ])->columnSpan(1),
-                                        Forms\Components\Placeholder::make('total')
-                                            ->hiddenLabel()
-                                            ->extraAttributes(['class' => 'text-left sm:text-right'])
-                                            ->content(function (Forms\Get $get) {
-                                                $quantity = max((float) ($get('quantity') ?? 0), 0);
-                                                $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
-                                                    ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
-                                                    : 0;
-                                                $salesTaxes = $get('salesTaxes') ?? [];
-                                                $salesDiscounts = $get('salesDiscounts') ?? [];
-                                                $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
-
-                                                $subtotal = $quantity * $unitPrice;
-
-                                                $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
-
-                                                $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
-                                                    ->get()
-                                                    ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                        if ($adjustment->computation->isPercentage()) {
-                                                            return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                        } else {
-                                                            return $adjustment->getRawOriginal('rate');
-                                                        }
-                                                    });
-
-                                                $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
-                                                    ->get()
-                                                    ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                        if ($adjustment->computation->isPercentage()) {
-                                                            return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                        } else {
-                                                            return $adjustment->getRawOriginal('rate');
-                                                        }
-                                                    });
-
-                                                // Final total
-                                                $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
-
-                                                return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
-                                            }),
-                                    ])
-                                    ->extraActions([
-                                        Forms\Components\Actions\Action::make('add_job_scope')
-                                            ->label('Select Job Scope')
-                                            ->icon('heroicon-m-plus')
-                                            ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
-                                            ->fillForm(function (Forms\Get $get) {
-                                                $categoryId = $get('offering_category_id');
-                                                $category = \App\Models\Common\OfferingCategory::with('children.offerings')->find($categoryId);
-                                                $existingItems = $get('items') ?? [];
-                                                $existingOfferingIds = array_column($existingItems, 'offering_id');
-                                                $existingOfferingIds = array_map('strval', array_filter($existingOfferingIds));
-                                                
-                                                $preSelected = [];
-                                                if ($category) {
-                                                    foreach ($category->children as $child) {
-                                                        $ids = $child->offerings->pluck('id')
-                                                            ->map('strval')
-                                                            ->filter(fn($id) => in_array($id, $existingOfferingIds))
-                                                            ->values()
-                                                            ->toArray();
-                                                        if (!empty($ids)) {
-                                                            $preSelected[$child->id] = $ids;
-                                                        }
-                                                    }
-                                                }
-                                                
-                                                return [
-                                                    'job_scopes_grouped' => $preSelected,
+                                                $headers = [
+                                                    Header::make($settings->resolveColumnLabel('item_name', 'Items'))
+                                                        ->width('30%'),
+                                                    Header::make('Unit')
+                                                        ->width('10%')
+                                                        ->markAsRequired(false),
+                                                    Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
+                                                        ->width('10%'),
+                                                    Header::make($settings->resolveColumnLabel('price_name', 'Price'))
+                                                        ->width('10%'),
                                                 ];
+
+                                                if ($hasDiscounts) {
+                                                    $headers[] = Header::make('Adjustments')->width('30%');
+                                                } else {
+                                                    $headers[] = Header::make('Taxes')->width('30%');
+                                                }
+
+                                                $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
+                                                    ->width('10%')
+                                                    ->align('right');
+
+                                                return $headers;
                                             })
-                                            ->form(function (Forms\Get $get) {
-                                                $categoryId = $get('offering_category_id');
-                                                $category = \App\Models\Common\OfferingCategory::find($categoryId);
-                                                
-                                                // Get all children categories (Job Scope Descriptions)
-                                                // And their offerings (Job Scope Options)
-                                                $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
+                                            ->schema([
+                                                Forms\Components\Hidden::make('id'),
+                                                Forms\Components\Hidden::make('is_locked')
+                                                    ->default(0),
+                                                Forms\Components\Group::make([
+                                                    CreateOfferingSelect::make('offering_id')
+                                                        ->label('Item')
+                                                        ->hiddenLabel()
+                                                        ->placeholder('Select item')
+                                                        ->required()
+                                                        ->live()
+                                                        ->inlineSuffix()
+                                                        ->sellable()
+                                                        ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1)
+                                                        ->dehydrated(true)
+                                                        ->dehydratedWhenHidden(true)
+                                                        ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
+                                                            $offeringId = $state;
+                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+                                                            $isPerLineItem = $discountMethod->isPerLineItem();
 
-                                                $schema = [];
-                                                
-                                                // Add Search Input
-                                                $schema[] = Forms\Components\TextInput::make('search_job_scopes')
-                                                    ->label('Search')
-                                                    ->placeholder('Search job scopes...')
-                                                    ->prefixIcon('heroicon-m-magnifying-glass')
-                                                    ->live(debounce: 300);
+                                                            $existingTaxIds = [];
+                                                            $existingDiscountIds = [];
 
-                                                if ($jobScopeDescriptions->isEmpty()) {
-                                                    $schema[] = Forms\Components\Placeholder::make('no_options')
-                                                        ->content('No Job Scopes available for this category.');
-                                                    return $schema;
-                                                }
-
-                                                foreach ($jobScopeDescriptions as $description) {
-                                                    // Pass strict variables to closures
-                                                    $descriptionName = $description->name;
-                                                    $descriptionId = $description->id;
-                                                    // We need to pass the offerings data (id => name) or the collection to the closure
-                                                    // But the closure needs to filter it.
-                                                    // To avoid serializing large objects, let's pass a simple array of [id, name]
-                                                    $allOfferings = $description->offerings->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name])->values()->toArray();
-
-                                                    if (empty($allOfferings)) {
-                                                        continue;
-                                                    }
-
-                                                    $schema[] = Forms\Components\Section::make($descriptionName)
-                                                        ->schema([
-                                                            Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
-                                                                ->hiddenLabel()
-                                                                ->searchable(false)
-                                                                ->bulkToggleable()
-                                                                ->options(function (Forms\Get $get) use ($allOfferings) {
-                                                                    $term = $get('search_job_scopes');
-                                                                    
-                                                                    $filtered = collect($allOfferings);
-                                                                    if (filled($term)) {
-                                                                        $filtered = $filtered->filter(function ($item) use ($term) {
-                                                                            return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                                        });
-                                                                    }
-                                                                    
-                                                                    return $filtered->pluck('name', 'id')->toArray();
-                                                                }),
-                                                        ])
-                                                        ->collapsible()
-                                                        ->compact()
-                                                        ->visible(function (Forms\Get $get) use ($allOfferings) {
-                                                            $term = $get('search_job_scopes');
-                                                            if (blank($term)) {
-                                                                return true;
+                                                            if ($record) {
+                                                                $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
+                                                                if ($isPerLineItem) {
+                                                                    $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
+                                                                }
                                                             }
-                                                            // Check if any offering matches
-                                                            return collect($allOfferings)->contains(function ($item) use ($term) {
-                                                                return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                            });
-                                                        });
-                                                }
 
-                                                return $schema;
-                                            })
-                                            ->action(function (array $data, Forms\Set $set, Forms\Get $get, $component) use ($company) {
-                                                // 1. Get ALL selected IDs from the grouped checkboxes
-                                                $groupedData = $data['job_scopes_grouped'] ?? [];
-                                                $selectedOfferingIds = [];
-                                                foreach ($groupedData as $groupId => $ids) {
-                                                    if (is_array($ids)) {
-                                                        $selectedOfferingIds = array_merge($selectedOfferingIds, $ids);
-                                                    }
-                                                }
-                                                $selectedOfferingIds = array_unique(array_filter($selectedOfferingIds));
-
-                                                // 2. Identify what was VISIBLE based on search
-                                                $searchTerm = $data['search_job_scopes'] ?? '';
-                                                
-                                                $parentCategoryId = $get('offering_category_id');
-                                                $parentCategory = \App\Models\Common\OfferingCategory::with('children.offerings')->find($parentCategoryId);
-                                                if (!$parentCategory) return;
-
-                                                $managedOfferings = $parentCategory->children->flatMap->offerings;
-                                                $managedOfferingIds = $managedOfferings->pluck('id')->toArray();
-                                                
-                                                // Create a map of offering_id => index for sorting
-                                                $offeringSortMap = [];
-                                                foreach ($managedOfferings->values() as $index => $o) {
-                                                    $offeringSortMap[$o->id] = $index;
-                                                }
-
-                                                // Which managed offerings were visible in the last view?
-                                                $visibleManagedOfferingIds = $managedOfferings->filter(function($o) use ($searchTerm) {
-                                                    if (blank($searchTerm)) return true;
-                                                    return \Illuminate\Support\Str::contains(strtolower($o->name), strtolower($searchTerm));
-                                                })->pluck('id')->toArray();
-
-                                                // 3. Process current items
-                                                $currentItems = $get('items') ?? [];
-                                                $newItems = [];
-                                                $existingOfferingIdsInList = [];
-
-                                                foreach ($currentItems as $item) {
-                                                    $offeringId = $item['offering_id'] ?? null;
-                                                    
-                                                    if ($offeringId && in_array($offeringId, $managedOfferingIds)) {
-                                                        // It's a managed item. 
-                                                        // Should we keep it?
-                                                        $isVisible = in_array($offeringId, $visibleManagedOfferingIds);
-                                                        $isSelected = in_array((string)$offeringId, $selectedOfferingIds);
-
-                                                        if ($isVisible) {
-                                                            // If it's visible, the checkbox is the source of truth
-                                                            if ($isSelected) {
-                                                                $offering = $managedOfferings->firstWhere('id', $offeringId);
-                                                                $item['_sort_scope_lft'] = $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000;
-                                                                $item['_sort_offering_index'] = $offeringSortMap[$offeringId] ?? 999999;
-                                                                $item['_sort_name'] = $offering->name;
-                                                                $newItems[] = $item;
-                                                                $existingOfferingIdsInList[] = $offeringId;
-                                                            }
-                                                            // If visible but NOT selected -> skip (remove)
-                                                        } else {
-                                                            // If it was hidden, keep its current state in the list
-                                                            $offering = $managedOfferings->firstWhere('id', $offeringId);
-                                                            $item['_sort_scope_lft'] = $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000;
-                                                            $item['_sort_offering_index'] = $offeringSortMap[$offeringId] ?? 999999;
-                                                            $item['_sort_name'] = $offering->name;
-                                                            $newItems[] = $item;
-                                                            $existingOfferingIdsInList[] = $offeringId;
-                                                        }
-                                                    } else {
-                                                        // It's a custom item -> Always keep
-                                                        $newItems[] = $item;
-                                                    }
-                                                }
-
-                                                // 4. Add missing NEWLY selected items
-                                                $addedCount = 0;
-                                                foreach ($selectedOfferingIds as $offeringId) {
-                                                    if (!in_array($offeringId, array_map('strval', $existingOfferingIdsInList))) {
-                                                        $offering = $managedOfferings->firstWhere('id', $offeringId);
-                                                        if ($offering) {
-                                                            $newItems[] = [
-                                                                'id' => null,
-                                                                'offering_id' => $offering->id,
-                                                                'description' => $offering->name,
-                                                                'uom' => $offering->uom,
-                                                                'qty' => 1,
-                                                                'unit_price' => $offering->price,
-                                                                'salesDiscounts' => [],
-                                                                'salesTaxes' => [],
-                                                                '_sort_scope_lft' => $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000,
-                                                                '_sort_offering_index' => $offeringSortMap[$offeringId] ?? 999999,
-                                                                '_sort_name' => $offering->name,
+                                                            $with = [
+                                                                'salesTaxes' => static function ($query) use ($existingTaxIds) {
+                                                                    $query->where(static function ($query) use ($existingTaxIds) {
+                                                                        $query->where('status', AdjustmentStatus::Active)
+                                                                            ->orWhereIn('adjustments.id', $existingTaxIds);
+                                                                    });
+                                                                },
                                                             ];
-                                                            $addedCount++;
+
+                                                            if ($isPerLineItem) {
+                                                                $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
+                                                                    $query->where(static function ($query) use ($existingDiscountIds) {
+                                                                        $query->where('status', AdjustmentStatus::Active)
+                                                                            ->orWhereIn('adjustments.id', $existingDiscountIds);
+                                                                    });
+                                                                };
+                                                            }
+
+                                                            $offeringRecord = Offering::with($with)->find($offeringId);
+
+                                                            if (! $offeringRecord) {
+                                                                return;
+                                                            }
+
+                                                            $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
+
+                                                            $set('description', $offeringRecord->description);
+                                                            $set('unit', $offeringRecord->unit);
+                                                            $set('unit_price', $unitPrice);
+                                                            $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
+
+                                                            if ($isPerLineItem) {
+                                                                $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
+                                                            }
+                                                        }),
+                                                    Forms\Components\TextInput::make('description')
+                                                        ->placeholder('Enter item description')
+                                                        ->dehydrated(true)
+                                                        ->hiddenLabel(),
+                                                ])->columnSpan(1),
+                                                Forms\Components\TextInput::make('unit')
+                                                    ->placeholder('Unit')
+                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                    ->dehydrated(true)
+                                                    ->hiddenLabel(),
+                                                Forms\Components\TextInput::make('quantity')
+                                                    ->required()
+                                                    ->numeric()
+                                                    ->live()
+                                                    ->maxValue(9999999999.99)
+                                                    ->default(1),
+                                                Forms\Components\TextInput::make('unit_price')
+                                                    ->hiddenLabel()
+                                                    ->money(useAffix: false)
+                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                    ->dehydrated(true)
+                                                    ->live()
+                                                    ->default(0),
+                                                Forms\Components\Group::make([
+                                                    CreateAdjustmentSelect::make('salesTaxes')
+                                                        ->label('Taxes')
+                                                        ->hiddenLabel()
+                                                        ->placeholder('Select taxes')
+                                                        ->category(AdjustmentCategory::Tax)
+                                                        ->type(AdjustmentType::Sales)
+                                                        ->adjustmentsRelationship('salesTaxes')
+                                                        ->saveRelationshipsUsing(null)
+                                                        ->dehydrated(true)
+                                                        ->inlineSuffix()
+                                                        ->preload()
+                                                        ->multiple()
+                                                        ->live()
+                                                        ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->searchable(),
+                                                    CreateAdjustmentSelect::make('salesDiscounts')
+                                                        ->label('Discounts')
+                                                        ->hiddenLabel()
+                                                        ->placeholder('Select discounts')
+                                                        ->category(AdjustmentCategory::Discount)
+                                                        ->type(AdjustmentType::Sales)
+                                                        ->adjustmentsRelationship('salesDiscounts')
+                                                        ->saveRelationshipsUsing(null)
+                                                        ->dehydrated(true)
+                                                        ->inlineSuffix()
+                                                        ->multiple()
+                                                        ->live()
+                                                        ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->hidden(function (Forms\Get $get) {
+                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+
+                                                            return $discountMethod->isPerDocument();
+                                                        })
+                                                        ->searchable(),
+                                                ])->columnSpan(1),
+                                                Forms\Components\Placeholder::make('total')
+                                                    ->hiddenLabel()
+                                                    ->extraAttributes(['class' => 'text-left sm:text-right'])
+                                                    ->content(function (Forms\Get $get) {
+                                                        $quantity = max((float) ($get('quantity') ?? 0), 0);
+                                                        $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
+                                                            ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
+                                                            : 0;
+                                                        $salesTaxes = $get('salesTaxes') ?? [];
+                                                        $salesDiscounts = $get('salesDiscounts') ?? [];
+                                                        $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
+
+                                                        $subtotal = $quantity * $unitPrice;
+
+                                                        $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
+
+                                                        $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
+                                                            ->get()
+                                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
+                                                                if ($adjustment->computation->isPercentage()) {
+                                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
+                                                                } else {
+                                                                    return $adjustment->getRawOriginal('rate');
+                                                                }
+                                                            });
+
+                                                        $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
+                                                            ->get()
+                                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
+                                                                if ($adjustment->computation->isPercentage()) {
+                                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
+                                                                } else {
+                                                                    return $adjustment->getRawOriginal('rate');
+                                                                }
+                                                            });
+
+                                                        // Final total
+                                                        $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
+
+                                                        return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
+                                                    }),
+                                            ])
+                                            ->extraActions([
+                                                Forms\Components\Actions\Action::make('add_job_scope')
+                                                    ->label('Select Job Scope')
+                                                    ->icon('heroicon-m-plus')
+                                                    ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                                    ->fillForm(function (Forms\Get $get) {
+                                                        $categoryId = $get('offering_category_id');
+                                                        $category = \App\Models\Common\OfferingCategory::with('children.offerings')->find($categoryId);
+                                                        $existingItems = $get('items') ?? [];
+                                                        $existingOfferingIds = array_column($existingItems, 'offering_id');
+                                                        $existingOfferingIds = array_map('strval', array_filter($existingOfferingIds));
+                                                        
+                                                        $preSelected = [];
+                                                        if ($category) {
+                                                            foreach ($category->children as $child) {
+                                                                $ids = $child->offerings->pluck('id')
+                                                                    ->map('strval')
+                                                                    ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                                    ->values()
+                                                                    ->toArray();
+                                                                if (!empty($ids)) {
+                                                                    $preSelected[$child->id] = $ids;
+                                                                }
+                                                            }
                                                         }
-                                                    }
-                                                }
+                                                        
+                                                        return [
+                                                            'job_scopes_grouped' => $preSelected,
+                                                        ];
+                                                    })
+                                                    ->form(function (Forms\Get $get) {
+                                                        $categoryId = $get('offering_category_id');
+                                                        $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                                                        
+                                                        // Get all children categories (Job Scope Descriptions)
+                                                        // And their offerings (Job Scope Options)
+                                                        $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
 
-                                                // 5. Sort
-                                                usort($newItems, function ($a, $b) {
-                                                    $isCustomA = !($a['offering_id'] ?? null);
-                                                    $isCustomB = !($b['offering_id'] ?? null);
+                                                        $schema = [];
+                                                        
+                                                        // Add Search Input
+                                                        $schema[] = Forms\Components\TextInput::make('search_job_scopes')
+                                                            ->label('Search')
+                                                            ->placeholder('Search job scopes...')
+                                                            ->prefixIcon('heroicon-m-magnifying-glass')
+                                                            ->live(debounce: 300);
 
-                                                    if ($isCustomA !== $isCustomB) {
-                                                        return $isCustomA ? 1 : -1;
-                                                    }
+                                                        if ($jobScopeDescriptions->isEmpty()) {
+                                                            $schema[] = Forms\Components\Placeholder::make('no_options')
+                                                                ->content('No Job Scopes available for this category.');
+                                                            return $schema;
+                                                        }
 
-                                                    $scopeA = $a['_sort_scope_lft'] ?? 999999;
-                                                    $scopeB = $b['_sort_scope_lft'] ?? 999999;
-                                                    if ($scopeA != $scopeB) return $scopeA <=> $scopeB;
+                                                        foreach ($jobScopeDescriptions as $description) {
+                                                            // Pass strict variables to closures
+                                                            $descriptionName = $description->name;
+                                                            $descriptionId = $description->id;
+                                                            // We need to pass the offerings data (id => name) or the collection to the closure
+                                                            // But the closure needs to filter it.
+                                                            // To avoid serializing large objects, let's pass a simple array of [id, name]
+                                                            $allOfferings = $description->offerings->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name])->values()->toArray();
 
-                                                    $offeringSortA = $a['_sort_offering_index'] ?? 999999;
-                                                    $offeringSortB = $b['_sort_offering_index'] ?? 999999;
-                                                    if ($offeringSortA != $offeringSortB) return $offeringSortA <=> $offeringSortB;
+                                                            if (empty($allOfferings)) {
+                                                                continue;
+                                                            }
 
-                                                    $nameA = $a['_sort_name'] ?? $a['description'] ?? '';
-                                                    $nameB = $b['_sort_name'] ?? $b['description'] ?? '';
-                                                    return strcasecmp($nameA, $nameB);
-                                                });
+                                                            $schema[] = Forms\Components\Section::make($descriptionName)
+                                                                ->schema([
+                                                                    Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
+                                                                        ->hiddenLabel()
+                                                                        ->searchable(false)
+                                                                        ->bulkToggleable()
+                                                                        ->options(function (Forms\Get $get) use ($allOfferings) {
+                                                                            $term = $get('search_job_scopes');
+                                                                            
+                                                                            $filtered = collect($allOfferings);
+                                                                            if (filled($term)) {
+                                                                                $filtered = $filtered->filter(function ($item) use ($term) {
+                                                                                    return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
+                                                                                });
+                                                                            }
+                                                                            
+                                                                            return $filtered->pluck('name', 'id')->toArray();
+                                                                        }),
+                                                                ])
+                                                                ->collapsible()
+                                                                ->compact()
+                                                                ->visible(function (Forms\Get $get) use ($allOfferings) {
+                                                                    $term = $get('search_job_scopes');
+                                                                    if (blank($term)) {
+                                                                        return true;
+                                                                    }
+                                                                    // Check if any offering matches
+                                                                    return collect($allOfferings)->contains(function ($item) use ($term) {
+                                                                        return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
+                                                                    });
+                                                                });
+                                                        }
 
-                                                // CLEANUP sorting keys
-                                                foreach ($newItems as &$item) {
-                                                    unset($item['_sort_scope_lft'], $item['_sort_offering_index'], $item['_sort_name']);
-                                                }
-                                                unset($item);
+                                                        return $schema;
+                                                    })
+                                                    ->action(function (array $data, Forms\Set $set, Forms\Get $get, $component) use ($company) {
+                                                        // 1. Get ALL selected IDs from the grouped checkboxes
+                                                        $groupedData = $data['job_scopes_grouped'] ?? [];
+                                                        $selectedOfferingIds = [];
+                                                        foreach ($groupedData as $groupId => $ids) {
+                                                            if (is_array($ids)) {
+                                                                $selectedOfferingIds = array_merge($selectedOfferingIds, $ids);
+                                                            }
+                                                        }
+                                                        $selectedOfferingIds = array_unique(array_filter($selectedOfferingIds));
 
-                                                $component->state($newItems);
-                                                
-                                                Notification::make()
-                                                    ->title($addedCount > 0 ? "Added {$addedCount} items" : "Items updated")
-                                                    ->success()
-                                                    ->send();
-                                            }),
+                                                        // 2. Identify what was VISIBLE based on search
+                                                        $searchTerm = $data['search_job_scopes'] ?? '';
+                                                        
+                                                        $parentCategoryId = $get('offering_category_id');
+                                                        $parentCategory = \App\Models\Common\OfferingCategory::with('children.offerings')->find($parentCategoryId);
+                                                        if (!$parentCategory) return;
+
+                                                        $managedOfferings = $parentCategory->children->flatMap->offerings;
+                                                        $managedOfferingIds = $managedOfferings->pluck('id')->toArray();
+                                                        
+                                                        // Create a map of offering_id => index for sorting
+                                                        $offeringSortMap = [];
+                                                        foreach ($managedOfferings->values() as $index => $o) {
+                                                            $offeringSortMap[$o->id] = $index;
+                                                        }
+
+                                                        // Which managed offerings were visible in the last view?
+                                                        $visibleManagedOfferingIds = $managedOfferings->filter(function($o) use ($searchTerm) {
+                                                            if (blank($searchTerm)) return true;
+                                                            return \Illuminate\Support\Str::contains(strtolower($o->name), strtolower($searchTerm));
+                                                        })->pluck('id')->toArray();
+
+                                                        // 3. Process current items
+                                                        $currentItems = $get('items') ?? [];
+                                                        $newItems = [];
+                                                        $existingOfferingIdsInList = [];
+
+                                                        foreach ($currentItems as $item) {
+                                                            $offeringId = $item['offering_id'] ?? null;
+                                                            
+                                                            if ($offeringId && in_array($offeringId, $managedOfferingIds)) {
+                                                                // It's a managed item. 
+                                                                // Should we keep it?
+                                                                $isVisible = in_array($offeringId, $visibleManagedOfferingIds);
+                                                                $isSelected = in_array((string)$offeringId, $selectedOfferingIds);
+
+                                                                if ($isVisible) {
+                                                                    // If it's visible, the checkbox is the source of truth
+                                                                    if ($isSelected) {
+                                                                        $offering = $managedOfferings->firstWhere('id', $offeringId);
+                                                                        $item['_sort_scope_lft'] = $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000;
+                                                                        $item['_sort_offering_index'] = $offeringSortMap[$offeringId] ?? 999999;
+                                                                        $item['_sort_name'] = $offering->name;
+                                                                        $newItems[] = $item;
+                                                                        $existingOfferingIdsInList[] = $offeringId;
+                                                                    }
+                                                                    // If visible but NOT selected -> skip (remove)
+                                                                } else {
+                                                                    // If it was hidden, keep its current state in the list
+                                                                    $offering = $managedOfferings->firstWhere('id', $offeringId);
+                                                                    $item['_sort_scope_lft'] = $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000;
+                                                                    $item['_sort_offering_index'] = $offeringSortMap[$offeringId] ?? 999999;
+                                                                    $item['_sort_name'] = $offering->name;
+                                                                    $newItems[] = $item;
+                                                                    $existingOfferingIdsInList[] = $offeringId;
+                                                                }
+                                                            } else {
+                                                                // It's a custom item -> Always keep
+                                                                $newItems[] = $item;
+                                                            }
+                                                        }
+
+                                                        // 4. Add missing NEWLY selected items
+                                                        $addedCount = 0;
+                                                        foreach ($selectedOfferingIds as $offeringId) {
+                                                            if (!in_array($offeringId, array_map('strval', $existingOfferingIdsInList))) {
+                                                                $offering = $managedOfferings->firstWhere('id', $offeringId);
+                                                                if ($offering) {
+                                                                    $newItems[] = [
+                                                                        'id' => null,
+                                                                        'offering_id' => $offering->id,
+                                                                        'description' => $offering->name,
+                                                                        'is_locked' => 1,
+                                                                        'uom' => $offering->uom,
+                                                                        'qty' => 1,
+                                                                        'unit_price' => $offering->price,
+                                                                        'salesDiscounts' => [],
+                                                                        'salesTaxes' => [],
+                                                                        '_sort_scope_lft' => $offering->categories->firstWhere('id', '!=', $parentCategoryId)?->getRawOriginal('_scope_lft') ?? 900000,
+                                                                        '_sort_offering_index' => $offeringSortMap[$offeringId] ?? 999999,
+                                                                        '_sort_name' => $offering->name,
+                                                                    ];
+                                                                    $addedCount++;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // 5. Sort
+                                                        usort($newItems, function($a, $b) {
+                                                            if (!isset($a['_sort_scope_lft']) && !isset($b['_sort_scope_lft'])) return 0;
+                                                            if (!isset($a['_sort_scope_lft'])) return 1;
+                                                            if (!isset($b['_sort_scope_lft'])) return -1;
+
+                                                            if ($a['_sort_scope_lft'] !== $b['_sort_scope_lft']) {
+                                                                return $a['_sort_scope_lft'] <=> $b['_sort_scope_lft'];
+                                                            }
+                                                            if ($a['_sort_offering_index'] !== $b['_sort_offering_index']) {
+                                                                return $a['_sort_offering_index'] <=> $b['_sort_offering_index'];
+                                                            }
+                                                            return strcasecmp($a['_sort_name'], $b['_sort_name']);
+                                                        });
+
+                                                        $set('items', $newItems);
+                                                        
+                                                        if ($addedCount > 0) {
+                                                            Notification::make()
+                                                                ->title($addedCount . ' job scope items updated')
+                                                                ->success()
+                                                                ->send();
+                                                        }
+                                                    }),
+                                            ]),
                                     ]),
-                            ]),
                         DocumentTotals::make()
                             ->type(DocumentType::Estimate),
                         Forms\Components\Textarea::make('terms')
