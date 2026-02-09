@@ -35,6 +35,7 @@ readonly class DocumentDTO
         public CompanyDTO $company,
         public ?ClientDTO $client,
         public iterable $lineItems,
+        public iterable $lineItemGroups,
         public DocumentLabelDTO $label,
         public DocumentColumnLabelDTO $columnLabel,
         public string $accentColor = '#000000',
@@ -91,6 +92,9 @@ readonly class DocumentDTO
             accentColor: $settings->accent_color ?? '#000000',
             showLogo: $settings->show_logo ?? false,
             font: $settings->font ?? Font::Inter,
+            lineItemGroups: $document->lineItemGroups->isNotEmpty() 
+                ? $document->lineItemGroups->map(fn ($group) => LineItemGroupDTO::fromModel($group))
+                : collect([new LineItemGroupDTO(name: null, items: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)))]),
         );
     }
 

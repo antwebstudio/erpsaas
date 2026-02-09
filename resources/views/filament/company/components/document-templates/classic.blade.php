@@ -80,18 +80,27 @@
             </tr>
             </thead>
             <tbody class="text-sm border-y-2 border-dotted border-gray-300">
-            @foreach($document->lineItems as $item)
-                <tr>
-                    <td class="text-left font-semibold py-3">
-                        {{ $item->name }}
-                        @if($item->description)
-                            <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
-                        @endif
-                    </td>
-                    <td class="text-center py-3">{{ $item->quantity }}</td>
-                    <td class="text-right py-3">{{ $item->unitPrice }}</td>
-                    <td class="text-right py-3">{{ $item->subtotal }}</td>
-                </tr>
+            @foreach($document->lineItemGroups as $group)
+                @if($group->name)
+                    <tr class="bg-gray-50">
+                        <td colspan="4" class="text-left font-bold py-2 uppercase tracking-wide text-xs text-gray-500 border-b border-dotted border-gray-200">
+                            {{ $group->name }}
+                        </td>
+                    </tr>
+                @endif
+                @foreach($group->items as $item)
+                    <tr class="border-b border-dotted border-gray-200 last:border-b-0">
+                        <td class="text-left font-semibold py-3">
+                            {{ $item->name }}
+                            @if($item->description)
+                                <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
+                            @endif
+                        </td>
+                        <td class="text-center py-3">{{ $item->quantity }}</td>
+                        <td class="text-right py-3">{{ $item->unitPrice }}</td>
+                        <td class="text-right py-3">{{ $item->subtotal }}</td>
+                    </tr>
+                @endforeach
             @endforeach
             </tbody>
         </table>

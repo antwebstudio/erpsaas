@@ -75,18 +75,27 @@
             </tr>
             </thead>
             <tbody class="text-sm border-b-2 border-gray-300">
-            @foreach($document->lineItems as $item)
-                <tr>
-                    <td class="text-left pl-6 font-semibold py-3">
-                        {{ $item->name }}
-                        @if($item->description)
-                            <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
-                        @endif
-                    </td>
-                    <td class="text-center py-3">{{ $item->quantity }}</td>
-                    <td class="text-right py-3">{{ $item->unitPrice }}</td>
-                    <td class="text-right pr-6 py-3">{{ $item->subtotal }}</td>
-                </tr>
+            @foreach($document->lineItemGroups as $group)
+                @if($group->name)
+                    <tr class="bg-gray-100/50">
+                        <td colspan="4" class="text-left pl-6 font-bold py-2 uppercase tracking-wider text-xs text-gray-700 border-y border-gray-200">
+                            {{ $group->name }}
+                        </td>
+                    </tr>
+                @endif
+                @foreach($group->items as $item)
+                    <tr class="border-b border-gray-100 last:border-b-0">
+                        <td class="text-left pl-6 font-semibold py-3">
+                            {{ $item->name }}
+                            @if($item->description)
+                                <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
+                            @endif
+                        </td>
+                        <td class="text-center py-3">{{ $item->quantity }}</td>
+                        <td class="text-right py-3">{{ $item->unitPrice }}</td>
+                        <td class="text-right pr-6 py-3">{{ $item->subtotal }}</td>
+                    </tr>
+                @endforeach
             @endforeach
             </tbody>
             <tfoot class="text-sm summary-section">
