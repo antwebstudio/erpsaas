@@ -77,18 +77,29 @@
             </tr>
             </thead>
             <tbody class="text-sm border-y-2">
-            @foreach($document->lineItems as $index => $item)
-                <tr @class(['bg-gray-100' => $index % 2 === 0])>
-                    <td class="text-left pl-6 font-semibold py-3">
-                        {{ $item->name }}
-                        @if($item->description)
-                            <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
-                        @endif
-                    </td>
-                    <td class="text-center py-3">{{ $item->quantity }}</td>
-                    <td class="text-right py-3">{{ $item->unitPrice }}</td>
-                    <td class="text-right pr-6 py-3">{{ $item->subtotal }}</td>
-                </tr>
+            @php $itemIndex = 0; @endphp
+            @foreach($document->lineItemGroups as $group)
+                @if($group->name)
+                    <tr style="background: {{ $document->accentColor }}22">
+                        <td colspan="4" class="text-left pl-6 font-bold py-2 uppercase tracking-wider text-xs" style="color: {{ $document->accentColor }}">
+                            {{ $group->name }}
+                        </td>
+                    </tr>
+                @endif
+                @foreach($group->items as $item)
+                    <tr @class(['bg-gray-100' => $itemIndex % 2 === 0])>
+                        <td class="text-left pl-6 font-semibold py-3">
+                            {{ $item->name }}
+                            @if($item->description)
+                                <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
+                            @endif
+                        </td>
+                        <td class="text-center py-3">{{ $item->quantity }}</td>
+                        <td class="text-right py-3">{{ $item->unitPrice }}</td>
+                        <td class="text-right pr-6 py-3">{{ $item->subtotal }}</td>
+                    </tr>
+                    @php $itemIndex++; @endphp
+                @endforeach
             @endforeach
             </tbody>
             <tfoot class="text-sm summary-section">
