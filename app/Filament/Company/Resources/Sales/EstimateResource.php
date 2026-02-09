@@ -193,10 +193,14 @@ class EstimateResource extends Resource
                                         Forms\Components\TextInput::make('name')
                                             ->label('Section Name (Optional)')
                                             ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                            ->dehydrated(true)
+                                            ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Materials, Labor')
                                             ->columnSpanFull(),
                                         CustomTableRepeater::make('items')
                                             ->hiddenLabel()
+                                            ->minItems(0)
+                                            ->emptyLabel(false)
                                             ->relationship()
                                             ->saveRelationshipsUsing(null)
                                             ->dehydrated(true)
@@ -211,20 +215,20 @@ class EstimateResource extends Resource
 
                                                 $headers = [
                                                     Header::make($settings->resolveColumnLabel('item_name', 'Items'))
-                                                        ->width('30%'),
+                                                        ->width('50%'),
                                                     Header::make('Unit')
-                                                        ->width('10%')
+                                                        ->width('7%')
                                                         ->markAsRequired(false),
                                                     Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
-                                                        ->width('10%'),
+                                                        ->width('8%'),
                                                     Header::make($settings->resolveColumnLabel('price_name', 'Price'))
                                                         ->width('10%'),
                                                 ];
 
                                                 if ($hasDiscounts) {
-                                                    $headers[] = Header::make('Adjustments')->width('30%');
+                                                    $headers[] = Header::make('Adjustments')->width('15%');
                                                 } else {
-                                                    $headers[] = Header::make('Taxes')->width('30%');
+                                                    $headers[] = Header::make('Taxes')->width('15%');
                                                 }
 
                                                 $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
@@ -694,6 +698,7 @@ class EstimateResource extends Resource
                             ->url(static fn (Estimate $record) => Pages\EditEstimate::getUrl(['record' => $record])),
                         Tables\Actions\ViewAction::make()
                             ->url(static fn (Estimate $record) => Pages\ViewEstimate::getUrl(['record' => $record])),
+                        Estimate::getPreviewAction(Tables\Actions\Action::class),
                         Estimate::getReplicateAction(Tables\Actions\ReplicateAction::class),
                         Estimate::getApproveDraftAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsSentAction(Tables\Actions\Action::class),

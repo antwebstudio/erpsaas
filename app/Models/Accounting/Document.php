@@ -6,8 +6,11 @@ use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\DocumentType;
 use App\Models\Setting\Currency;
+use App\Filament\Infolists\Components\DocumentPreview;
 use Filament\Actions\Action;
 use Filament\Actions\MountableAction;
+use Filament\Infolists\Infolist;
+use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,6 +65,21 @@ abstract class Document extends Model
 
                 $livewire->js("window.printPdf('{$url}', '{$record::documentType()->getLabel()} #{$record->documentNumber()}'); ");
             });
+    }
+
+    public static function getPreviewAction(string $action = Action::class): MountableAction
+    {
+        return $action::make('preview')
+            ->label('Preview')
+            ->icon('heroicon-o-eye')
+            ->infolist(fn (Infolist $infolist) => $infolist
+                ->schema([
+                    DocumentPreview::make()
+                        ->type(static::documentType()),
+                ])
+            )
+            ->modalSubmitAction(false)
+            ->modalWidth(MaxWidth::SixExtraLarge);
     }
 
     abstract public static function documentType(): DocumentType;

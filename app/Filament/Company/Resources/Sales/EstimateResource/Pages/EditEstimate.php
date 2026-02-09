@@ -83,6 +83,7 @@ class EditEstimate extends EditRecord
                     
                     $this->refreshFormData(['lineItemGroups']);
                 }),
+            Estimate::getPreviewAction(),
             Actions\DeleteAction::make(),
         ];
     }
