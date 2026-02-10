@@ -39,11 +39,11 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-2">
+            <div class="columns-2 gap-2">
                 <template x-for="(scope, index) in data.scopes" :key="index">
                     <label 
                         :class="scope.selected ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 border-gray-900 dark:border-white' : 'border-gray-200 dark:border-gray-700'"
-                        class="flex items-start gap-2 p-2 border rounded cursor-pointer hover:bg-gray-900 dark:hover:bg-gray-100 dark:hover:text-gray-900 transition-colors hover:text-white">
+                        class="flex items-start mb-3 gap-2 p-2 border rounded cursor-pointer hover:bg-gray-900 dark:hover:bg-gray-100 dark:hover:text-gray-900 transition-colors hover:text-white">
                         <input type="checkbox" x-model="scope.selected" class="mt-0.5 h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
                         <div>
                             <span class="font-bold text-sm" x-text="scope.name"></span>

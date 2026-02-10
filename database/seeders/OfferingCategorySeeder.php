@@ -18,62 +18,62 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Living & Dining Hall: floor tile & skirting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '3 Bedrooms: floor tile/parquet/laminate & skirting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Kitchen: floor & wall tile, kitchen cabinet, work top & fitting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Master Bathroom: floor & wall tile, sanitary, vanity, screen & fitting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Common Bathroom: floor & wall tile, sanitary, vanity, screen & fitting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Utility Bathroom: floor & wall tile, sanitary, vanity, screen & fitting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'Balcony: floor tile & skirting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             7 => [
                                 'name' => 'Yard: floor tile & skirting',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             8 => [
                                 'name' => 'Kitchen & Bathrooms false ceiling included (condo / private house)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             9 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -83,20 +83,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Existing ceiling/ cornices work',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Carpentry work, wardrobe',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -107,37 +107,37 @@ class OfferingCategorySeeder extends Seeder
                             0 => [
                                 'name' => 'Wall between Master Bedroom and Bedroom 2',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Wall between Kitchen and Dining',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Wall between Master Room & Room 2',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Creation of wall opening at:',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Opening new entrance at:',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Others:',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -161,43 +161,43 @@ class OfferingCategorySeeder extends Seeder
                             0 => [
                                 'name' => 'General affected areas',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Wall between Master Bedroom and Bedroom 2',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Construct and make good door way',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Refer to item',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Wall between Master Bedroom and Bedroom 2 (refer to item …)',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Construct and make good door way for: …',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'Others: …',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -208,43 +208,43 @@ class OfferingCategorySeeder extends Seeder
                             0 => [
                                 'name' => 'To seal up existing (Store / ??) entrance using 63mm hollow block for HDB, red bricks for private',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'To erect full height concrete wall between ( ) and ( ) mark on plan',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'To box up shower niche with recess design',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'To box up suspended toilet bowl wall with wall tile finish',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'To construct bathtub support with wall tile finish at ...',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Top up floor level using light weight block to level between (Balcony) and (Living)',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'Others: …',
                                 'qty' => 1,
-                                'uom' => 'unit',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -255,43 +255,43 @@ class OfferingCategorySeeder extends Seeder
                             0 => [
                                 'name' => 'Kitchen with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Master Bathroom with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Common Bathroom with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Utility Bathroom with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Yard with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Balcony with an up-turn of 300mm against wall',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'Water bonding test',
                                 'qty' => 1,
-                                'uom' => 'ls',
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -330,31 +330,31 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Utility Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             4 => [
                                 'name' => 'Others: …',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -365,37 +365,37 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Service Balcony',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Yard',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             4 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             5 => [
                                 'name' => 'Others: …',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -406,61 +406,61 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Foyer',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Living',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Dining',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Master Room',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             4 => [
                                 'name' => 'Room 2',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             5 => [
                                 'name' => 'Room 3',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             6 => [
                                 'name' => 'Room 4',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             7 => [
                                 'name' => 'Study Room',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             8 => [
                                 'name' => 'Store Room',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             9 => [
                                 'name' => 'Others: …',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -471,7 +471,7 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas: …',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -516,19 +516,19 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'License plumber submission for PUB record',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'To engage HDB approval licensed plumber submission for PUB records',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'To discharge and extend existing inlet point due for overlay wall tile',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -539,25 +539,25 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen (cold water pipe only)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bathroom (hot & cold)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Common Bathroom (hot & cold)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Utility Bathroom (cold water pipe only)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -568,25 +568,25 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Utility Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -597,19 +597,19 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen sink',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bath shower, Common Bath shower',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Master Bath basin, Common Bath basin',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -620,25 +620,25 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Water dispenser point (no outlet require)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'New Kitchen sink location',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Gas Heater location / New tank heater location',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Extra basin at Balcony',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -649,19 +649,19 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -672,19 +672,19 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen sink',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Master Bath shower, Common Bath shower',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Master Bath basin, Common Bath basin',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -695,25 +695,25 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Water dispenser point (no outlet require)',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'New Kitchen sink location',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Gas Heater location / New tank heater location',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Extra basin at Balcony',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -724,25 +724,25 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'To levelling, structure bathtub & run drain pipe at Master Bathroom',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'To levelling, structure wall hung toilet bowl at …',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -753,49 +753,49 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen sink & tap',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             1 => [
                                 'name' => 'Wash Machine tap',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             2 => [
                                 'name' => 'Toilet bowl / wall hung toilet bowl',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             3 => [
                                 'name' => 'Basin & Tap / Vanity cabinet by owner',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             4 => [
                                 'name' => 'Storage heater / Instant heater / Gas heater',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             5 => [
                                 'name' => 'Bath\'s mixer & rain shower set / bathtub connection',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             6 => [
                                 'name' => 'Bath Accessories',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
                             7 => [
                                 'name' => 'Bidet sprays & valves',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -806,7 +806,7 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => '...',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -817,7 +817,7 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen, washing machine, all Bathrooms',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -828,7 +828,7 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen / 2 Bathrooms',
-                                'qty' => 0,
+                                'qty' => 1,
                                 'uom' => 'sqft',
                                 'price' => 12,
                             ],
@@ -845,38 +845,38 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Foyer= false ceiling /',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Living Hall= false ceiling with light pelmet/L-box /',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Dining Hall= false ceiling with light pelmet/L-box /',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Master Room=',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Room 2=',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Room 3=',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -886,8 +886,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen & 3 Bathrooms= false ceiling with access hole',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -897,8 +897,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install curtain pelmet/ aircon pelmet for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -908,8 +908,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Erect double side gymsum board partition wall (full height) for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -919,8 +919,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install decorative beading design on',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -930,8 +930,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To install waterproof "calcium silicate board" to box up sewage pipe for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -941,8 +941,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Seal up recess using gymsum board',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -952,8 +952,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To box up ( area) ….. with light pelmet design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -968,8 +968,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Paint whole house ceiling (Matex white) and wall (Vinilex 5000) max 5 colour whole house',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -979,8 +979,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Paint all door frames, pipe using Nippon glossy paint',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -990,8 +990,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Top up paint door for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1001,8 +1001,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Top up wall paint work at Kitchen includes oil sealer base',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1012,8 +1012,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Top up Anti mould ceiling paint at Kitchen & Bathrooms',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1023,8 +1023,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Apply oil sealer base coating for whole house, due to plastering work',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1039,20 +1039,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Living Hall (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Dining Hall (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Study Room) (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1062,20 +1062,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bedroom (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Room 2 (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Room 3 (3 way / 2 way)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1085,20 +1085,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Living Hall',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Dining Hall',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Study Room)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1108,20 +1108,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bedroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Room 2',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Room 3',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1131,8 +1131,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install (NA/BA/white powder-coated) colour framed (adjustable/fix) louver / side',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1142,20 +1142,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1165,8 +1165,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install built-in KDK exhaust fan (6” / 8”)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1176,8 +1176,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Top up using laminated glass',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1187,8 +1187,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To upgrade window to Double Glazed glass for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1198,8 +1198,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To upgrade window lock to Multi lock-set for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1209,8 +1209,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To upgrade window frame to Alpha material size',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1220,8 +1220,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To install heavy duty top hanging track ULTRA SLIM SYNCHRONISED sliding door with soft close & clear tempered glass for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1231,8 +1231,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To install heavy duty top hanging track ULTRA SLIM TELESCOPIC (2 FIXED, 2 MIDDLE SLIDE) sliding door with soft close & clear tempered glass for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1242,8 +1242,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1258,14 +1258,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1275,14 +1275,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1292,20 +1292,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Master Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Common Bathroom',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1315,8 +1315,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To install Fix panel clear tempered glass screen in frameless/frame design at: …… size: ……',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1326,8 +1326,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Between Kitchen top and bottom cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1342,8 +1342,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1353,8 +1353,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install architrave trims for both side for',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1364,8 +1364,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1375,8 +1375,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1386,8 +1386,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1397,8 +1397,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1408,8 +1408,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1419,8 +1419,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Supply and install Slide & Swing PD door in ( ) series at',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1430,8 +1430,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Supply and install aluminium Bi-fold door in ( ) at',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1441,8 +1441,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Supply and install ….',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1457,8 +1457,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Main entrance Size….',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1468,14 +1468,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Main entrance Size….',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Others..',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1490,20 +1490,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => '3 Bedrooms',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Staircase step (with/ without riser)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1513,8 +1513,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => '3 Bedrooms',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1524,14 +1524,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Staircase step (with / without riser)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Staircase step using long cut size teak piece',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1541,8 +1541,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Areas',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1552,8 +1552,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Lay new parquet joint existing c/w revarnishing the whole areas',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1563,8 +1563,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Other’s timber floor works',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1574,8 +1574,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To construct platform at Height (6” / …) (with / without) light pelmet) at',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1585,8 +1585,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To lay outdoor water resistance Chengai wood flooring at: Balcony',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1596,8 +1596,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To lay outdoor water resistance Composite wood flooring at: Balcony',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1612,26 +1612,26 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Foyer, Living, Dining & Bedroom corridors',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '3 Bedrooms',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Staircase step (with / without riser)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1641,8 +1641,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Other’s floor works',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1652,8 +1652,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To construct platform at Height (6” / …) (with / without) light pelmet) at',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1663,8 +1663,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Alteration existing door due to overlay',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1679,14 +1679,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Foyer, Living, Dining & Bedroom corridors',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1696,20 +1696,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Foyer, Living, Dining & Bedroom corridors',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '3 Bedrooms',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Others',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1724,8 +1724,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Custom design, fabricate & install the following items: material guide refer to chart chart unless stated in form',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1735,32 +1735,32 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Shoe cabinet in half height / full height using AA track',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Box up Home Shelter door with feature wall / cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Settee with storage',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Mirror feature wall with light pelmet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Others…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1770,32 +1770,32 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Tv Feature wall',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Tv Cabinet with open shelve design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Suspended Tv console',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Display cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Others…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1805,32 +1805,32 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Mirror feature wall with ……',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Settee cabinet with (laminate backing / cushion back) design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Pantry cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Display cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Others…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1840,80 +1840,80 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Top hung cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Bottom cabinet (max 4 nos drawers)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Counter cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Island cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Full height cabinet / Tall unit for Oven / Microwave',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Box up piping',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'Light Switches Box',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             7 => [
                                 'name' => 'FOC Stainless steel dishrack x 1',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             8 => [
                                 'name' => 'FOC Aluminium glass door x 1',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             9 => [
                                 'name' => 'FOC PVC cutlery tray',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             10 => [
                                 'name' => 'FOC Blum soft close runner x 4 set',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             11 => [
                                 'name' => 'FOC Blum HK soft close lift system x 1 set',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             12 => [
                                 'name' => 'Others: …',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1923,8 +1923,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Location: Master Room Area',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1934,20 +1934,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '(Queen/King) size built-in bed-frame using laminate c/w bottom drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Platform bed with storage below',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1957,20 +1957,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Bedside table in (suspended / low) design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Feature wall design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Built-in dressing table (with / without) mirror',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1980,8 +1980,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Location: Room 2 Area',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -1991,20 +1991,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '(Queen/King/ SS/ Single) size built-in bed-frame using laminate c/w bottom drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Platform bed with storage below',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2014,38 +2014,38 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Bedside table in (suspended / low) design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Feature wall design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Dresser',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Top hung book shelve',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Suspended study table',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2055,8 +2055,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Location: Room 3 Area',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2066,20 +2066,20 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => '(Queen/King/ SS/ Single) size built-in bed-frame using laminate c/w bottom drawers',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Platform bed with storage below',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2089,44 +2089,44 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Bedside table in (suspended / low) design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Feature wall design',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Dresser',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Top hung book shelve',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Suspended study table',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             6 => [
                                 'name' => 'If have others areas how to create in system?',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2136,26 +2136,26 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Suspended built-in vanity cabinet using laminate finish',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Top hung vanity storage cabinet in mirror door',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Box up fix panel mirror above vanity in size: ......... with/without light pelmet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2165,26 +2165,26 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Suspended built-in vanity cabinet using laminate finish',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Top hung vanity storage cabinet in mirror door',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Box up fix panel mirror above vanity in size: ......... with/without light pelmet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2199,8 +2199,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install (promotion series) (Quartz/Sintered/ ..) top c/w back-splash skirting in (12mm/20mm/40mm) profile include opening of holes for the following',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2210,38 +2210,38 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Counter max depth700mm / Island',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Panty top',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             2 => [
                                 'name' => 'Master Bath vanity',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             3 => [
                                 'name' => 'Common Bath vanity',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             4 => [
                                 'name' => 'Bay window top',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             5 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2251,8 +2251,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Install EDL Compact top in (6mm / downturn) profile include opening of holes for the following',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2262,8 +2262,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Others:…',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2273,14 +2273,14 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Between Kitchen top & bottom cabinet',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                             1 => [
                                 'name' => 'Feature wall',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2295,8 +2295,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To do chemical washing on 1st stage (before carpentry deliver)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2306,8 +2306,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Supply labour and material to do general cleaning upon completion',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2317,8 +2317,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Haulage & Debris Removal',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2328,8 +2328,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'To lay corrugated paper protection for affected area',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2344,8 +2344,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Replace new stainless steel rubbish chute',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2355,8 +2355,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Supply scaffolding for work progress',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2366,8 +2366,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Labour fees top up for carry up materials full piece no joints to storey ( … )',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2377,8 +2377,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Labour fees top up for non-lift level unit',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2393,8 +2393,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Carpentry internal shelving upgrade to Stainless steel up & down / Upgrade internal shelve to 30mm thick',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2404,8 +2404,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Rinnai 3 burner Gas cooker',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2415,8 +2415,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Rinnai Cooker Hood',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2426,8 +2426,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Kitchen Sink & Tap (selected model)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2437,8 +2437,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Lucky Khoon Bathroom Sanitary Voucher $500',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2448,8 +2448,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'A&S Lighting Shop Voucher $500',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2459,8 +2459,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Discounted amount ($$$$) confirm by date (…….)',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2470,8 +2470,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => 'Whole House colour electrical switch & socket',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
@@ -2481,8 +2481,8 @@ class OfferingCategorySeeder extends Seeder
                         'items' => [
                             0 => [
                                 'name' => '720 Degree Drawing',
-                                'qty' => 0,
-                                'uom' => 'ls',
+                                'qty' => 1,
+                                'uom' => null,
                                 'price' => 0,
                             ],
                         ],
