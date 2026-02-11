@@ -17,7 +17,7 @@ trait ManagesLineItems
     protected function handleLineItems(Model $record, Collection $lineItems): void
     {
         // Check if we are handling groups or flat items
-        $isGrouped = $lineItems->first(fn ($item) => isset($item['items']));
+        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']));
 
         if ($isGrouped) {
              $this->handleLineItemGroups($record, $lineItems);
@@ -50,22 +50,22 @@ trait ManagesLineItems
         }
     }
 
-    protected function handleLineItemGroups(Model $record, Collection $groups): void
+    protected function handleLineItemGroups(Model $record, Collection $groups, ?int $parentId = null): void
     {
         $groupOrder = 0;
-        foreach ($groups as $groupId => $groupData) {
+        foreach ($groups as $groupData) {
             $groupOrder++;
-            $group = $record->lineItemGroups()->find($groupId);
-
-            if (! $group && isset($groupData['id'])) {
-                $group = $record->lineItemGroups()->find($groupData['id']);
-            }
+            
+            $id = $groupData['id'] ?? null;
+            $group = $id ? $record->lineItemGroups()->find($id) : null;
 
             if (! $group) {
                 $group = $record->lineItemGroups()->make();
             }
 
             $group->fill([
+                'parent_id' => $parentId,
+                'offering_category_id' => $groupData['offering_category_id'] ?? null,
                 'name' => $groupData['name'] ?? null,
                 'order' => $groupOrder,
             ]);
@@ -75,20 +75,12 @@ trait ManagesLineItems
             // Handle items within group
             $items = collect($groupData['items'] ?? []);
             
-            // Delete removed items from this specific group
-            // We need to be careful not to delete items that were just moved to another group
-            // But since we are iterating groups, we might handle deletions globally in deleteRemovedLineItemGroups
-            // Here we just handle updates/creates
-            
             $itemIndex = 0;
-            foreach ($items as $itemId => $itemData) {
+            foreach ($items as $itemData) {
                 $itemIndex++;
                 
-                $lineItem = $record->lineItems()->find($itemId);
-
-                if (! $lineItem && isset($itemData['id'])) {
-                    $lineItem = $record->lineItems()->find($itemData['id']);
-                }
+                $itemId = $itemData['id'] ?? null;
+                $lineItem = $itemId ? $record->lineItems()->find($itemId) : null;
 
                  if (! $lineItem) {
                      $lineItem = $record->lineItems()->make();
@@ -114,18 +106,23 @@ trait ManagesLineItems
                  $this->handleLineItemAdjustments($lineItem, $itemData, $record->discount_method);
                  $this->updateLineItemTotals($lineItem, $record->discount_method);
             }
+
+            // Handle nested children groups
+            if (isset($groupData['children'])) {
+                $this->handleLineItemGroups($record, collect($groupData['children']), $group->id);
+            }
         }
     }
 
     protected function deleteRemovedLineItems(Model $record, Collection $lineItems): void
     {
         // Check for groups
-        $isGrouped = $lineItems->first(fn ($item) => isset($item['items']));
+        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']));
 
         if ($isGrouped) {
              $this->deleteRemovedLineItemGroups($record, $lineItems);
         } else {
-            $existingLineItemIds = $record->lineItems->pluck('id');
+            $existingLineItemIds = $record->lineItems()->pluck('id');
             $updatedLineItemIds = $lineItems->pluck('id')->filter();
             $lineItemsToDelete = $existingLineItemIds->diff($updatedLineItemIds);
 
@@ -141,9 +138,9 @@ trait ManagesLineItems
     protected function deleteRemovedLineItemGroups(Model $record, Collection $groups): void
     {
         // Delete removed groups
-        $existingGroupIds = $record->lineItemGroups->pluck('id');
+        $existingGroupIds = $record->lineItemGroups()->pluck('id');
         
-        $updatedGroupIds = $groups->pluck('id')->filter()->toArray();
+        $updatedGroupIds = $this->getAllUpdatedGroupIds($groups);
 
         $groupsToDelete = $existingGroupIds->diff($updatedGroupIds);
 
@@ -154,9 +151,7 @@ trait ManagesLineItems
         }
 
         // Delete removed items from remaining groups
-        $allUpdatedItemIds = $groups->pluck('items')
-             ->flatMap(fn ($items) => collect($items)->pluck('id'))
-             ->filter();
+        $allUpdatedItemIds = $this->getAllUpdatedItemIds($groups);
             
         $existingItemIds = $record->lineItems()->pluck('id'); // Get ALL items for doc
 
@@ -167,6 +162,39 @@ trait ManagesLineItems
                 ->whereIn('id', $itemsToDelete)
                 ->each(fn ($item) => $item->delete());
         }
+    }
+
+    protected function getAllUpdatedGroupIds(Collection $groups): array
+    {
+        $ids = [];
+
+        foreach ($groups as $group) {
+            if (isset($group['id'])) {
+                $ids[] = $group['id'];
+            }
+
+            if (isset($group['children'])) {
+                $ids = array_merge($ids, $this->getAllUpdatedGroupIds(collect($group['children'])));
+            }
+        }
+
+        return array_filter($ids);
+    }
+
+    protected function getAllUpdatedItemIds(Collection $groups): array
+    {
+        $ids = [];
+
+        foreach ($groups as $group) {
+            $items = collect($group['items'] ?? []);
+            $ids = array_merge($ids, $items->pluck('id')->filter()->toArray());
+
+            if (isset($group['children'])) {
+                $ids = array_merge($ids, $this->getAllUpdatedItemIds(collect($group['children'])));
+            }
+        }
+
+        return array_filter($ids);
     }
 
     protected function handleLineItemAdjustments(DocumentLineItem $lineItem, array $itemData, DocumentDiscountMethod $discountMethod): void

@@ -49,39 +49,60 @@ class EditEstimate extends EditRecord
                 ])
                 ->action(function (array $data, Estimate $record) {
                     $selectedIds = array_map('intval', $data['categories']);
-                    $currentGroups = $record->lineItemGroups()->whereNotNull('offering_category_id')->get();
-                    $currentCategoryIds = $currentGroups->pluck('offering_category_id')->toArray();
-
-                    // Remove deselected
-                    $toRemove = $currentGroups->whereNotIn('offering_category_id', $selectedIds);
-                    foreach ($toRemove as $group) {
-                        $group->items()->delete();
-                        $group->delete();
-                    }
-
-                    // Add newly selected
-                    $toAddIds = array_diff($selectedIds, $currentCategoryIds);
                     
-                    if (!empty($toAddIds)) {
-                        $maxOrder = $record->lineItemGroups()->max('order') ?? 0;
-                        $categoriesToAdd = \App\Models\Common\OfferingCategory::whereIn('id', $toAddIds)->get();
+                    // Fetch categories in correct order (Nested Set order for parents)
+                    $sortedCategories = \App\Models\Common\OfferingCategory::whereIn('id', $selectedIds)
+                        ->defaultOrder()
+                        ->get();
 
-                        foreach ($categoriesToAdd as $category) {
-                            $record->lineItemGroups()->create([
+                    // Current state of groups in the form
+                    $currentGroups = collect($this->data['lineItemGroups'] ?? []);
+                    
+                    // Map existing groups by category ID for easy lookup
+                    // We only care about groups that have an offering_category_id
+                    $existingGroupsByCat = $currentGroups->filter(fn($g) => filled($g['offering_category_id'] ?? null))
+                        ->keyBy(fn($g) => (int) $g['offering_category_id']);
+                    
+                    $newGroupsList = [];
+                    $orderCounter = 1;
+
+                    foreach ($sortedCategories as $category) {
+                        if ($existingGroupsByCat->has($category->id)) {
+                            // Update existing group's order
+                            $group = $existingGroupsByCat->get($category->id);
+                            $group['order'] = $orderCounter++;
+                            $newGroupsList[] = $group;
+                        } else {
+                            // Create new group "stub" with correct order
+                            $newGroupsList[] = [
+                                'id' => null,
                                 'company_id' => $record->company_id,
                                 'offering_category_id' => $category->id,
                                 'name' => $category->name,
-                                'order' => ++$maxOrder,
-                            ]);
+                                'order' => $orderCounter++,
+                                'items' => [],
+                                'children' => [],
+                            ];
                         }
                     }
+                    
+                    // Maintain custom groups (without offering_category_id) at the end
+                    $customGroups = $currentGroups->filter(fn($g) => blank($g['offering_category_id'] ?? null))
+                        ->sortBy('order');
+                        
+                    foreach ($customGroups as $group) {
+                        $group['order'] = $orderCounter++;
+                        $newGroupsList[] = $group;
+                    }
+
+                    // Update form state
+                    $this->data['lineItemGroups'] = $newGroupsList;
 
                     \Filament\Notifications\Notification::make()
-                        ->title('Work scopes updated')
+                        ->title('Work scopes updated in editor')
+                        ->body('Direct changes applied to editor. Click "Save Changes" to persist.')
                         ->success()
                         ->send();
-                    
-                    $this->refreshFormData(['lineItemGroups']);
                 }),
             Estimate::getPreviewAction(),
             Actions\DeleteAction::make(),

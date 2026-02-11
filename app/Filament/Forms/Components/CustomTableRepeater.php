@@ -50,7 +50,12 @@ class CustomTableRepeater extends TableRepeater
 
     public function isReorderAtStart(): bool
     {
-        return $this->evaluate($this->reorderAtStart) && $this->isReorderable();
+        try {
+            return $this->evaluate($this->reorderAtStart) && $this->isReorderable();
+        } catch (\Error $e) {
+            // Handle case where container is not initialized yet (during nested repeater setup)
+            return false;
+        }
     }
 
     public function footerItem(View | Htmlable | Closure | null $footer = null): static

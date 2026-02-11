@@ -86,8 +86,46 @@ class JobScopeOptionResource extends Resource
                     ->label('Job Scopes')
                     ->badge(),
             ])
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
             ->filters([
-                //
+                Tables\Filters\Filter::make('category_drilldown')
+                    ->form([
+                        Forms\Components\Select::make('parent_id')
+                            ->label('Job Scope')
+                            ->options(\App\Models\Common\OfferingCategory::whereNull('parent_id')->pluck('name', 'id'))
+                            ->live(),
+                        Forms\Components\Select::make('child_id')
+                            ->label('Job Scope Description')
+                            ->options(fn (Forms\Get $get) => 
+                                $get('parent_id') 
+                                    ? \App\Models\Common\OfferingCategory::where('parent_id', $get('parent_id'))->pluck('name', 'id') 
+                                    : []
+                            )
+                            ->placeholder('All Descriptions')
+                            ->visible(fn (Forms\Get $get) => filled($get('parent_id'))),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['child_id'],
+                            fn (Builder $query, $childId) => $query->whereHas('categories', fn ($query) => $query->where('offering_categories.id', $childId))
+                        )->when(
+                            $data['parent_id'] && !$data['child_id'],
+                            fn (Builder $query, $parentId) => $query->whereHas('categories', fn ($query) => 
+                                $query->whereIn('offering_categories.id', \App\Models\Common\OfferingCategory::where('parent_id', $parentId)->pluck('id'))
+                            )
+                        );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['parent_id'] ?? null) {
+                            $indicators[] = 'Job Scope: ' . \App\Models\Common\OfferingCategory::find($data['parent_id'])?->name;
+                        }
+                        if ($data['child_id'] ?? null) {
+                            $indicators[] = 'Description: ' . \App\Models\Common\OfferingCategory::find($data['child_id'])?->name;
+                        }
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

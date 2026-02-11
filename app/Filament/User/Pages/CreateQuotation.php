@@ -41,7 +41,8 @@ class CreateQuotation extends Page
     {
         $scopes = OfferingCategory::query()
             ->whereNull('parent_id')
-            ->with(['children.offerings'])
+            ->defaultOrder()
+            ->with(['children' => fn($q) => $q->defaultOrder(), 'children.offerings'])
             ->get();
 
         $clients = \App\Models\Common\Client::query()
@@ -177,53 +178,39 @@ class CreateQuotation extends Page
         // 3.1 Remove groups that are no longer selected
         $groupsToDelete = $managedGroups->whereNotIn('offering_category_id', $selectedScopeIds);
         foreach ($groupsToDelete as $group) {
+            // Also delete children if this group has any
+            $group->children()->each(function($child) {
+                $child->items()->delete();
+                $child->delete();
+            });
             $group->items()->delete();
             $group->delete();
         }
 
         $order = 1;
 
-        // 3.2 Update existing groups and create new ones
+        // 3.2 Create or update parent groups (first level only)
         foreach ($selectedScopes as $scope) {
             $existingGroup = $managedGroups->where('offering_category_id', $scope['id'])->first();
 
             if ($existingGroup) {
-                // Update order for existing group
+                // Update existing group
                 $existingGroup->update([
-                    'order' => $order++,
+                    'order' => $order,
                     'name' => $scope['name'],
                 ]);
             } else {
-                // Create new group
-                $group = $estimate->lineItemGroups()->create([
+                // Create new parent group
+                $estimate->lineItemGroups()->create([
                     'offering_category_id' => $scope['id'],
                     'name' => $scope['name'],
                     'company_id' => $company->id,
-                    'order' => $order++,
+                    'order' => $order,
+                    'parent_id' => null,
                 ]);
-
-                if ($addAllItems ?? false) {
-                    foreach ($scope['descriptions'] as $desc) {
-                        foreach ($desc['items'] as $item) {
-                            $itemPrice = $item['price'] * 100;
-                            $lineTotal = $item['qty'] * $itemPrice;
-
-                            $estimate->lineItems()->create([
-                                'group_id' => $group->id,
-                                'offering_id' => $item['id'],
-                                'name' => $item['name'], 
-                                'description' => $item['name'],
-                                'quantity' => $item['qty'],
-                                'unit' => $item['uom'],
-                                'unit_price' => $itemPrice,
-                                'subtotal' => $lineTotal,
-                                'total' => $lineTotal,
-                                'company_id' => $company->id,
-                            ]);
-                        }
-                    }
-                }
             }
+
+            $order++;
         }
 
         // 5. Update Order for Custom Groups (Push to end)

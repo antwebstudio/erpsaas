@@ -20,6 +20,7 @@ class DocumentLineItemGroup extends Model
 
     protected $fillable = [
         'company_id',
+        'parent_id',
         'documentable_type',
         'documentable_id',
         'offering_category_id',
@@ -42,5 +43,15 @@ class DocumentLineItemGroup extends Model
     public function offeringCategory(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Common\OfferingCategory::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id')->orderBy('order');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('order');
     }
 }

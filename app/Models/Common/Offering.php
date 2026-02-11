@@ -37,6 +37,7 @@ class Offering extends Model
         'created_by',
         'updated_by',
         'unit',
+        'sort_order',
     ];
 
     protected $casts = [
