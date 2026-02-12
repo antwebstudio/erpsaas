@@ -2534,12 +2534,14 @@ class OfferingCategorySeeder extends Seeder
         
         if (!$companyId) {
              $companyId = DB::table('companies')->insertGetId([
-                 'name' => 'Demo Company',
-                 'email' => 'demo@example.com',
+                 'name' => 'Default',
+                 'email' => 'default@example.com',
                  'created_at' => now(),
                  'updated_at' => now(),
              ]);
         }
+
+        return;
 
         // Force session for the model's save hook
         session(['current_company_id' => $companyId]);
