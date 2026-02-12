@@ -140,8 +140,10 @@ class ImportJobScope extends Command
                             break;
 
                         case 3: // JobScopeOption (Offering)
-                            if (!$currentJobScopeDescription) {
-                                $this->warn("Row " . ($index + 1) . ": Item type 3 found before any type 2. Skipping.");
+                            $targetCategory = $currentJobScopeDescription ?: $currentJobScope;
+
+                            if (!$targetCategory) {
+                                $this->warn("Row " . ($index + 1) . ": Item type 3 found before any type 1 or 2. Skipping.");
                                 continue 2;
                             }
 
@@ -168,9 +170,9 @@ class ImportJobScope extends Command
 
                             // Link to category if not already linked
                             if (!$offering->categories()
-                                ->where('offering_category_id', $currentJobScopeDescription->id)
+                                ->where('offering_category_id', $targetCategory->id)
                                 ->exists()) {
-                                $offering->categories()->attach($currentJobScopeDescription->id);
+                                $offering->categories()->attach($targetCategory->id);
                             }
                             
                             $importCount['JobScopeOption']++;

@@ -106,15 +106,25 @@ class JobScopeOptionResource extends Resource
                             ->visible(fn (Forms\Get $get) => filled($get('parent_id'))),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        return $query->when(
-                            $data['child_id'],
-                            fn (Builder $query, $childId) => $query->whereHas('categories', fn ($query) => $query->where('offering_categories.id', $childId))
-                        )->when(
-                            $data['parent_id'] && !$data['child_id'],
-                            fn (Builder $query, $parentId) => $query->whereHas('categories', fn ($query) => 
-                                $query->whereIn('offering_categories.id', \App\Models\Common\OfferingCategory::where('parent_id', $parentId)->pluck('id'))
-                            )
-                        );
+                        $parentId = $data['parent_id'] ?? null;
+                        $childId = $data['child_id'] ?? null;
+                        $categoryId = $childId ?: $parentId;
+
+                        if (filled($categoryId)) {
+                            $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                            if ($category) {
+                                $categoryIds = \App\Models\Common\OfferingCategory::query()
+                                    ->where($category->getLftName(), '>=', $category->getLft())
+                                    ->where($category->getRgtName(), '<=', $category->getRgt())
+                                    ->pluck('id');
+
+                                return $query->whereHas('categories', fn (Builder $q) => 
+                                    $q->whereIn('offering_categories.id', $categoryIds)
+                                );
+                            }
+                        }
+
+                        return $query;
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
