@@ -750,13 +750,30 @@ class EstimateResource extends Resource
                                                     ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
                                                     ->fillForm(function (Forms\Get $get) {
                                                         $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with('children.offerings')->find($categoryId);
+                                                        $category = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($categoryId);
+                                                        
+                                                        // Gather all existing offering IDs in this group (main items + sub-group items)
                                                         $existingItems = $get('items') ?? [];
                                                         $existingOfferingIds = array_column($existingItems, 'offering_id');
-                                                        $existingOfferingIds = array_map('strval', array_filter($existingOfferingIds));
                                                         
-                                                        $preSelected = [];
+                                                        $existingChildren = $get('children') ?? [];
+                                                        foreach ($existingChildren as $child) {
+                                                            $childItems = $child['items'] ?? [];
+                                                            $childOfferingIds = array_column($childItems, 'offering_id');
+                                                            $existingOfferingIds = array_merge($existingOfferingIds, $childOfferingIds);
+                                                        }
+                                                        
+                                                        $existingOfferingIds = array_unique(array_map('strval', array_filter($existingOfferingIds)));
+                                                        
+                                                        $preSelectedGrouped = [];
+                                                        $preSelectedRoot = [];
                                                         if ($category) {
+                                                            $preSelectedRoot = $category->offerings->pluck('id')
+                                                                ->map('strval')
+                                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                                ->values()
+                                                                ->toArray();
+
                                                             foreach ($category->children as $child) {
                                                                 $ids = $child->offerings->pluck('id')
                                                                     ->map('strval')
@@ -764,22 +781,30 @@ class EstimateResource extends Resource
                                                                     ->values()
                                                                     ->toArray();
                                                                 if (!empty($ids)) {
-                                                                    $preSelected[$child->id] = $ids;
+                                                                    $preSelectedGrouped[$child->id] = $ids;
                                                                 }
                                                             }
                                                         }
                                                         
                                                         return [
-                                                            'job_scopes_grouped' => $preSelected,
+                                                            'job_scopes_grouped' => $preSelectedGrouped,
+                                                            'job_scopes_root' => $preSelectedRoot,
                                                         ];
                                                     })
                                                     ->form(function (Forms\Get $get) {
                                                         $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                                                        $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
                                                         
                                                         // Get all children categories (Job Scope Descriptions)
                                                         // And their offerings (Job Scope Options)
                                                         $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
+                                                        $rootOfferings = $category ? $category->offerings()
+                                                            ->orderBy('sort_order')
+                                                            ->orderBy('name')
+                                                            ->get()
+                                                            ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                                            ->values()
+                                                            ->toArray() : [];
 
                                                         $schema = [];
                                                         
@@ -790,10 +815,44 @@ class EstimateResource extends Resource
                                                             ->prefixIcon('heroicon-m-magnifying-glass')
                                                             ->live(debounce: 300);
 
-                                                        if ($jobScopeDescriptions->isEmpty()) {
+                                                        if ($jobScopeDescriptions->isEmpty() && empty($rootOfferings)) {
                                                             $schema[] = Forms\Components\Placeholder::make('no_options')
                                                                 ->content('No Job Scopes available for this category.');
                                                             return $schema;
+                                                        }
+
+                                                        if (!empty($rootOfferings)) {
+                                                            $schema[] = Forms\Components\Section::make('General')
+                                                                ->schema([
+                                                                    Forms\Components\CheckboxList::make("job_scopes_root")
+                                                                        ->hiddenLabel()
+                                                                        ->searchable(false)
+                                                                        ->bulkToggleable()
+                                                                        ->options(function (Forms\Get $get) use ($rootOfferings) {
+                                                                            $term = $get('search_job_scopes');
+                                                                            
+                                                                            $filtered = collect($rootOfferings);
+                                                                            if (filled($term)) {
+                                                                                $filtered = $filtered->filter(function ($item) use ($term) {
+                                                                                    return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
+                                                                                });
+                                                                            }
+                                                                            
+                                                                            return $filtered->pluck('name', 'id')->toArray();
+                                                                        }),
+                                                                ])
+                                                                ->collapsible()
+                                                                ->compact()
+                                                                ->visible(function (Forms\Get $get) use ($rootOfferings) {
+                                                                    $term = $get('search_job_scopes');
+                                                                    if (blank($term)) {
+                                                                        return true;
+                                                                    }
+                                                                    // Check if any offering matches
+                                                                    return collect($rootOfferings)->contains(function ($item) use ($term) {
+                                                                        return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
+                                                                    });
+                                                                });
                                                         }
 
                                                         foreach ($jobScopeDescriptions as $description) {
@@ -852,41 +911,113 @@ class EstimateResource extends Resource
                                                     })
                                                     ->action(function (array $data, Forms\Set $set, Forms\Get $get, $component) {
                                                         $groupedData = $data['job_scopes_grouped'] ?? [];
-                                                        $allSelectedOfferingIds = [];
-                                                        foreach ($groupedData as $categoryId => $ids) {
-                                                            if (is_array($ids)) {
-                                                                $allSelectedOfferingIds = array_merge($allSelectedOfferingIds, $ids);
-                                                            }
-                                                        }
-                                                        $allSelectedOfferingIds = array_unique(array_filter($allSelectedOfferingIds));
+                                                        $rootSelectedIds = $data['job_scopes_root'] ?? [];
 
                                                         $parentCategoryId = $get('offering_category_id');
-                                                        $parentCategory = \App\Models\Common\OfferingCategory::with('children.offerings')->find($parentCategoryId);
+                                                        $parentCategory = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($parentCategoryId);
                                                         if (!$parentCategory) return;
 
                                                         $childCategories = $parentCategory->children()->defaultOrder()->get();
                                                         $currentChildren = $get('children') ?? [];
-                                                        $addedCount = 0;
+                                                        $currentItems = $get('items') ?? [];
+                                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
                                                         
+                                                        // Get IDs of offerings that belong to the root category
+                                                        $rootCategoryOfferingIds = $parentCategory->offerings->pluck('id')->map('strval')->toArray();
+                                                        
+                                                        $addedCount = 0;
+                                                        $removedCount = 0;
+
+                                                        // --- Handle Root Offerings (Removal and Addition) ---
+                                                        // 1. Remove items that belong to this root category but are NO LONGER selected
+                                                        $newItems = [];
+                                                        foreach ($currentItems as $item) {
+                                                            $offeringId = (string)($item['offering_id'] ?? '');
+                                                            if (in_array($offeringId, $rootCategoryOfferingIds)) {
+                                                                if (in_array($offeringId, $rootSelectedIds)) {
+                                                                    $newItems[] = $item;
+                                                                } else {
+                                                                    $removedCount++;
+                                                                }
+                                                            } else {
+                                                                // Preserve items not belonging to this category
+                                                                $newItems[] = $item;
+                                                            }
+                                                        }
+                                                        $currentItems = $newItems;
+                                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
+
+                                                        // 2. Add newly selected root offerings
+                                                        foreach ($rootSelectedIds as $offeringId) {
+                                                            if (!in_array($offeringId, $existingOfferingIds)) {
+                                                                $offering = $parentCategory->offerings->firstWhere('id', $offeringId);
+                                                                if ($offering) {
+                                                                    $currentItems[] = [
+                                                                        'id' => null,
+                                                                        'offering_id' => $offering->id,
+                                                                        'description' => $offering->name,
+                                                                        'is_locked' => 1,
+                                                                        'unit' => $offering->unit,
+                                                                        'quantity' => 1,
+                                                                        'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
+                                                                        'salesDiscounts' => [],
+                                                                        'salesTaxes' => [],
+                                                                    ];
+                                                                    $addedCount++;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Sort root items
+                                                        $parentOfferingSortOrders = $parentCategory->offerings->pluck('sort_order', 'id')->toArray();
+                                                        usort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
+                                                            $orderA = $parentOfferingSortOrders[$a['offering_id']] ?? 0;
+                                                            $orderB = $parentOfferingSortOrders[$b['offering_id']] ?? 0;
+                                                            
+                                                            if ($orderA === $orderB) {
+                                                                return strcmp($a['description'] ?? '', $b['description'] ?? '');
+                                                            }
+                                                            
+                                                            return $orderA <=> $orderB;
+                                                        });
+                                                        $set('items', $currentItems);
+                                                        
+                                                        // --- Handle Child Category Groups (Removal and Addition) ---
                                                         $newChildren = [];
                                                         $processedChildCategoryIds = [];
 
-                                                        // Iterate over child categories to maintain their natural order
                                                         foreach ($childCategories as $childCategory) {
                                                             $categoryId = $childCategory->id;
                                                             $selectedIds = $groupedData[$categoryId] ?? [];
-                                                            if (empty($selectedIds)) continue;
-
                                                             $processedChildCategoryIds[] = $categoryId;
                                                             
-                                                            // Find existing child group or create new one
+                                                            // Find existing child group
                                                             $existingChild = collect($currentChildren)->firstWhere('offering_category_id', $categoryId);
-                                                            
                                                             $items = $existingChild['items'] ?? [];
-                                                            $existingOfferingIds = array_column($items, 'offering_id');
+                                                            
+                                                            // IDs of offerings belonging to THIS child category
+                                                            $childCategoryOfferingIds = $childCategory->offerings->pluck('id')->map('strval')->toArray();
 
+                                                            // 1. Remove items that belong to this child category but are NO LONGER selected
+                                                            $newChildItems = [];
+                                                            foreach ($items as $item) {
+                                                                $offeringId = (string)($item['offering_id'] ?? '');
+                                                                if (in_array($offeringId, $childCategoryOfferingIds)) {
+                                                                    if (in_array($offeringId, $selectedIds)) {
+                                                                        $newChildItems[] = $item;
+                                                                    } else {
+                                                                        $removedCount++;
+                                                                    }
+                                                                } else {
+                                                                    $newChildItems[] = $item;
+                                                                }
+                                                            }
+                                                            $items = $newChildItems;
+                                                            $existingChildOfferingIds = array_column($items, 'offering_id');
+
+                                                            // 2. Add newly selected offerings to this child group
                                                             foreach ($selectedIds as $offeringId) {
-                                                                if (!in_array($offeringId, $existingOfferingIds)) {
+                                                                if (!in_array($offeringId, $existingChildOfferingIds)) {
                                                                     $offering = $childCategory->offerings->firstWhere('id', $offeringId);
                                                                     if ($offering) {
                                                                         $items[] = [
@@ -905,7 +1036,12 @@ class EstimateResource extends Resource
                                                                 }
                                                             }
 
-                                                            // Update existing or build new child group structure
+                                                            // If no items left and it's not a custom group, we don't need to keep/create it
+                                                            if (empty($items)) {
+                                                                continue;
+                                                            }
+
+                                                            // Update or build child group structure
                                                             if ($existingChild) {
                                                                 $existingChild['items'] = $items;
                                                             } else {
@@ -919,7 +1055,7 @@ class EstimateResource extends Resource
                                                                 ];
                                                             }
 
-                                                            // Sort items in this child group by offering sort_order
+                                                            // Sort items in this child group
                                                             $allOfferingSortOrders = $childCategory->offerings->pluck('sort_order', 'id')->toArray();
                                                             usort($existingChild['items'], function ($a, $b) use ($allOfferingSortOrders) {
                                                                 $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
@@ -935,7 +1071,7 @@ class EstimateResource extends Resource
                                                             $newChildren[] = $existingChild;
                                                         }
 
-                                                        // Preserve other child groups that weren't in the selection form (e.g. custom sub-groups)
+                                                        // Preserve other child groups that weren't managed by this selection (e.g. manually added sub-groups)
                                                         foreach ($currentChildren as $child) {
                                                             if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
                                                                 $newChildren[] = $child;
@@ -944,9 +1080,13 @@ class EstimateResource extends Resource
 
                                                         $set('children', $newChildren);
                                                         
-                                                        if ($addedCount > 0) {
+                                                        if ($addedCount > 0 || $removedCount > 0) {
+                                                            $message = $addedCount . ' added';
+                                                            if ($removedCount > 0) {
+                                                                $message .= ', ' . $removedCount . ' removed';
+                                                            }
                                                             Notification::make()
-                                                                ->title($addedCount . ' offerings added to child groups')
+                                                                ->title('Job Scope items updated: ' . $message)
                                                                 ->success()
                                                                 ->send();
                                                         }
