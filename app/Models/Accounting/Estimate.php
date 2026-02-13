@@ -65,8 +65,11 @@ class Estimate extends Document
         'total',
         'terms',
         'footer',
+        'is_template',
         'created_by',
         'updated_by',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -81,6 +84,7 @@ class Estimate extends Document
         'discount_method' => DocumentDiscountMethod::class,
         'discount_computation' => AdjustmentComputation::class,
         'discount_rate' => RateCast::class,
+        'is_template' => 'boolean',
     ];
 
     protected $appends = [
@@ -273,6 +277,16 @@ class Estimate extends Document
             'approved_at' => $approvedAt,
             'status' => EstimateStatus::Unsent,
         ]);
+    }
+
+    public function scopeIsTemplate(Builder $query): Builder
+    {
+        return $query->where('is_template', true);
+    }
+
+    public function scopeIsNotTemplate(Builder $query): Builder
+    {
+        return $query->where('is_template', false);
     }
 
     public static function getApproveDraftAction(string $action = Action::class): MountableAction
@@ -497,11 +511,14 @@ class Estimate extends Document
 
     public function replicateLineItems(Model $target): void
     {
-        // Replicate Groups
-        $this->lineItemGroups->each(function (DocumentLineItemGroup $group) use ($target) {
+        $groupMap = [];
+
+        // Replicate Groups (Top-level first, then children)
+        $this->lineItemGroups()->orderBy('parent_id')->each(function (DocumentLineItemGroup $group) use ($target, &$groupMap) {
             $replicaGroup = $group->replicate([
                 'documentable_id',
                 'documentable_type',
+                'parent_id',
                 'created_by',
                 'updated_by',
                 'created_at',
@@ -509,7 +526,15 @@ class Estimate extends Document
             ]);
             $replicaGroup->documentable_id = $target->id;
             $replicaGroup->documentable_type = $target->getMorphClass();
+            
+            if ($group->parent_id && isset($groupMap[$group->parent_id])) {
+                $replicaGroup->parent_id = $groupMap[$group->parent_id];
+            } else {
+                $replicaGroup->parent_id = null;
+            }
+
             $replicaGroup->save();
+            $groupMap[$group->id] = $replicaGroup->id;
 
             $group->items->each(function (DocumentLineItem $lineItem) use ($target, $replicaGroup) {
                 $replica = $lineItem->replicate([

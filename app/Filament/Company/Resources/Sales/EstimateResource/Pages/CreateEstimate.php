@@ -24,6 +24,8 @@ class CreateEstimate extends CreateRecord
 
     public function mount(): void
     {
+        ini_set('memory_limit', '1024M');
+
         parent::mount();
 
         if ($this->clientId) {

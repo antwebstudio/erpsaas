@@ -1,22 +1,23 @@
 <?php
 
-namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
+namespace App\Filament\Company\Resources\Sales\EstimateTemplateResource\Pages;
 
-use App\Concerns\HandlePageRedirect;
 use App\Concerns\ManagesLineItems;
-use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
 use App\Models\Accounting\Estimate;
+use App\Models\Common\OfferingCategory;
 use Filament\Actions;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Model;
 
-class EditEstimate extends EditRecord
+class EditEstimateTemplate extends EditRecord
 {
-    use HandlePageRedirect;
     use ManagesLineItems;
 
-    protected static string $resource = EstimateResource::class;
+    protected static string $resource = EstimateTemplateResource::class;
 
     public function mount(int | string $record): void
     {
@@ -28,24 +29,16 @@ class EditEstimate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('backToBuilder')
-                ->label('Back to Page Builder')
-                ->icon('heroicon-o-arrow-left')
-                ->color('gray')
-                ->url(fn () => \App\Filament\User\Pages\CreateQuotation::getUrl([
-                    'estimate_id' => $this->getRecord()->id,
-                    'client' => $this->getRecord()->client_id,
-                ], panel: 'user')),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')
                 ->form([
-                    \Filament\Forms\Components\CheckboxList::make('categories')
+                    CheckboxList::make('categories')
                         ->label('Work Scopes')
                         ->searchable()
                         ->bulkToggleable()
                         ->columns(2)
-                        ->options(\App\Models\Common\OfferingCategory::query()
+                        ->options(OfferingCategory::query()
                             ->whereNull('parent_id')
                             ->pluck('name', 'id'))
                         ->default(fn (Estimate $record) => $record->lineItemGroups()
@@ -58,7 +51,7 @@ class EditEstimate extends EditRecord
                     $selectedIds = array_map('intval', $data['categories']);
                     
                     // Fetch categories in correct order (Nested Set order for parents)
-                    $sortedCategories = \App\Models\Common\OfferingCategory::whereIn('id', $selectedIds)
+                    $sortedCategories = OfferingCategory::whereIn('id', $selectedIds)
                         ->defaultOrder()
                         ->get();
 
@@ -105,13 +98,12 @@ class EditEstimate extends EditRecord
                     // Update form state
                     $this->data['lineItemGroups'] = $newGroupsList;
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title('Work scopes updated in editor')
                         ->body('Direct changes applied to editor. Click "Save Changes" to persist.')
                         ->success()
                         ->send();
                 }),
-            Estimate::getPreviewAction(),
             Actions\DeleteAction::make(),
         ];
     }

@@ -31,6 +31,7 @@ class CreateQuotation extends Page
 
     public function mount()
     {
+        ini_set('memory_limit', '1024M');
         $clientId = request()->query('client');
         $this->estimateId = request()->query('estimate_id') ? (int) request()->query('estimate_id') : null;
         
@@ -112,6 +113,27 @@ class CreateQuotation extends Page
                 })->toArray()
             ];
         })->toArray();
+
+        $this->data['templates'] = $this->loadTemplates();
+    }
+    
+    protected function loadTemplates()
+    {
+        return Estimate::query()
+            ->where('is_template', true)
+            ->where('company_id', Auth::user()->currentCompany->id)
+            ->where('status', EstimateStatus::Draft) // Should templates be draft? usually yes
+            ->orderBy('header')
+            ->get()
+            ->map(function ($template) {
+                return [
+                    'id' => $template->id,
+                    'name' => $template->header ?? $template->estimate_number,
+                    'selected' => false,
+                    'description' => $template->subheader,
+                ];
+            })
+            ->toArray();
     }
 
     public function create()
@@ -126,12 +148,15 @@ class CreateQuotation extends Page
             return;
         }
 
-        $selectedScopes = collect($this->data['scopes'])->where('selected', true);
 
-        if ($selectedScopes->isEmpty()) {
+
+        $selectedScopes = collect($this->data['scopes'])->where('selected', true);
+        $selectedTemplate = collect($this->data['templates'] ?? [])->firstWhere('selected', true);
+
+        if ($selectedScopes->isEmpty() && !$selectedTemplate) {
             Notification::make()
-                ->title('No scopes selected')
-                ->body('Please select at least one work scope.')
+                ->title('No scope or template selected')
+                ->body('Please select at least one work scope or an estimate template.')
                 ->danger()
                 ->send();
             return;
@@ -140,6 +165,92 @@ class CreateQuotation extends Page
         $user = Auth::user();
         $company = $user->currentCompany;
         $settings = $company->defaultEstimate;
+
+        // Handle Template Selection
+        if ($selectedTemplate) {
+            $templateId = $selectedTemplate['id'];
+            $template = Estimate::find($templateId);
+
+            if ($template) {
+                // Replicate logic
+                if ($this->estimateId) {
+                   
+                    $estimate = Estimate::find($this->estimateId);
+                    
+                    // Clear existing lines?
+                    $estimate->lineItems()->delete();
+                    $estimate->lineItemGroups()->delete();
+
+                    // Update header
+                    $estimate->update([
+                        'client_id' => $this->data['client_id'],
+                        'header' => $template->header,
+                        'subheader' => $template->subheader,
+                        'currency_code' => $template->currency_code,
+                        'discount_method' => $template->discount_method,
+                        'discount_computation' => $template->discount_computation,
+                        'discount_rate' => $template->discount_rate,
+                        'terms' => $template->terms,
+                        'footer' => $template->footer,
+                        'updated_by' => $user->id,
+                    ]);
+                } else {
+                    // New Estimate
+                    $estimate = $template->replicate([
+                        'is_template',
+                        'estimate_number',
+                        'date',
+                        'expiration_date',
+                        'approved_at',
+                        'accepted_at',
+                        'converted_at',
+                        'declined_at',
+                        'last_sent_at',
+                        'last_viewed_at',
+                        'status',
+                        'created_by',
+                        'updated_by',
+                        'created_at',
+                        'updated_at',
+                    ]);
+
+                    $estimate->is_template = false;
+                    $estimate->company_id = $company->id;
+                    $estimate->client_id = $this->data['client_id'];
+                    $estimate->estimate_number = Estimate::getNextDocumentNumber($company);
+                    $estimate->status = EstimateStatus::Draft;
+                    $estimate->date = now();
+                    $estimate->expiration_date = now()->addDays(30);
+                    $estimate->created_by = $user->id;
+                    $estimate->updated_by = $user->id;
+                    $estimate->save();
+                }
+
+                // Replicate line items
+                $template->replicateLineItems($estimate);
+
+                // Recalculate totals
+                $grandTotal = $estimate->lineItems()->sum('total');
+                // Calculate other totals if needed, for now assuming simple sum
+                $subtotal = $estimate->lineItems()->sum('subtotal');
+                // taxes etc... 
+                
+                $estimate->update([
+                    'subtotal' => $subtotal,
+                    'total' => $grandTotal,
+                ]);
+
+
+                Notification::make()
+                    ->title($this->estimateId ? 'Quotation updated from template' : 'Quotation created from template')
+                    ->success()
+                    ->send();
+            
+                return redirect()->to(EstimateResource::getUrl('edit', ['record' => $estimate, 'tenant' => $company], panel: 'company'));
+            }
+        }
+        
+        // --- Existing Scope Logic starts here ---
         
         // 2. Create or Update Estimate
         if ($this->estimateId) {
@@ -154,7 +265,7 @@ class CreateQuotation extends Page
                 'client_id' => $this->data['client_id'],
                 'estimate_number' => Estimate::getNextDocumentNumber($company),
                 'header' => $settings->header ?? '',
-                'subheader' => $settings->subheader ?? '',
+                'subheader' => $settings->subheader ?? '', // Fixed typo?
                 'date' => now(),
                 'expiration_date' => now()->addDays(30), 
                 'status' => EstimateStatus::Draft,

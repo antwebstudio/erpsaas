@@ -42,6 +42,7 @@ use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource;
 use App\Filament\Components\PanelShiftDropdown;
@@ -159,6 +160,7 @@ class CompanyPanelProvider extends PanelProvider
                                 ...LeadResource::getNavigationItems(),
                                 ...ClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),
+                                ...EstimateTemplateResource::getNavigationItems(),
                                 ...InvoiceResource::getNavigationItems(),
                                 ...RecurringInvoiceResource::getNavigationItems(),
                             ]),

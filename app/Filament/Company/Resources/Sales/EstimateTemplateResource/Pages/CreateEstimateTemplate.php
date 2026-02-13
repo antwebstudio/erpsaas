@@ -1,64 +1,66 @@
 <?php
 
-namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
+namespace App\Filament\Company\Resources\Sales\EstimateTemplateResource\Pages;
 
-use App\Concerns\HandlePageRedirect;
 use App\Concerns\ManagesLineItems;
-use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
 use App\Models\Accounting\Estimate;
+use App\Models\Common\OfferingCategory;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Model;
 
-class EditEstimate extends EditRecord
+class CreateEstimateTemplate extends CreateRecord
 {
-    use HandlePageRedirect;
     use ManagesLineItems;
 
-    protected static string $resource = EstimateResource::class;
+    protected static string $resource = EstimateTemplateResource::class;
 
-    public function mount(int | string $record): void
+    public function mount(): void
     {
         ini_set('memory_limit', '1024M');
 
-        parent::mount($record);
+        parent::mount();
+    }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['is_template'] = true;
+
+        return $data;
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('backToBuilder')
-                ->label('Back to Page Builder')
-                ->icon('heroicon-o-arrow-left')
-                ->color('gray')
-                ->url(fn () => \App\Filament\User\Pages\CreateQuotation::getUrl([
-                    'estimate_id' => $this->getRecord()->id,
-                    'client' => $this->getRecord()->client_id,
-                ], panel: 'user')),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')
                 ->form([
-                    \Filament\Forms\Components\CheckboxList::make('categories')
+                    CheckboxList::make('categories')
                         ->label('Work Scopes')
                         ->searchable()
                         ->bulkToggleable()
                         ->columns(2)
-                        ->options(\App\Models\Common\OfferingCategory::query()
+                        ->options(OfferingCategory::query()
                             ->whereNull('parent_id')
                             ->pluck('name', 'id'))
-                        ->default(fn (Estimate $record) => $record->lineItemGroups()
-                            ->whereNotNull('offering_category_id')
-                            ->pluck('offering_category_id')
-                            ->toArray())
+                        ->default(function () {
+                            $currentGroups = collect($this->data['lineItemGroups'] ?? []);
+                            return $currentGroups->whereNotNull('offering_category_id')
+                                ->pluck('offering_category_id')
+                                ->toArray();
+                        })
                         ->required(),
                 ])
-                ->action(function (array $data, Estimate $record) {
+                ->action(function (array $data) {
                     $selectedIds = array_map('intval', $data['categories']);
                     
                     // Fetch categories in correct order (Nested Set order for parents)
-                    $sortedCategories = \App\Models\Common\OfferingCategory::whereIn('id', $selectedIds)
+                    $sortedCategories = OfferingCategory::whereIn('id', $selectedIds)
                         ->defaultOrder()
                         ->get();
 
@@ -66,12 +68,14 @@ class EditEstimate extends EditRecord
                     $currentGroups = collect($this->data['lineItemGroups'] ?? []);
                     
                     // Map existing groups by category ID for easy lookup
-                    // We only care about groups that have an offering_category_id
                     $existingGroupsByCat = $currentGroups->filter(fn($g) => filled($g['offering_category_id'] ?? null))
                         ->keyBy(fn($g) => (int) $g['offering_category_id']);
                     
                     $newGroupsList = [];
                     $orderCounter = 1;
+
+                    // We need company_id for new groups
+                    $companyId = $this->data['company_id'] ?? auth()->user()->currentCompany->id;
 
                     foreach ($sortedCategories as $category) {
                         if ($existingGroupsByCat->has($category->id)) {
@@ -83,7 +87,7 @@ class EditEstimate extends EditRecord
                             // Create new group "stub" with correct order
                             $newGroupsList[] = [
                                 'id' => null,
-                                'company_id' => $record->company_id,
+                                'company_id' => $companyId,
                                 'offering_category_id' => $category->id,
                                 'name' => $category->name,
                                 'order' => $orderCounter++,
@@ -105,14 +109,12 @@ class EditEstimate extends EditRecord
                     // Update form state
                     $this->data['lineItemGroups'] = $newGroupsList;
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title('Work scopes updated in editor')
-                        ->body('Direct changes applied to editor. Click "Save Changes" to persist.')
+                        ->body('Direct changes applied to editor. Click "Create" to save.')
                         ->success()
                         ->send();
                 }),
-            Estimate::getPreviewAction(),
-            Actions\DeleteAction::make(),
         ];
     }
 
@@ -121,19 +123,19 @@ class EditEstimate extends EditRecord
         return MaxWidth::Full;
     }
 
-    protected function handleRecordUpdate(Model $record, array $data): Model
+    protected function handleRecordCreation(array $data): Model
     {
         /** @var Estimate $record */
-        $lineItems = collect($data['lineItemGroups'] ?? []);
+        $record = parent::handleRecordCreation($data);
 
-        $this->deleteRemovedLineItems($record, $lineItems);
+        $lineItems = collect($data['lineItemGroups'] ?? []);
 
         $this->handleLineItems($record, $lineItems);
 
         $totals = $this->updateDocumentTotals($record, $data);
+        
+        $record->update($totals);
 
-        $data = array_merge($data, $totals);
-
-        return parent::handleRecordUpdate($record, $data);
+        return $record;
     }
 }

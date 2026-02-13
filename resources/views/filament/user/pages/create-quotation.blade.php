@@ -39,12 +39,36 @@
                 </div>
             </div>
             
+            <!-- Templates Section -->
+            <div x-show="data.templates && data.templates.length > 0" class="mb-8">
+                <h3 class="text-lg font-bold mb-3 text-gray-800 dark:text-gray-200">Start from a Template</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template x-for="(template, index) in data.templates" :key="template.id">
+                        <label 
+                            :class="template.selected ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'"
+                            class="relative flex flex-col p-4 border rounded-xl cursor-pointer hover:border-indigo-500 transition-all shadow-sm">
+                            <div class="flex items-start justify-between mb-2">
+                                <span class="font-bold text-base" x-text="template.name"></span>
+                                <input type="checkbox" x-model="template.selected" @change="toggleTemplate(index)" class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            </div>
+                            <p class="text-xs opacity-80" x-text="template.description || 'No description'"></p>
+                        </label>
+                    </template>
+                </div>
+                
+                <div class="relative flex py-6 items-center">
+                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-wider">OR Select Custom Scopes</span>
+                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                </div>
+            </div>
+
             <div class="columns-2 gap-2">
                 <template x-for="(scope, index) in data.scopes" :key="index">
                     <label 
                         :class="scope.selected ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 border-gray-900 dark:border-white' : 'border-gray-200 dark:border-gray-700'"
                         class="flex items-start mb-3 gap-2 p-2 border rounded cursor-pointer hover:bg-gray-900 dark:hover:bg-gray-100 dark:hover:text-gray-900 transition-colors hover:text-white">
-                        <input type="checkbox" x-model="scope.selected" class="mt-0.5 h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
+                        <input type="checkbox" x-model="scope.selected" @change="toggleScope(index)" class="mt-0.5 h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600">
                         <div>
                             <span class="font-bold text-sm" x-text="scope.name"></span>
                         </div>
@@ -102,11 +126,31 @@
             },
 
             get hasSelectedScopes() {
-                return this.data.scopes.some(s => s.selected);
+                return this.data.scopes.some(s => s.selected) || (this.data.templates && this.data.templates.some(t => t.selected));
             },
 
             updateClientName(name) {
                 this.data.client_name = name;
+            },
+            
+            toggleTemplate(index) {
+                if (this.data.templates[index].selected) {
+                    // Deselect other templates
+                    this.data.templates.forEach((t, i) => {
+                        if (i !== index) t.selected = false; 
+                    });
+                    // Deselect all scopes
+                    this.data.scopes.forEach(s => s.selected = false);
+                }
+            },
+
+            toggleScope(index) {
+                if (this.data.scopes[index].selected) {
+                    // Deselect all templates
+                    if (this.data.templates) {
+                        this.data.templates.forEach(t => t.selected = false);
+                    }
+                }
             },
 
             submitQuotation() {
