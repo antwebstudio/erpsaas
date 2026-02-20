@@ -166,6 +166,7 @@ class EstimateResource extends Resource
                                 Forms\Components\Select::make('discount_method')
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
+                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false))
                                     ->softRequired()
                                     ->default($settings->discount_method)
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -180,8 +181,21 @@ class EstimateResource extends Resource
                         ])->from('md'),
                         Forms\Components\Repeater::make('lineItemGroups')
                             ->extraAttributes(['class' => 'item-group-darker'])
-                            ->relationship('lineItemGroups', function ($query) {
-                                return $query->whereNull('parent_id');
+                            ->relationship('lineItemGroups', function (Builder $query) {
+                                return $query->whereNull('parent_id')->with([
+                                    'items.offering.salesTaxes', 
+                                    'items.offering.salesDiscounts', 
+                                    'items.sellableOffering.salesTaxes', 
+                                    'items.sellableOffering.salesDiscounts', 
+                                    'items.salesTaxes', 
+                                    'items.salesDiscounts',
+                                    'children.items.offering.salesTaxes',
+                                    'children.items.offering.salesDiscounts',
+                                    'children.items.sellableOffering.salesTaxes',
+                                    'children.items.sellableOffering.salesDiscounts',
+                                    'children.items.salesTaxes',
+                                    'children.items.salesDiscounts',
+                                ]);
                             })
                             ->saveRelationshipsUsing(null)
                             ->dehydrated(true)
@@ -250,10 +264,12 @@ class EstimateResource extends Resource
                                                         ->width('10%'),
                                                 ];
 
-                                                if ($hasDiscounts) {
-                                                    $headers[] = Header::make('Adjustments')->width('15%');
-                                                } else {
-                                                    $headers[] = Header::make('Taxes')->width('15%');
+                                                if (! config('erp.hide_tax_and_adjustment_fields', false)) {
+                                                    if ($hasDiscounts) {
+                                                        $headers[] = Header::make('Adjustments')->width('15%');
+                                                    } else {
+                                                        $headers[] = Header::make('Taxes')->width('15%');
+                                                    }
                                                 }
 
                                                 $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
@@ -267,7 +283,7 @@ class EstimateResource extends Resource
                                                 Forms\Components\Hidden::make('is_locked')
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateOfferingSelect::make('offering_id')
+                                                    CreateOfferingSelect::make('offering_id', true)
                                                         ->label('Item')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
@@ -311,6 +327,14 @@ class EstimateResource extends Resource
                                                                 };
                                                             }
 
+                                                            if (config('app.disable_custom_select_relationships', false)) {
+                                                                return;
+                                                            }
+
+                                                            if (config('app.disable_custom_select_relationships', false)) {
+                                                                return;
+                                                            }
+
                                                             $offeringRecord = Offering::with($with)->find($offeringId);
 
                                                             if (! $offeringRecord) {
@@ -352,7 +376,7 @@ class EstimateResource extends Resource
                                                     ->live()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateAdjustmentSelect::make('salesTaxes')
+                                                    CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select taxes')
@@ -366,8 +390,14 @@ class EstimateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->searchable(),
-                                                    CreateAdjustmentSelect::make('salesDiscounts')
+                                                    CreateAdjustmentSelect::make('salesDiscounts', true)
                                                         ->label('Discounts')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select discounts')
@@ -380,13 +410,20 @@ class EstimateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->hidden(function (Forms\Get $get) {
                                                             $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
 
                                                             return $discountMethod->isPerDocument();
                                                         })
                                                         ->searchable(),
-                                                ])->columnSpan(1),
+                                                ])->columnSpan(1)
+                                                  ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                                                 Forms\Components\Placeholder::make('total')
                                                     ->hiddenLabel()
                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
@@ -403,8 +440,15 @@ class EstimateResource extends Resource
 
                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
-                                                        $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
-                                                            ->get()
+                                                        static $companyAdjustments = [];
+                                                        $companyId = auth()->user()?->currentCompany->id ?? 1;
+                                                        if (!isset($companyAdjustments[$companyId])) {
+                                                            $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                                        }
+
+                                                        $taxAmountInCents = collect($salesTaxes)
+                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -413,8 +457,9 @@ class EstimateResource extends Resource
                                                                 }
                                                             });
 
-                                                        $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
-                                                            ->get()
+                                                        $discountAmountInCents = collect($salesDiscounts)
+                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -461,7 +506,7 @@ class EstimateResource extends Resource
                                                         $categoryId = $get('offering_category_id');
                                                         $category = \App\Models\Common\OfferingCategory::find($categoryId);
                                                         
-                                                        $offerings = $category ? $category->offerings()->orderBy('sort_order')->orderBy('name')->get() : collect();
+                                                        $offerings = $category ? $category->offerings()->orderBy('sort_order')->get() : collect();
 
                                                         $schema = [];
                                                         
@@ -565,10 +610,12 @@ class EstimateResource extends Resource
                                                         ->width('10%'),
                                                 ];
 
-                                                if ($hasDiscounts) {
-                                                    $headers[] = Header::make('Adjustments')->width('15%');
-                                                } else {
-                                                    $headers[] = Header::make('Taxes')->width('15%');
+                                                if (! config('erp.hide_tax_and_adjustment_fields', false)) {
+                                                    if ($hasDiscounts) {
+                                                        $headers[] = Header::make('Adjustments')->width('15%');
+                                                    } else {
+                                                        $headers[] = Header::make('Taxes')->width('15%');
+                                                    }
                                                 }
 
                                                 $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
@@ -582,7 +629,7 @@ class EstimateResource extends Resource
                                                 Forms\Components\Hidden::make('is_locked')
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateOfferingSelect::make('offering_id')
+                                                    CreateOfferingSelect::make('offering_id', true)
                                                         ->label('Item')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
@@ -626,6 +673,10 @@ class EstimateResource extends Resource
                                                                 };
                                                             }
 
+                                                            if (config('app.disable_custom_select_relationships', false)) {
+                                                                return;
+                                                            }
+
                                                             $offeringRecord = Offering::with($with)->find($offeringId);
 
                                                             if (! $offeringRecord) {
@@ -667,7 +718,7 @@ class EstimateResource extends Resource
                                                     ->live()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateAdjustmentSelect::make('salesTaxes')
+                                                    CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select taxes')
@@ -681,8 +732,14 @@ class EstimateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->searchable(),
-                                                    CreateAdjustmentSelect::make('salesDiscounts')
+                                                    CreateAdjustmentSelect::make('salesDiscounts', true)
                                                         ->label('Discounts')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select discounts')
@@ -695,13 +752,20 @@ class EstimateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->hidden(function (Forms\Get $get) {
                                                             $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
 
                                                             return $discountMethod->isPerDocument();
                                                         })
                                                         ->searchable(),
-                                                ])->columnSpan(1),
+                                                ])->columnSpan(1)
+                                                  ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                                                 Forms\Components\Placeholder::make('total')
                                                     ->hiddenLabel()
                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
@@ -718,8 +782,15 @@ class EstimateResource extends Resource
 
                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
-                                                        $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
-                                                            ->get()
+                                                        static $companyAdjustments = [];
+                                                        $companyId = auth()->user()?->currentCompany->id ?? 1;
+                                                        if (!isset($companyAdjustments[$companyId])) {
+                                                            $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                                        }
+
+                                                        $taxAmountInCents = collect($salesTaxes)
+                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -728,8 +799,9 @@ class EstimateResource extends Resource
                                                                 }
                                                             });
 
-                                                        $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
-                                                            ->get()
+                                                        $discountAmountInCents = collect($salesDiscounts)
+                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -801,7 +873,7 @@ class EstimateResource extends Resource
                                                         $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
                                                         $rootOfferings = $category ? $category->offerings()
                                                             ->orderBy('sort_order')
-                                                            ->orderBy('name')
+                                                            
                                                             ->get()
                                                             ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                                             ->values()
@@ -865,7 +937,7 @@ class EstimateResource extends Resource
                                                             // To avoid serializing large objects, let's pass a simple array of [id, name]
                                                             $allOfferings = $description->offerings()
                                                                 ->orderBy('sort_order')
-                                                                ->orderBy('name')
+                                                                
                                                                 ->get()
                                                                 ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                                                 ->values()

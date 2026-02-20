@@ -49,6 +49,18 @@ class Localization extends Model
         'number_format' => NumberFormat::class,
     ];
 
+    public static function cached(): self
+    {
+        static $localization = null;
+        $companyId = auth()->user()?->currentCompany->id ?? session('current_company_id');
+
+        if ($localization === null || $localization->company_id !== $companyId) {
+            $localization = self::firstOrFail();
+        }
+
+        return $localization;
+    }
+
     public static function getLocale(string $language, string $countryCode): string
     {
         $fullLocale = "{$language}_{$countryCode}";

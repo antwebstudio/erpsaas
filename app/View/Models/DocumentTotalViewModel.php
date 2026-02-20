@@ -88,7 +88,11 @@ class DocumentTotalViewModel
 
     private function calculateAdjustmentsTotalInCents($lineItems, string $key, string $currencyCode): int
     {
-        return $lineItems->reduce(function ($carry, $item) use ($key) {
+        // Batch-load all adjustment IDs across all line items in a single query
+        $allAdjustmentIds = $lineItems->pluck($key)->flatten()->filter()->unique()->values()->all();
+        $adjustmentCache = Adjustment::whereIn('id', $allAdjustmentIds)->get()->keyBy('id');
+
+        return $lineItems->reduce(function ($carry, $item) use ($key, $adjustmentCache) {
             $quantity = max((float) ($item['quantity'] ?? 0), 0);
             $unitPrice = CurrencyConverter::isValidAmount($item['unit_price'], 'USD')
                 ? CurrencyConverter::convertToFloat($item['unit_price'], 'USD')
@@ -99,9 +103,10 @@ class DocumentTotalViewModel
 
             $lineTotalInCents = CurrencyConverter::convertToCents($lineTotal, 'USD');
 
-            $adjustmentTotal = Adjustment::whereIn('id', $adjustmentIds)
-                ->get()
-                ->sum(function (Adjustment $adjustment) use ($lineTotalInCents) {
+            $adjustmentTotal = collect($adjustmentIds)
+                ->sum(function ($id) use ($adjustmentCache, $lineTotalInCents) {
+                    $adjustment = $adjustmentCache->get($id);
+                    if (! $adjustment) return 0;
                     if ($adjustment->computation->isPercentage()) {
                         return RateCalculator::calculatePercentage($lineTotalInCents, $adjustment->getRawOriginal('rate'));
                     } else {

@@ -229,9 +229,9 @@ trait ManagesLineItems
         $subtotalCents = $record->lineItems()->sum('subtotal');
         $taxTotalCents = $record->lineItems()->sum('tax_total');
         $discountTotalCents = $this->calculateDiscountTotal(
-            DocumentDiscountMethod::parse($data['discount_method']),
-            AdjustmentComputation::parse($data['discount_computation']),
-            $data['discount_rate'] ?? null,
+            DocumentDiscountMethod::parse($data['discount_method'] ?? $record->discount_method ?? DocumentDiscountMethod::PerLineItem),
+            AdjustmentComputation::parse($data['discount_computation'] ?? $record->discount_computation ?? AdjustmentComputation::Fixed),
+            $data['discount_rate'] ?? $record->discount_rate ?? null,
             $subtotalCents,
             $record,
             $currencyCode,

@@ -110,6 +110,8 @@ class DocumentLineItem extends Model
         $subtotal = money($this->subtotal, CurrencyAccessor::getDefaultCurrency());
         $defaultCurrency = CurrencyAccessor::getDefaultCurrency();
 
+        $this->loadMissing('taxes');
+
         return $this->taxes->reduce(function (Money $carry, Adjustment $tax) use ($subtotal, $defaultCurrency) {
             if ($tax->computation->isPercentage()) {
                 return $carry->add($subtotal->multiply($tax->rate / 100));
@@ -122,6 +124,8 @@ class DocumentLineItem extends Model
     public function calculateTaxTotalAmount(): int
     {
         $subtotalInCents = $this->getRawOriginal('subtotal');
+
+        $this->loadMissing('taxes');
 
         return $this->taxes->reduce(function (int $carry, Adjustment $tax) use ($subtotalInCents) {
             if ($tax->computation->isPercentage()) {
@@ -139,6 +143,8 @@ class DocumentLineItem extends Model
         $subtotal = money($this->subtotal, CurrencyAccessor::getDefaultCurrency());
         $defaultCurrency = CurrencyAccessor::getDefaultCurrency();
 
+        $this->loadMissing('discounts');
+
         return $this->discounts->reduce(function (Money $carry, Adjustment $discount) use ($subtotal, $defaultCurrency) {
             if ($discount->computation->isPercentage()) {
                 return $carry->add($subtotal->multiply($discount->rate / 100));
@@ -151,6 +157,8 @@ class DocumentLineItem extends Model
     public function calculateDiscountTotalAmount(): int
     {
         $subtotalInCents = $this->getRawOriginal('subtotal');
+
+        $this->loadMissing('discounts');
 
         return $this->discounts->reduce(function (int $carry, Adjustment $discount) use ($subtotalInCents) {
             if ($discount->computation->isPercentage()) {

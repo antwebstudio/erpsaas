@@ -36,7 +36,7 @@ class RateCalculator
             return 0;
         }
 
-        $format = Localization::firstOrFail()->number_format->value;
+        $format = Localization::cached()->number_format->value;
         [$decimalMark, $thousandsSeparator] = NumberFormat::from($format)->getFormattingParameters();
 
         $floatValue = (float) str_replace([$thousandsSeparator, $decimalMark], ['', '.'], $value);
@@ -46,7 +46,7 @@ class RateCalculator
 
     public static function formatScaledRate(int $scaledRate): string
     {
-        $format = Localization::firstOrFail()->number_format->value;
+        $format = Localization::cached()->number_format->value;
         [$decimalMark, $thousandsSeparator] = NumberFormat::from($format)->getFormattingParameters();
 
         $percentageValue = $scaledRate / self::SCALING_FACTOR;

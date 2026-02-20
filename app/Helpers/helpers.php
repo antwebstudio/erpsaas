@@ -38,7 +38,7 @@ if (! function_exists('moneyMask')) {
 if (! function_exists('percentMask')) {
     function percentMask(int $precision = 4): RawJs
     {
-        $format = Localization::firstOrFail()->number_format->value;
+        $format = Localization::cached()->number_format->value;
 
         return RawJs::make(generatePercentJsCode($format, $precision));
     }
@@ -48,7 +48,7 @@ if (! function_exists('ratePrefix')) {
     function ratePrefix($computation, ?string $currency = null): ?string
     {
         $computationEnum = AdjustmentComputation::parse($computation);
-        $localization = Localization::firstOrFail();
+        $localization = Localization::cached();
 
         if ($computationEnum->isFixed() && currency($currency)->isSymbolFirst()) {
             return currency($currency)->getPrefix();
@@ -66,7 +66,7 @@ if (! function_exists('rateSuffix')) {
     function rateSuffix($computation, ?string $currency = null): ?string
     {
         $computationEnum = AdjustmentComputation::parse($computation);
-        $localization = Localization::firstOrFail();
+        $localization = Localization::cached();
 
         if ($computationEnum->isFixed() && ! currency($currency)->isSymbolFirst()) {
             return currency($currency)->getSuffix();
@@ -107,7 +107,7 @@ if (! function_exists('rateFormat')) {
         }
 
         $computationEnum = AdjustmentComputation::parse($computation);
-        $localization = Localization::firstOrFail();
+        $localization = Localization::cached();
 
         if ($computationEnum->isPercentage() && $localization->percent_first) {
             return '%' . $state;

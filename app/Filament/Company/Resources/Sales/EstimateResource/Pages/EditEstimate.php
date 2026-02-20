@@ -21,8 +21,39 @@ class EditEstimate extends EditRecord
     public function mount(int | string $record): void
     {
         ini_set('memory_limit', '1024M');
+        config(['app.disable_custom_select_relationships' => true]);
 
         parent::mount($record);
+    }
+
+    public function hydrate(): void
+    {
+        config(['app.disable_custom_select_relationships' => true]);
+    }
+
+    protected function resolveRecord(int | string $key): Model
+    {
+        return parent::resolveRecord($key)->load([
+            'lineItemGroups' => fn ($query) => $query->whereNull('parent_id'),
+            'lineItemGroups.offeringCategory',
+            'lineItemGroups.items.sellableOffering.salesTaxes',
+            'lineItemGroups.items.sellableOffering.salesDiscounts',
+            'lineItemGroups.items.salesTaxes',
+            'lineItemGroups.items.salesDiscounts',
+            'lineItemGroups.items.offering',
+            'lineItemGroups.children.offeringCategory',
+            'lineItemGroups.children.items.sellableOffering.salesTaxes',
+            'lineItemGroups.children.items.sellableOffering.salesDiscounts',
+            'lineItemGroups.children.items.salesTaxes',
+            'lineItemGroups.children.items.salesDiscounts',
+            'lineItemGroups.children.items.purchaseTaxes',
+            'lineItemGroups.children.items.purchaseDiscounts',
+            'lineItemGroups.children.items.taxes',
+            'lineItemGroups.children.items.discounts',
+            'lineItemGroups.children.items.offering.salesTaxes',
+            'lineItemGroups.children.items.offering.salesDiscounts',
+            'lineItemGroups.children.items.offering',
+        ]);
     }
 
     protected function getHeaderActions(): array

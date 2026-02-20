@@ -30,6 +30,42 @@ class CreateAdjustmentSelect extends Select
     protected bool $includeInactive = false;
 
     protected string $adjustmentsRelationship = 'adjustments';
+    
+    public bool $isRelationshipDisabled = false;
+
+    protected static bool $nextIsDisabled = false;
+
+
+
+    public static function make(?string $name = null, bool $disabledRelationship = false): static
+    {
+        static::$nextIsDisabled = $disabledRelationship;
+        $static = parent::make($name);
+        static::$nextIsDisabled = false;
+
+        return $static;
+    }
+
+    public function disableRelationship(bool $condition = true): static
+    {
+        $this->isRelationshipDisabled = $condition;
+
+        return $this;
+    }
+
+    public function isRelationshipDisabled(): bool
+    {
+        return $this->isRelationshipDisabled || static::$nextIsDisabled || config('app.disable_custom_select_relationships', false);
+    }
+
+    public function getRelationshipName(): ?string
+    {
+        if ($this->isRelationshipDisabled()) {
+            return null;
+        }
+
+        return $this->getAdjustmentsRelationship();
+    }
 
     public function category(AdjustmentCategory $category): static
     {
@@ -45,9 +81,9 @@ class CreateAdjustmentSelect extends Select
         return $this;
     }
 
-    public function includeInactive(bool $includeInactive = true): static
+    public function includeInactive(bool $condition = true): static
     {
-        $this->includeInactive = $includeInactive;
+        $this->includeInactive = $condition;
 
         return $this;
     }
@@ -81,11 +117,16 @@ class CreateAdjustmentSelect extends Select
 
     protected function setUp(): void
     {
+        $this->isRelationshipDisabled = static::$nextIsDisabled;
+
         parent::setUp();
+
+        if ($this->isRelationshipDisabled()) {
+            return;
+        }
 
         $this
             ->searchable()
-            ->preload()
             ->createOptionForm($this->createAdjustmentForm())
             ->createOptionAction(fn (Action $action) => $this->createAdjustmentAction($action));
 
@@ -102,121 +143,81 @@ class CreateAdjustmentSelect extends Select
                 }
 
                 if (! $this->includesInactive()) {
-                    $existingAdjustmentIds = $record?->{$this->getAdjustmentsRelationship()}()
-                        ->pluck('adjustments.id')
-                        ->toArray() ?? [];
+                    $relationshipName = $this->getAdjustmentsRelationship();
+                    $existingAdjustmentIds = [];
 
-                    $query->where(function ($query) use ($existingAdjustmentIds) {
-                        $query->where('status', AdjustmentStatus::Active)
-                            ->orWhereIn('adjustments.id', $existingAdjustmentIds);
+                    if ($record && $record->exists) {
+                        // Use already loaded relationship to prevent N+1 queries if possible
+                        if ($record->relationLoaded($relationshipName)) {
+                            $existingAdjustmentIds = $record->getRelation($relationshipName)->pluck('id')->toArray();
+                        } else {
+                            $existingAdjustmentIds = collect($record->{$relationshipName} ?? [])->pluck('id')->toArray();
+                        }
+                    }
+
+                    $query->where(function (Builder $query) use ($existingAdjustmentIds) {
+                        $query->where('status', AdjustmentStatus::Active);
+                        if (!empty($existingAdjustmentIds)) {
+                            $query->orWhereIn('id', $existingAdjustmentIds);
+                        }
                     });
                 }
-
-                return $query->orderBy('name');
-            },
+            }
         );
 
-        $this->createOptionUsing(static function (array $data, CreateAdjustmentSelect $component) {
-            return DB::transaction(static function () use ($data, $component) {
-                $category = $data['category'] ?? $component->getCategory();
-                $type = $data['type'] ?? $component->getType();
+        $this->createOptionUsing(function (array $data) {
+            $data['category'] = $this->getCategory();
+            $data['type'] = $this->getType();
 
-                $adjustment = Adjustment::create([
-                    'name' => $data['name'],
-                    'description' => $data['description'] ?? null,
-                    'category' => $category,
-                    'type' => $type,
-                    'computation' => $data['computation'],
-                    'rate' => $data['rate'],
-                    'scope' => $data['scope'] ?? null,
-                    'recoverable' => $data['recoverable'] ?? false,
-                    'start_date' => $data['start_date'] ?? null,
-                    'end_date' => $data['end_date'] ?? null,
-                ]);
-
-                return $adjustment->getKey();
-            });
+            return Adjustment::create($data)->id;
         });
     }
 
-    protected function createAdjustmentForm(): array
+    public function createAdjustmentForm(): array
     {
         return [
             TextInput::make('name')
-                ->label('Name')
                 ->required()
                 ->maxLength(255),
-
+            Group::make([
+                TextInput::make('rate')
+                    ->numeric()
+                    ->required()
+                    ->rule('min:0')
+                    ->default(0)
+                    ->live(),
+                Select::make('computation')
+                    ->options(AdjustmentComputation::class)
+                    ->required()
+                    ->default(AdjustmentComputation::Percentage)
+                    ->selectablePlaceholder(false)
+                    ->live(),
+            ])->columns(2),
+            Group::make([
+                Select::make('scope')
+                    ->options(AdjustmentScope::class)
+                    ->required()
+                    ->default(AdjustmentScope::Product)
+                    ->selectablePlaceholder(false),
+                Checkbox::make('is_recoverable')
+                    ->label('Recoverable')
+                    ->default(false),
+            ])->columns(2),
             Textarea::make('description')
-                ->label('Description'),
-
-            Select::make('category')
-                ->label('Category')
-                ->options(AdjustmentCategory::class)
-                ->default(AdjustmentCategory::Tax)
-                ->hidden(fn () => (bool) $this->getCategory())
-                ->live()
-                ->required(),
-
-            Select::make('type')
-                ->label('Type')
-                ->options(AdjustmentType::class)
-                ->default(AdjustmentType::Sales)
-                ->hidden(fn () => (bool) $this->getType())
-                ->live()
-                ->required(),
-
-            Select::make('computation')
-                ->label('Computation')
-                ->options(AdjustmentComputation::class)
-                ->default(AdjustmentComputation::Percentage)
-                ->live()
-                ->required(),
-
-            TextInput::make('rate')
-                ->label('Rate')
-                ->rate(static fn (Get $get) => $get('computation'))
-                ->required(),
-
-            Select::make('scope')
-                ->label('Scope')
-                ->options(AdjustmentScope::class),
-
-            Checkbox::make('recoverable')
-                ->label('Recoverable')
-                ->default(false)
-                ->helperText('When enabled, tax is tracked separately as claimable from the government. Non-recoverable taxes are treated as part of the expense.')
-                ->visible(function (Get $get) {
-                    $category = $this->getCategory() ?? AdjustmentCategory::parse($get('category'));
-                    $type = $this->getType() ?? AdjustmentType::parse($get('type'));
-
-                    return $category->isTax() && $type->isPurchase();
-                }),
-
-            Group::make()
-                ->schema([
-                    DateTimePicker::make('start_date'),
-                    DateTimePicker::make('end_date')
-                        ->after('start_date'),
-                ])
-                ->visible(function (Get $get) {
-                    $category = $this->getCategory() ?? AdjustmentCategory::parse($get('category'));
-
-                    return $category->isDiscount();
-                }),
+                ->maxLength(65535),
+            DateTimePicker::make('start_at')
+                ->label('Start Date')
+                ->default(now()),
+            DateTimePicker::make('end_at')
+                ->label('End Date'),
         ];
     }
 
     protected function createAdjustmentAction(Action $action): Action
     {
-        $categoryLabel = $this->getCategory()?->getLabel() ?? 'Adjustment';
-        $typeLabel = $this->getType()?->getLabel() ?? '';
-        $label = strtolower(trim($typeLabel . ' ' . $categoryLabel));
-
         return $action
-            ->label('Create ' . $label)
-            ->slideOver()
-            ->modalWidth(MaxWidth::ExtraLarge)
-            ->modalHeading('Create a new ' . $label);
+            ->modalHeading('Create new adjustment')
+            ->modalWidth(MaxWidth::Large)
+            ->slideOver();
     }
 }
