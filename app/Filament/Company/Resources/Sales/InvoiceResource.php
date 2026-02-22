@@ -241,7 +241,7 @@ class InvoiceResource extends Resource
                                     ->schema([
                                         Forms\Components\Hidden::make('id'),
                                         Forms\Components\Group::make([
-                                            CreateOfferingSelect::make('offering_id')
+                                            CreateOfferingSelect::make('offering_id', true)
                                                 ->label('Item')
                                                 ->hiddenLabel()
                                                 ->placeholder('Select item')
@@ -317,7 +317,7 @@ class InvoiceResource extends Resource
                                             ->live()
                                             ->default(0),
                                         Forms\Components\Group::make([
-                                            CreateAdjustmentSelect::make('salesTaxes')
+                                            CreateAdjustmentSelect::make('salesTaxes', true)
                                                 ->label('Taxes')
                                                 ->hiddenLabel()
                                                 ->placeholder('Select taxes')
@@ -331,7 +331,7 @@ class InvoiceResource extends Resource
                                                 ->multiple()
                                                 ->live()
                                                 ->searchable(),
-                                            CreateAdjustmentSelect::make('salesDiscounts')
+                                            CreateAdjustmentSelect::make('salesDiscounts', true)
                                                 ->label('Discounts')
                                                 ->hiddenLabel()
                                                 ->placeholder('Select discounts')

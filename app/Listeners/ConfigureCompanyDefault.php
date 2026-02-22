@@ -41,7 +41,11 @@ class ConfigureCompanyDefault
             $label = $tab->getLabel();
 
             if ($label) {
-                $translatedLabel = translate($label);
+                try {
+                    $translatedLabel = translate($label);
+                } catch (\Exception $e) {
+                    $translatedLabel = $label;
+                }
 
                 $tab->label(ucwords($translatedLabel));
             }
@@ -51,7 +55,11 @@ class ConfigureCompanyDefault
             $heading = $section->getHeading();
 
             if ($heading) {
-                $translatedHeading = translate($heading);
+                try {
+                    $translatedHeading = translate($heading);
+                } catch (\Exception $e) {
+                    $translatedHeading = $heading;
+                }
 
                 $section->heading(ucfirst($translatedHeading));
             }

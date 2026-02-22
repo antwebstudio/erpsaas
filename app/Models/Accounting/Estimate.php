@@ -514,7 +514,13 @@ class Estimate extends Document
         $groupMap = [];
 
         // Replicate Groups (Top-level first, then children)
-        $this->lineItemGroups()->orderBy('parent_id')->each(function (DocumentLineItemGroup $group) use ($target, &$groupMap) {
+        // Ensure that we explicitly sort by parent_id so that parent groups are
+        // processed before their children. lineItemGroups() has a default orderBy('order').
+        $groups = $this->lineItemGroups()->get()->sortBy(function (DocumentLineItemGroup $group) {
+            return $group->parent_id === null ? -1 : $group->parent_id;
+        });
+
+        $groups->each(function (DocumentLineItemGroup $group) use ($target, &$groupMap) {
             $replicaGroup = $group->replicate([
                 'documentable_id',
                 'documentable_type',

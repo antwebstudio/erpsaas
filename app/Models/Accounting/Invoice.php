@@ -107,6 +107,11 @@ class Invoice extends Document
         return $this->belongsTo(Client::class);
     }
 
+    public function clientAndLead(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id');
+    }
+
     public function estimate(): BelongsTo
     {
         return $this->belongsTo(Estimate::class);
@@ -674,11 +679,18 @@ class Invoice extends Document
 
     public function replicateLineItems(Model $target): void
     {
+        $groupMap = [];
+
         // Replicate Groups
-        $this->lineItemGroups->each(function (DocumentLineItemGroup $group) use ($target) {
+        $groups = $this->lineItemGroups()->get()->sortBy(function (DocumentLineItemGroup $group) {
+            return $group->parent_id === null ? -1 : $group->parent_id;
+        });
+
+        $groups->each(function (DocumentLineItemGroup $group) use ($target, &$groupMap) {
             $replicaGroup = $group->replicate([
                 'documentable_id',
                 'documentable_type',
+                'parent_id',
                 'created_by',
                 'updated_by',
                 'created_at',
@@ -686,7 +698,15 @@ class Invoice extends Document
             ]);
             $replicaGroup->documentable_id = $target->id;
             $replicaGroup->documentable_type = $target->getMorphClass();
+            
+            if ($group->parent_id && isset($groupMap[$group->parent_id])) {
+                $replicaGroup->parent_id = $groupMap[$group->parent_id];
+            } else {
+                $replicaGroup->parent_id = null;
+            }
+
             $replicaGroup->save();
+            $groupMap[$group->id] = $replicaGroup->id;
 
             $group->items->each(function (DocumentLineItem $lineItem) use ($target, $replicaGroup) {
                 $replica = $lineItem->replicate([

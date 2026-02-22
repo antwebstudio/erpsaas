@@ -126,6 +126,11 @@ class RecurringInvoice extends Document
         return $this->belongsTo(Client::class);
     }
 
+    public function clientAndLead(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id');
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class, 'recurring_invoice_id');

@@ -93,7 +93,18 @@ readonly class DocumentDTO
             showLogo: $settings->show_logo ?? false,
             font: $settings->font ?? Font::Inter,
             lineItemGroups: $document->lineItemGroups->isNotEmpty() 
-                ? $document->lineItemGroups->map(fn ($group) => LineItemGroupDTO::fromModel($group))
+                ? $document->lineItemGroups()
+                    ->whereNull('parent_id')
+                    ->with(['children.items', 'items'])
+                    ->orderBy('order')
+                    ->get()
+                    ->flatMap(function ($group) {
+                        $groups = [LineItemGroupDTO::fromModel($group)];
+                        foreach ($group->children as $child) {
+                            $groups[] = LineItemGroupDTO::fromModel($child);
+                        }
+                        return $groups;
+                    })
                 : collect([new LineItemGroupDTO(name: null, items: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)))]),
         );
     }
