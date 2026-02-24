@@ -16,48 +16,6 @@ class CreateOfferingSelect extends Select
 
     protected bool $isSellable = true;
 
-    public bool $isRelationshipDisabled = false;
-
-    protected static bool $nextIsDisabled = false;
-
-
-
-    public static function make(?string $name = null, bool $disabledRelationship = false): static
-    {
-        static::$nextIsDisabled = $disabledRelationship;
-        $static = parent::make($name);
-        static::$nextIsDisabled = false;
-
-        return $static;
-    }
-
-    public function disableRelationship(bool $condition = true): static
-    {
-        $this->isRelationshipDisabled = $condition;
-
-        return $this;
-    }
-
-    public function isRelationshipDisabled(): bool
-    {
-        return $this->isRelationshipDisabled || static::$nextIsDisabled || config('app.disable_custom_select_relationships', false);
-    }
-
-    public function isPurchasable(): bool
-    {
-        return $this->isPurchasable;
-    }
-
-    public function isSellable(): bool
-    {
-        return $this->isSellable;
-    }
-
-    public function isSellableAndPurchasable(): bool
-    {
-        return $this->isSellable && $this->isPurchasable;
-    }
-
     public function purchasable(bool $condition = true): static
     {
         $this->isPurchasable = $condition;
@@ -76,16 +34,11 @@ class CreateOfferingSelect extends Select
 
     protected function setUp(): void
     {
-        $this->isRelationshipDisabled = static::$nextIsDisabled;
-        
         parent::setUp();
-
-        if ($this->isRelationshipDisabled()) {
-            return;
-        }
 
         $this
             ->searchable()
+            ->preload()
             ->createOptionForm(fn (Form $form) => $this->createOfferingForm($form))
             ->createOptionAction(fn (Action $action) => $this->createOfferingAction($action));
 
@@ -111,20 +64,48 @@ class CreateOfferingSelect extends Select
 
             $form->model($offering)->saveRelationships();
 
-            return $offering->id;
+            return $offering->getKey();
         });
     }
 
-    public function createOfferingForm(Form $form): Form
+    protected function createOfferingForm(Form $form): Form
     {
-        return OfferingResource::form($form);
+        return $form->schema([
+            OfferingResource::getGeneralSection($this->isSellableAndPurchasable()),
+            OfferingResource::getSellableSection()->visible(
+                fn (Get $get) => $this->isSellableAndPurchasable()
+                    ? in_array('Sellable', $get('attributes') ?? [])
+                    : $this->isSellable()
+            ),
+            OfferingResource::getPurchasableSection()->visible(
+                fn (Get $get) => $this->isSellableAndPurchasable()
+                    ? in_array('Purchasable', $get('attributes') ?? [])
+                    : $this->isPurchasable()
+            ),
+        ]);
     }
 
     protected function createOfferingAction(Action $action): Action
     {
         return $action
-            ->modalHeading('Create new offering')
-            ->modalWidth(MaxWidth::SixExtraLarge)
-            ->slideOver();
+            ->label('Create offering')
+            ->slideOver()
+            ->modalWidth(MaxWidth::ThreeExtraLarge)
+            ->modalHeading('Create a new offering');
+    }
+
+    public function isSellable(): bool
+    {
+        return $this->isSellable;
+    }
+
+    public function isPurchasable(): bool
+    {
+        return $this->isPurchasable;
+    }
+
+    public function isSellableAndPurchasable(): bool
+    {
+        return $this->isSellable && $this->isPurchasable;
     }
 }
