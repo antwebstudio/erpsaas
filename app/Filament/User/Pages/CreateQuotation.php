@@ -172,73 +172,16 @@ class CreateQuotation extends Page
             $template = Estimate::find($templateId);
 
             if ($template) {
-                // Replicate logic
-                if ($this->estimateId) {
-                   
-                    $estimate = Estimate::find($this->estimateId);
-                    
-                    // Clear existing lines?
-                    $estimate->lineItems()->delete();
-                    $estimate->lineItemGroups()->delete();
+                // Replicate logic using the model method
+                $estimate = Estimate::createFromTemplate(
+                    $template, 
+                    $this->data['client_id'], 
+                    $this->estimateId, 
+                    $company, 
+                    $user->id
+                );
 
-                    // Update header
-                    $estimate->update([
-                        'client_id' => $this->data['client_id'],
-                        'header' => $template->header,
-                        'subheader' => $template->subheader,
-                        'currency_code' => $template->currency_code,
-                        'discount_method' => $template->discount_method,
-                        'discount_computation' => $template->discount_computation,
-                        'discount_rate' => $template->discount_rate,
-                        'terms' => $template->terms,
-                        'footer' => $template->footer,
-                        'updated_by' => $user->id,
-                    ]);
-                } else {
-                    // New Estimate
-                    $estimate = $template->replicate([
-                        'is_template',
-                        'estimate_number',
-                        'date',
-                        'expiration_date',
-                        'approved_at',
-                        'accepted_at',
-                        'converted_at',
-                        'declined_at',
-                        'last_sent_at',
-                        'last_viewed_at',
-                        'status',
-                        'created_by',
-                        'updated_by',
-                        'created_at',
-                        'updated_at',
-                    ]);
-
-                    $estimate->is_template = false;
-                    $estimate->company_id = $company->id;
-                    $estimate->client_id = $this->data['client_id'];
-                    $estimate->estimate_number = Estimate::getNextDocumentNumber($company);
-                    $estimate->status = EstimateStatus::Draft;
-                    $estimate->date = now();
-                    $estimate->expiration_date = now()->addDays(30);
-                    $estimate->created_by = $user->id;
-                    $estimate->updated_by = $user->id;
-                    $estimate->save();
-                }
-
-                // Replicate line items
-                $template->replicateLineItems($estimate);
-
-                // Recalculate totals
-                $grandTotal = $estimate->lineItems()->sum('total');
-                // Calculate other totals if needed, for now assuming simple sum
-                $subtotal = $estimate->lineItems()->sum('subtotal');
-                // taxes etc... 
-                
-                $estimate->update([
-                    'subtotal' => $subtotal,
-                    'total' => $grandTotal,
-                ]);
+                // Estimate::createFromTemplate(Estimate::find(1), 1, null, App\Models\Company::find(1), 1);
 
 
                 Notification::make()

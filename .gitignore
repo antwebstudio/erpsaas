@@ -25,3 +25,4 @@ Thumbs.db
 /public/css/
 /public/js/
 .DS_Store
+laradumps.yaml

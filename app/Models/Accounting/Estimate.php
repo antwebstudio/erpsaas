@@ -584,4 +584,78 @@ class Estimate extends Document
             $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
         });
     }
+
+    public static function createFromTemplate(self $template, int $clientId, ?int $estimateId = null, ?Company $company = null, ?int $userId = null): self
+    {
+        $company ??= auth()->user()?->currentCompany;
+        $userId ??= auth()->id();
+
+        if ($estimateId) {
+            $estimate = self::findOrFail($estimateId);
+            
+            // Clear existing lines
+            $estimate->lineItems()->delete();
+            $estimate->lineItemGroups()->delete();
+
+            // Update header
+            $estimate->update([
+                'client_id' => $clientId,
+                'header' => $template->header,
+                'subheader' => $template->subheader,
+                'currency_code' => $template->currency_code,
+                'discount_method' => $template->discount_method,
+                'discount_computation' => $template->discount_computation,
+                'discount_rate' => $template->discount_rate,
+                'terms' => $template->terms,
+                'footer' => $template->footer,
+                'updated_by' => $userId,
+            ]);
+        } else {
+            // New Estimate
+            $estimate = $template->replicate([
+                'is_template',
+                'estimate_number',
+                'date',
+                'expiration_date',
+                'approved_at',
+                'accepted_at',
+                'converted_at',
+                'declined_at',
+                'last_sent_at',
+                'last_viewed_at',
+                'status',
+                'created_by',
+                'updated_by',
+                'created_at',
+                'updated_at',
+            ]);
+
+            $estimate->is_template = false;
+            $estimate->company_id = $company->id;
+            $estimate->client_id = $clientId;
+            $estimate->estimate_number = self::getNextDocumentNumber($company);
+            $estimate->status = EstimateStatus::Draft;
+            $estimate->date = now();
+            $estimate->expiration_date = now()->addDays(30);
+            $estimate->created_by = $userId;
+            $estimate->updated_by = $userId;
+            $estimate->save();
+        }
+
+        // Replicate line items
+        $template->replicateLineItems($estimate);
+
+        // Recalculate totals
+        $grandTotal = $estimate->lineItems()->sum('total');
+        // Calculate other totals if needed, for now assuming simple sum
+        $subtotal = $estimate->lineItems()->sum('subtotal');
+        // taxes etc... 
+
+        $estimate->update([
+            'subtotal' => $subtotal,
+            'total' => $grandTotal,
+        ]);
+
+        return $estimate;
+    }
 }

@@ -351,7 +351,7 @@ class EstimateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->live()
                                                     ->default(0),
-                                                Forms\Components\Group::make([
+                                                Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
@@ -400,8 +400,9 @@ class EstimateResource extends Resource
                                                         ->searchable(),
                                                 ])->columnSpan(1)
                                                   ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
-                                                Forms\Components\Placeholder::make('total')
+                                                Forms\Components\Placeholder::make('line_total_amount')
                                                     ->hiddenLabel()
+                                                    ->dehydrated(true)
                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
                                                     ->content(function (Forms\Get $get) {
                                                         $quantity = max((float) ($get('quantity') ?? 0), 0);
@@ -417,7 +418,7 @@ class EstimateResource extends Resource
                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
                                                         static $companyAdjustments = [];
-                                                        $companyId = auth()->user()?->currentCompany->id ?? 1;
+                                                        $companyId = \Filament\Facades\Filament::getTenant()?->id ?? auth()->user()?->current_company_id ?? 1;
                                                         if (!isset($companyAdjustments[$companyId])) {
                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                         }
@@ -959,7 +960,7 @@ class EstimateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->live()
                                                     ->default(0),
-                                                Forms\Components\Group::make([
+                                                Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
@@ -970,7 +971,7 @@ class EstimateResource extends Resource
                                                         ->saveRelationshipsUsing(null)
                                                         ->dehydrated(true)
                                                         ->inlineSuffix()
-                                                        ->preload()
+                                                        // ->preload()
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
@@ -1008,8 +1009,9 @@ class EstimateResource extends Resource
                                                         ->searchable(),
                                                 ])->columnSpan(1)
                                                   ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
-                                                Forms\Components\Placeholder::make('total')
+                                                Forms\Components\Placeholder::make('line_total_amount')
                                                     ->hiddenLabel()
+                                                    ->dehydrated(true)
                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
                                                     ->content(function (Forms\Get $get) {
                                                         $quantity = max((float) ($get('quantity') ?? 0), 0);
@@ -1025,7 +1027,7 @@ class EstimateResource extends Resource
                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
                                                         static $companyAdjustments = [];
-                                                        $companyId = auth()->user()?->currentCompany->id ?? 1;
+                                                        $companyId = \Filament\Facades\Filament::getTenant()?->id ?? auth()->user()?->current_company_id ?? 1;
                                                         if (!isset($companyAdjustments[$companyId])) {
                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                         }
