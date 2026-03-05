@@ -658,4 +658,61 @@ class Estimate extends Document
 
         return $estimate;
     }
+
+    public static function getDownloadMergedPdfAction(string $action = Action::class): MountableAction
+    {
+        return $action::make('downloadMergedPdf')
+            ->label('Download PDF')
+            ->icon('heroicon-m-arrow-down-tray')
+            ->action(function (self $record) {
+                ini_set('memory_limit', '2048M');
+                
+                $documentTypeEnum = $record::documentType();
+                $defaults = \App\Models\Setting\DocumentDefault::query()
+                    ->type($documentTypeEnum)
+                    ->first();
+
+                $template = $defaults?->template ?? \App\Enums\Setting\Template::Default;
+                $document = \App\DTO\DocumentDTO::fromModel($record);
+
+                $html = view('print-document', [
+                    'document' => $document,
+                    'template' => $template,
+                ])->render();
+
+                $pdfString = \Barryvdh\Snappy\Facades\SnappyPdf::loadHTML($html)->output();
+
+                return response()->streamDownload(function () use ($pdfString) {
+                    $pdf = new \setasign\Fpdi\Fpdi();
+
+                    $tempEstimate = tempnam(sys_get_temp_dir(), 'est_');
+                    file_put_contents($tempEstimate, $pdfString);
+
+                    $pageCount = $pdf->setSourceFile($tempEstimate);
+                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                        $templateId = $pdf->importPage($pageNo);
+                        $size = $pdf->getTemplateSize($templateId);
+                        $pdf->AddPage($size['orientation'], $size);
+                        $pdf->useTemplate($templateId);
+                    }
+                    
+                    $templatePath = resource_path('quoitation-template.pdf');
+                    if (file_exists($templatePath)) {
+                        $pageCount = $pdf->setSourceFile($templatePath);
+                        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                            $templateId = $pdf->importPage($pageNo);
+                            $size = $pdf->getTemplateSize($templateId);
+                            $pdf->AddPage($size['orientation'], $size);
+                            $pdf->useTemplate($templateId);
+                        }
+                    }
+
+                    echo $pdf->Output('S');
+                    
+                    if (file_exists($tempEstimate)) {
+                        unlink($tempEstimate);
+                    }
+                }, "Estimate-{$record->documentNumber()}.pdf");
+            });
+    }
 }

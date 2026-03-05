@@ -39,6 +39,7 @@ class ViewEstimate extends ViewRecord
                     Estimate::getMarkAsDeclinedAction(),
                     Estimate::getPreviewAction(),
                     Estimate::getPrintDocumentAction(),
+                    Estimate::getDownloadMergedPdfAction(),
                     Estimate::getReplicateAction(),
                     Estimate::getConvertToInvoiceAction(),
                 ])->dropdown(false),
