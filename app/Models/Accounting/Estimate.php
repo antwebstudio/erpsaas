@@ -680,7 +680,8 @@ class Estimate extends Document
                     'template' => $template,
                 ])->render();
 
-                $pdfString = \Barryvdh\Snappy\Facades\SnappyPdf::loadHTML($html)->output();
+                $pdfBase64 = \Spatie\LaravelPdf\Facades\Pdf::html($html)->base64();
+                $pdfString = base64_decode($pdfBase64);
 
                 return response()->streamDownload(function () use ($pdfString) {
                     $pdf = new \setasign\Fpdi\Fpdi();
