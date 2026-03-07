@@ -665,55 +665,15 @@ class Estimate extends Document
             ->label('Download PDF')
             ->icon('heroicon-m-arrow-down-tray')
             ->action(function (self $record) {
-                ini_set('memory_limit', '2048M');
+                // Dispatch background job to handle PDF generation
+                \App\Jobs\GenerateEstimatePdfJob::dispatch($record, auth()->user());
                 
-                $documentTypeEnum = $record::documentType();
-                $defaults = \App\Models\Setting\DocumentDefault::query()
-                    ->type($documentTypeEnum)
-                    ->first();
-
-                $template = $defaults?->template ?? \App\Enums\Setting\Template::Default;
-                $document = \App\DTO\DocumentDTO::fromModel($record);
-
-                $html = view('print-document', [
-                    'document' => $document,
-                    'template' => $template,
-                ])->render();
-
-                $pdfBase64 = \Spatie\LaravelPdf\Facades\Pdf::html($html)->base64();
-                $pdfString = base64_decode($pdfBase64);
-
-                return response()->streamDownload(function () use ($pdfString) {
-                    $pdf = new \setasign\Fpdi\Fpdi();
-
-                    $tempEstimate = tempnam(sys_get_temp_dir(), 'est_');
-                    file_put_contents($tempEstimate, $pdfString);
-
-                    $pageCount = $pdf->setSourceFile($tempEstimate);
-                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                        $templateId = $pdf->importPage($pageNo);
-                        $size = $pdf->getTemplateSize($templateId);
-                        $pdf->AddPage($size['orientation'], $size);
-                        $pdf->useTemplate($templateId);
-                    }
-                    
-                    $templatePath = resource_path('quoitation-template.pdf');
-                    if (file_exists($templatePath)) {
-                        $pageCount = $pdf->setSourceFile($templatePath);
-                        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                            $templateId = $pdf->importPage($pageNo);
-                            $size = $pdf->getTemplateSize($templateId);
-                            $pdf->AddPage($size['orientation'], $size);
-                            $pdf->useTemplate($templateId);
-                        }
-                    }
-
-                    echo $pdf->Output('S');
-                    
-                    if (file_exists($tempEstimate)) {
-                        unlink($tempEstimate);
-                    }
-                }, "Estimate-{$record->documentNumber()}.pdf");
+                // Show immediate success feedback to the user
+                \Filament\Notifications\Notification::make()
+                    ->title('PDF Generation Started')
+                    ->body('Your PDF is being generated in the background. You will receive a notification when it is ready to download.')
+                    ->success()
+                    ->send();
             });
     }
 }
