@@ -27,6 +27,7 @@
         "jaocero/radio-deck": "^1.4",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
+        "laravel/telescope": "^5.18",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "*",
         "pontedilana/php-weasyprint": "*",
@@ -40,8 +41,6 @@
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
-        "laradumps/laradumps": "^5.2",
-        "laradumps/laradumps-core": "^4.0",
         "laravel/boost": "*",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",

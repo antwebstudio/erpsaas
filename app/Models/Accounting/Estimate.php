@@ -661,19 +661,27 @@ class Estimate extends Document
 
     public static function getDownloadMergedPdfAction(string $action = Action::class): MountableAction
     {
-        return $action::make('downloadMergedPdf')
+        $downloadAction = $action::make('downloadMergedPdf')
             ->label('Download PDF')
-            ->icon('heroicon-m-arrow-down-tray')
-            ->action(function (self $record) {
-                // Dispatch background job to handle PDF generation
-                \App\Jobs\GenerateEstimatePdfJob::dispatch($record, auth()->user());
+            ->icon('heroicon-m-arrow-down-tray');
+
+        if (config('erp.async_pdf_generation')) {
+            $downloadAction->modalHeading('Generating PDF')
+                ->modalSubmitAction(false)
+                ->modalCancelAction(false)
+                ->modalContent(fn (self $record) => view('components.estimate-pdf-modal', ['record' => $record]))
+                ->action(fn () => null);
+        } else {
+            $downloadAction->action(function (self $record) {
+                $pdfService = new \App\Services\EstimatePdfService();
+                $finalPdfOutput = $pdfService->generate($record);
                 
-                // Show immediate success feedback to the user
-                \Filament\Notifications\Notification::make()
-                    ->title('PDF Generation Started')
-                    ->body('Your PDF is being generated in the background. You will receive a notification when it is ready to download.')
-                    ->success()
-                    ->send();
+                return response()->streamDownload(function () use ($finalPdfOutput) {
+                    echo $finalPdfOutput;
+                }, "Estimate-{$record->documentNumber()}.pdf");
             });
+        }
+
+        return $downloadAction;
     }
 }
