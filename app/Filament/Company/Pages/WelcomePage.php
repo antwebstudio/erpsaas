@@ -15,4 +15,12 @@ class WelcomePage extends Page
     protected static ?string $slug = ''; // Makes this the root page for the tenant
     
     protected static bool $shouldRegisterNavigation = false; // Hide from sidebar
+
+    public function getCompanies()
+    {
+        /** @var \App\Models\User $user */
+        $user = filament()->auth()->user();
+
+        return $user->allCompanies();
+    }
 }

@@ -318,7 +318,10 @@ class LeadResource extends Resource
                     Tables\Actions\Action::make('create_quotation')
                         ->label('Create Quotation')
                         ->icon('heroicon-o-document-text')
-                        ->url(fn (Lead $record) => route('filament.user.pages.create-quotation', ['client' => $record->id]))
+                        ->url(fn (Lead $record) => route('filament.user.pages.create-quotation', [
+                            'tenant' => \Filament\Facades\Filament::getTenant(),
+                            'client' => $record->id,
+                        ]))
                         ->openUrlInNewTab(false),
                     Tables\Actions\DeleteAction::make(),
                 ]),

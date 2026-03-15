@@ -50,7 +50,7 @@ class UserResource extends Resource
                             ->required(fn (string $context): bool => $context === 'create'),
                         Forms\Components\CheckboxList::make('roles')
                             ->label('Roles')
-                            ->relationship('roles', 'name', modifyQueryUsing: fn (Builder $query) => $query->withoutGlobalScopes())
+                            ->relationship('roles', 'name')
                             ->searchable(),
                         Forms\Components\CheckboxList::make('companies')
                             ->relationship('companies', 'name')

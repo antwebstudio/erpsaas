@@ -32,7 +32,21 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     use HasProfilePhoto;
     use Notifiable;
     use SetsProfilePhotoFromUrl;    
-    use HasRoles;
+    use HasRoles {
+        roles as traitRoles;
+    }
+
+    public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    {
+        $relation = $this->traitRoles();
+
+        if (app(\Spatie\Permission\PermissionRegistrar::class)->teams) {
+            $teamId = getPermissionsTeamId();
+            $relation->withPivotValue(config('permission.column_names.team_foreign_key'), $teamId);
+        }
+
+        return $relation;
+    }
 
     /**
      * The attributes that are mass assignable.

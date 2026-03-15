@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Components\PanelShiftDropdown;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Filament\User\Clusters\Account;
 use App\Http\Middleware\Authenticate;
 use Exception;
@@ -69,6 +71,7 @@ class UserPanelProvider extends PanelProvider
             ->navigation(false)
             ->viteTheme('resources/css/filament/user/theme.css')
             ->brandLogo(static fn () => view('components.icons.logo'))
+            ->tenant(\App\Models\Company::class)
             ->discoverResources(in: app_path('Filament/User/Resources'), for: 'App\\Filament\\User\\Resources')
             ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
             ->discoverClusters(in: app_path('Filament/User/Clusters'), for: 'App\\Filament\\User\\Clusters')
@@ -91,6 +94,12 @@ class UserPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->plugins([
+                FilamentShieldPlugin::make(),
+            ])
+            ->tenantMiddleware([
+                SyncShieldTenant::class,
+            ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
             ]);

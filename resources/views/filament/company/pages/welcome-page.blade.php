@@ -14,13 +14,28 @@
             </x-slot>
             
             <div class="mt-4">
-                <x-filament::button
-                    tag="a"
-                    :href="\App\Filament\Company\Pages\Reports::getUrl()"
-                    class="w-full"
-                >
-                    Go to Accounting
-                </x-filament::button>
+                <x-filament::dropdown class="w-full">
+                    <x-slot name="trigger">
+                        <x-filament::button
+                            class="w-full"
+                            icon="heroicon-m-chevron-down"
+                            icon-position="after"
+                        >
+                            Go to Accounting
+                        </x-filament::button>
+                    </x-slot>
+
+                    <x-filament::dropdown.list>
+                        @foreach ($this->getCompanies() as $company)
+                            <x-filament::dropdown.list.item
+                                :href="\App\Filament\Company\Pages\WelcomePage::getUrl(['tenant' => $company])"
+                                tag="a"
+                            >
+                                {{ $company->name }}
+                            </x-filament::dropdown.list.item>
+                        @endforeach
+                    </x-filament::dropdown.list>
+                </x-filament::dropdown>
             </div>
         </x-filament::section>
 

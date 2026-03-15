@@ -22,6 +22,7 @@ class ConfigureCurrentCompany
         $company = Filament::getTenant();
 
         if ($company) {
+            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($company->id);
             CompanyConfigured::dispatch($company);
         }
 
