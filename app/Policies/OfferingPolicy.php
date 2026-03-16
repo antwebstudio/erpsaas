@@ -11,7 +11,7 @@ class OfferingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_offering');
+        return $user->can('view_any_common::offering') || $user->can('view_any_common::job::scope::option');
     }
 
     /**
@@ -19,7 +19,7 @@ class OfferingPolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_offering');
+        return $user->can('view_common::offering') || $user->can('view_common::job::scope::option');
     }
 
     /**
@@ -27,7 +27,7 @@ class OfferingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_offering');
+        return $user->can('create_common::offering') || $user->can('create_common::job::scope::option');
     }
 
     /**
@@ -35,7 +35,7 @@ class OfferingPolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->can('update_offering');
+        return $user->can('update_common::offering') || $user->can('update_common::job::scope::option');
     }
 
     /**
@@ -43,7 +43,7 @@ class OfferingPolicy
      */
     public function delete(User $user, $model): bool
     {
-        return $user->can('delete_offering');
+        return $user->can('delete_common::offering') || $user->can('delete_common::job::scope::option');
     }
 
     /**
@@ -51,7 +51,7 @@ class OfferingPolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->can('restore_offering');
+        return $user->can('restore_common::offering') || $user->can('restore_common::job::scope::option');
     }
 
     /**
@@ -59,6 +59,6 @@ class OfferingPolicy
      */
     public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_offering');
+        return $user->can('force_delete_common::offering') || $user->can('force_delete_common::job::scope::option');
     }
 }

@@ -15,7 +15,7 @@ class BankAccountPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_bank_account');
+        return $user->can('view_any_banking::account');
     }
 
     /**
@@ -23,7 +23,7 @@ class BankAccountPolicy
      */
     public function view(User $user, BankAccount $model): bool
     {
-        return $user->can('view_bank_account');
+        return $user->can('view_banking::account');
     }
 
     /**
@@ -31,7 +31,7 @@ class BankAccountPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_bank_account');
+        return $user->can('create_banking::account');
     }
 
     /**
@@ -39,7 +39,7 @@ class BankAccountPolicy
      */
     public function update(User $user, BankAccount $model): bool
     {
-        return $user->can('update_bank_account');
+        return $user->can('update_banking::account');
     }
 
     /**
@@ -60,7 +60,7 @@ class BankAccountPolicy
      */
     public function restore(User $user, BankAccount $model): bool
     {
-        return $user->can('restore_bank_account');
+        return $user->can('restore_banking::account');
     }
 
     /**
@@ -68,6 +68,6 @@ class BankAccountPolicy
      */
     public function forceDelete(User $user, BankAccount $model): bool
     {
-        return $user->can('force_delete_bank_account');
+        return $user->can('force_delete_banking::account');
     }
 }

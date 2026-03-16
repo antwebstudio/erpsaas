@@ -11,7 +11,7 @@ class RecurringInvoicePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_recurring_invoice');
+        return $user->can('view_any_sales::recurring::invoice');
     }
 
     /**
@@ -19,7 +19,7 @@ class RecurringInvoicePolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_recurring_invoice');
+        return $user->can('view_sales::recurring::invoice');
     }
 
     /**
@@ -27,7 +27,7 @@ class RecurringInvoicePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_recurring_invoice');
+        return $user->can('create_sales::recurring::invoice');
     }
 
     /**
@@ -35,7 +35,7 @@ class RecurringInvoicePolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->can('update_recurring_invoice');
+        return $user->can('update_sales::recurring::invoice');
     }
 
     /**
@@ -43,7 +43,7 @@ class RecurringInvoicePolicy
      */
     public function delete(User $user, $model): bool
     {
-        return $user->can('delete_recurring_invoice');
+        return $user->can('delete_sales::recurring::invoice');
     }
 
     /**
@@ -51,7 +51,7 @@ class RecurringInvoicePolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->can('restore_recurring_invoice');
+        return $user->can('restore_sales::recurring::invoice');
     }
 
     /**
@@ -59,6 +59,6 @@ class RecurringInvoicePolicy
      */
     public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_recurring_invoice');
+        return $user->can('force_delete_sales::recurring::invoice');
     }
 }

@@ -11,7 +11,7 @@ class BillPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_bill');
+        return $user->can('view_any_purchases::bill');
     }
 
     /**
@@ -19,7 +19,7 @@ class BillPolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_bill');
+        return $user->can('view_purchases::bill');
     }
 
     /**
@@ -27,7 +27,7 @@ class BillPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_bill');
+        return $user->can('create_purchases::bill');
     }
 
     /**
@@ -35,7 +35,7 @@ class BillPolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->can('update_bill');
+        return $user->can('update_purchases::bill');
     }
 
     /**
@@ -43,7 +43,7 @@ class BillPolicy
      */
     public function delete(User $user, $model): bool
     {
-        return $user->can('delete_bill');
+        return $user->can('delete_purchases::bill');
     }
 
     /**
@@ -51,7 +51,7 @@ class BillPolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->can('restore_bill');
+        return $user->can('restore_purchases::bill');
     }
 
     /**
@@ -59,6 +59,6 @@ class BillPolicy
      */
     public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_bill');
+        return $user->can('force_delete_purchases::bill');
     }
 }

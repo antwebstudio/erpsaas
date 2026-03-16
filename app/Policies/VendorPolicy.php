@@ -12,7 +12,7 @@ class VendorPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_vendor');
+        return $user->can('view_any_purchases::vendor');
     }
 
     /**
@@ -20,7 +20,7 @@ class VendorPolicy
      */
     public function view(User $user, Vendor $model): bool
     {
-        return $user->can('view_vendor');
+        return $user->can('view_purchases::vendor');
     }
 
     /**
@@ -28,7 +28,7 @@ class VendorPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_vendor');
+        return $user->can('create_purchases::vendor');
     }
 
     /**
@@ -36,7 +36,7 @@ class VendorPolicy
      */
     public function update(User $user, Vendor $model): bool
     {
-        return $user->can('update_vendor');
+        return $user->can('update_purchases::vendor');
     }
 
     /**
@@ -44,7 +44,7 @@ class VendorPolicy
      */
     public function delete(User $user, Vendor $model): bool
     {
-        return $user->can('delete_vendor');
+        return $user->can('delete_purchases::vendor');
     }
 
     /**
@@ -52,7 +52,7 @@ class VendorPolicy
      */
     public function restore(User $user, Vendor $model): bool
     {
-        return $user->can('restore_vendor');
+        return $user->can('restore_purchases::vendor');
     }
 
     /**
@@ -60,6 +60,6 @@ class VendorPolicy
      */
     public function forceDelete(User $user, Vendor $model): bool
     {
-        return $user->can('force_delete_vendor');
+        return $user->can('force_delete_purchases::vendor');
     }
 }

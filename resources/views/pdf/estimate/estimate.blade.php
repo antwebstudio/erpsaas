@@ -119,20 +119,18 @@
             font-size: 10px;
             margin-bottom: 3px;
         }
-        .term-num { width: 20px; font-weight: bold; }
+        .term-num { width: 20px; font-weight: bold; font-size: 8px; }
         .term-desc { flex: 1; font-size: 8px; }
         
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
 
         .acknowledge-text {
-            margin-top: 20px; 
-            margin-bottom: 10px; 
+            margin-top: 20px;
+            margin-bottom: 10px;
             font-weight: bold;
             font-size: 12px;
             border-top: 1px solid #293834;
-            display: flex;
-            justify-content: flex-end;
             width: 250px;
             margin-right: 0;
             margin-left: auto;

@@ -11,7 +11,7 @@ class DepartmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_department');
+        return $user->can('view_any_core::department');
     }
 
     /**
@@ -19,7 +19,7 @@ class DepartmentPolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_department');
+        return $user->can('view_core::department');
     }
 
     /**
@@ -27,7 +27,7 @@ class DepartmentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_department');
+        return $user->can('create_core::department');
     }
 
     /**
@@ -35,7 +35,7 @@ class DepartmentPolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->can('update_department');
+        return $user->can('update_core::department');
     }
 
     /**
@@ -43,7 +43,7 @@ class DepartmentPolicy
      */
     public function delete(User $user, $model): bool
     {
-        return $user->can('delete_department');
+        return $user->can('delete_core::department');
     }
 
     /**
@@ -51,7 +51,7 @@ class DepartmentPolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->can('restore_department');
+        return $user->can('restore_core::department');
     }
 
     /**
@@ -59,6 +59,6 @@ class DepartmentPolicy
      */
     public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_department');
+        return $user->can('force_delete_core::department');
     }
 }

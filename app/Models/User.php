@@ -36,6 +36,46 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         roles as traitRoles;
     }
 
+    public function canForCompany($companyId, $permission)
+    {
+        $sessionCompanyId = getPermissionsTeamId();
+        setPermissionsTeamId($companyId);
+        $can = $this->can($permission);
+        setPermissionsTeamId($sessionCompanyId);
+        return $can;
+    }
+
+    public function assignRolesForCompany($companyId, $roles)
+    {
+        $sessionCompanyId = getPermissionsTeamId();
+        setPermissionsTeamId($companyId);
+        
+        if ($roles instanceof Model) {
+            $rolesToAssign = collect([$roles]);
+        } else {
+            $rolesToAssign = collect($roles);
+        }
+        $newRoles = $rolesToAssign->reject(fn ($role) => $this->hasRole($role));
+
+        if ($newRoles->isNotEmpty()) {
+            foreach ($newRoles as $role) {
+                $this->assignRole($role);
+            }
+        }
+
+        setPermissionsTeamId($sessionCompanyId);
+        return $this;
+    }
+
+    public function getRolesForCompany($companyId)
+    {
+        $sessionCompanyId = getPermissionsTeamId();
+        setPermissionsTeamId($companyId);
+        $roles = $this->roles()->get();
+        setPermissionsTeamId($sessionCompanyId);
+        return $roles;
+    }
+
     public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
         $relation = $this->traitRoles();

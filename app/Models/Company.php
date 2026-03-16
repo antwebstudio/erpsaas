@@ -59,6 +59,41 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
         'deleted' => CompanyDeleted::class,
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        // here assign this team to a global user with global default role
+        self::created(static function ($model) {
+            $sessionCompanyId = getPermissionsTeamId();
+
+            // Find role names where company_id is null (global roles)
+            $globalRoleNames = Role::whereNull('company_id')->pluck('name')->toArray();
+
+            if (! empty($globalRoleNames)) {
+                // Find users who have these roles assigned globally (context-free)
+                setPermissionsTeamId(null);
+                $users = User::role($globalRoleNames)->get();
+
+                foreach ($users as $user) {
+                    // Identify which of these global roles this specific user has
+                    $userGlobalRoles = $user->roles->whereIn('name', $globalRoleNames)->pluck('name')->toArray();
+
+                    // Assign these roles to the user for the newly created company
+                    setPermissionsTeamId($model->id);
+                    $user->assignRole($userGlobalRoles);
+
+                    // Revert context to global for the next user in the collection
+                    setPermissionsTeamId(null);
+                }
+            }
+
+            setPermissionsTeamId($sessionCompanyId);
+           
+        });
+    }
+
+
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->profile->logo_url ?? $this->owner->profile_photo_url;

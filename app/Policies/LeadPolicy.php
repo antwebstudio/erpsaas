@@ -11,7 +11,7 @@ class LeadPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_lead');
+        return $user->can('view_any_sales::lead');
     }
 
     /**
@@ -19,7 +19,7 @@ class LeadPolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_lead');
+        return $user->can('view_sales::lead');
     }
 
     /**
@@ -27,7 +27,7 @@ class LeadPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_lead');
+        return $user->can('create_sales::lead');
     }
 
     /**
@@ -35,7 +35,7 @@ class LeadPolicy
      */
     public function update(User $user, $model): bool
     {
-        return $user->can('update_lead');
+        return $user->can('update_sales::lead');
     }
 
     /**
@@ -43,7 +43,7 @@ class LeadPolicy
      */
     public function delete(User $user, $model): bool
     {
-        return $user->can('delete_lead');
+        return $user->can('delete_sales::lead');
     }
 
     /**
@@ -51,7 +51,7 @@ class LeadPolicy
      */
     public function restore(User $user, $model): bool
     {
-        return $user->can('restore_lead');
+        return $user->can('restore_sales::lead');
     }
 
     /**
@@ -59,6 +59,6 @@ class LeadPolicy
      */
     public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_lead');
+        return $user->can('force_delete_sales::lead');
     }
 }
