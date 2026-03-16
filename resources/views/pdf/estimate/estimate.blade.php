@@ -54,6 +54,11 @@
             margin-bottom: 20px;
             text-transform: uppercase;
         }
+        .terms .header-title {
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
         .info-grid {
             display: flex;
             justify-content: space-between;
@@ -98,24 +103,41 @@
         }
         
         .section-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #96693C;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-        ul { margin: 0; padding-left: 20px; }
-        ul li { margin-bottom: 5px; }
-        .terms-grid {
-            display: flex;
-            font-size: 11px;
+            margin-top: 10px;
             margin-bottom: 5px;
         }
-        .term-num { width: 25px; font-weight: bold; }
-        .term-desc { flex: 1; }
+        .terms .section-title {
+            font-size: 10px;
+        }
+        ul { margin: 0; padding-left: 20px; }
+        ul li { margin-bottom: 3px; }
+        .terms-grid {
+            display: flex;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+        .term-num { width: 20px; font-weight: bold; }
+        .term-desc { flex: 1; font-size: 8px; }
         
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
+
+        .acknowledge-text {
+            margin-top: 20px; 
+            margin-bottom: 10px; 
+            font-weight: bold;
+            font-size: 12px;
+            border-top: 1px solid #293834;
+            display: flex;
+            justify-content: flex-end;
+            width: 250px;
+            margin-right: 0;
+            margin-left: auto;
+            text-align: right;
+        }
         
     </style>
 </head>
@@ -250,7 +272,7 @@
                     </td>
                 </tr>
                 
-                <tr style="page-break-before: always;">
+                <tr class="terms" style="page-break-before: always;">
                     <td colspan="4">
                         <div class="header-title" style="text-align:left;">TERMS AND CONDITIONS:-</div>
             
@@ -326,12 +348,8 @@
                             Member of DP SME Credit Bureau - Your prompt payment records contributes towards building a positive credit profile for yourself.</div>
                         </div>
 
-                        <div style="margin-top:15px; margin-bottom:15px; font-weight:bold;">I acknowledge the payment terms</div>
-                    </td>
-                </tr>
-
-                <tr style="page-break-before: always;">
-                    <td colspan="4">
+                        <div class="acknowledge-text">I acknowledge the payment terms</div>
+                        
                         <div class="section-title">Warranty :</div>
                         <div class="terms-grid">
                             <div class="term-num">15</div>
@@ -376,16 +394,16 @@
                             <div class="term-desc">This contract will be terminated after 6 months if client is already unreachable. Necessary fees will be charged accordingly.</div>
                         </div>
                         
-                        <div style="margin-top:15px; margin-bottom:30px; font-weight:bold;">I acknowledge the copy of contract</div>
+                        <div class="acknowledge-text">I acknowledge the copy of contract</div>
                         
-                        <div class="signatures">
+                        <!-- <div class="signatures">
                             <div class="signature-box">
                                 <div class="signature-line">
                                     Agreed and Confirmed By:<br>
                                     Customer Name/NRIC/Date
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </td>
                 </tr>
 
