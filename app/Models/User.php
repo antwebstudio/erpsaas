@@ -42,7 +42,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
 
         if (app(\Spatie\Permission\PermissionRegistrar::class)->teams) {
             $teamId = getPermissionsTeamId();
-            $relation->withPivotValue(config('permission.column_names.team_foreign_key'), $teamId);
+            
+            if ($teamId !== null) {
+                $relation->withPivotValue(config('permission.column_names.team_foreign_key'), $teamId);
+            }
         }
 
         return $relation;

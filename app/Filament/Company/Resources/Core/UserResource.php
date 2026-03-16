@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = User::class;
 
     protected static ?string $modelLabel = 'User';

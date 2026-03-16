@@ -34,14 +34,22 @@ trait CompanyOwned
                 if ($companyId) {
                     $model->company_id = $companyId;
                 } else {
-                    Log::error('CurrentCompanyScope: No company_id found for user ' . Auth::id());
+                    if (app()->runningInConsole()) {
+                        // When running commands like shield:generate, we might not have a session or auth.
+                        // Assign a default company_id to prevent crashing.
+                        $model->company_id = \App\Models\Company::first()?->id ?? 1;
+                    } else {
+                        Log::error('CurrentCompanyScope: No company_id found for user ' . Auth::id());
 
-                    throw new ModelNotFoundException('CurrentCompanyScope: No company_id set in the session, user, or database.');
+                        throw new ModelNotFoundException('CurrentCompanyScope: No company_id set in the session, user, or database.');
+                    }
                 }
             }
         });
 
-        static::addGlobalScope(new CurrentCompanyScope);
+        if (!app()->runningInConsole()) {
+            static::addGlobalScope(new CurrentCompanyScope);
+        }
     }
 
     public function company(): BelongsTo

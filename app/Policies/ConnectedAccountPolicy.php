@@ -15,7 +15,7 @@ class ConnectedAccountPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view_any_connected_account');
     }
 
     /**
@@ -31,7 +31,7 @@ class ConnectedAccountPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create_connected_account');
     }
 
     /**

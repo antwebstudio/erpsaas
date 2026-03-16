@@ -22,6 +22,8 @@ use Filament\Tables\Table;
 
 class DocumentDefaultResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = DocumentDefault::class;
 
     protected static ?string $cluster = Settings::class;

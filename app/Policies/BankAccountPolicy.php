@@ -15,15 +15,15 @@ class BankAccountPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view_any_bank_account');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, BankAccount $bankAccount): bool
+    public function view(User $user, BankAccount $model): bool
     {
-        return true;
+        return $user->can('view_bank_account');
     }
 
     /**
@@ -31,15 +31,15 @@ class BankAccountPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create_bank_account');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, BankAccount $bankAccount): bool
+    public function update(User $user, BankAccount $model): bool
     {
-        return true;
+        return $user->can('update_bank_account');
     }
 
     /**
@@ -58,16 +58,16 @@ class BankAccountPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, BankAccount $bankAccount): bool
+    public function restore(User $user, BankAccount $model): bool
     {
-        return false;
+        return $user->can('restore_bank_account');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, BankAccount $bankAccount): bool
+    public function forceDelete(User $user, BankAccount $model): bool
     {
-        return false;
+        return $user->can('force_delete_bank_account');
     }
 }

@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Builder;
 // ...
 class LeadResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Lead::class;
 
     protected static ?string $modelLabel = 'Lead';

@@ -16,6 +16,8 @@ use Filament\Tables\Table;
 
 class CurrencyResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = CurrencyModel::class;
 
     protected static ?string $modelLabel = 'currency';

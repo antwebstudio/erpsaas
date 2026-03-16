@@ -22,6 +22,8 @@ use App\Filament\Company\Clusters\Settings;
 
 class RoleResource extends Resource implements HasShieldPermissions
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     use HasShieldFormComponents;
 
     protected static ?string $recordTitleAttribute = 'name';

@@ -12,15 +12,15 @@ class ClientPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view_any_client');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Client $client): bool
+    public function view(User $user, Client $model): bool
     {
-        return true;
+        return $user->can('view_client');
     }
 
     /**
@@ -28,38 +28,38 @@ class ClientPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create_client');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Client $client): bool
+    public function update(User $user, Client $model): bool
     {
-        return true;
+        return $user->can('update_client');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Client $client): bool
+    public function delete(User $user, Client $model): bool
     {
-        return false;
+        return $user->can('delete_client');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Client $client): bool
+    public function restore(User $user, Client $model): bool
     {
-        return false;
+        return $user->can('restore_client');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Client $client): bool
+    public function forceDelete(User $user, Client $model): bool
     {
-        return false;
+        return $user->can('force_delete_client');
     }
 }

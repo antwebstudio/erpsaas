@@ -46,6 +46,8 @@ use Illuminate\Support\Facades\Auth;
 
 class BillResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Bill::class;
 
     public static function form(Form $form): Form

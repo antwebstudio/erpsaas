@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class JobScopeDescriptionResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = OfferingCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';

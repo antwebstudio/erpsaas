@@ -23,6 +23,8 @@ use Wallo\FilamentSelectify\Components\ToggleButton;
 
 class AccountResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = BankAccount::class;
 
     protected static ?string $modelLabel = 'account';

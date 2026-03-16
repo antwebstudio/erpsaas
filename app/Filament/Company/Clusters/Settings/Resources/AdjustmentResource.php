@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 class AdjustmentResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Adjustment::class;
 
     protected static ?string $cluster = Settings::class;

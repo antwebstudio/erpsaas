@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DepartmentResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Department::class;
 
     protected static ?string $modelLabel = 'Department';

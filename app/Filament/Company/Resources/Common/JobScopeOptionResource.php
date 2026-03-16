@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class JobScopeOptionResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Offering::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';

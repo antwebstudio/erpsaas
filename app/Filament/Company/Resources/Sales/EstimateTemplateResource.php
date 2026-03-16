@@ -39,6 +39,8 @@ use Illuminate\Support\Str;
 
 class EstimateTemplateResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Estimate::class;
 
     protected static ?string $slug = 'sales/estimate-templates';

@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class OfferingCategoryResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = OfferingCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';

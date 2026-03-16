@@ -2,25 +2,24 @@
 
 namespace App\Policies;
 
-use App\Models\Common\Vendor;
 use App\Models\User;
 
-class VendorPolicy
+class DepartmentPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_vendor');
+        return $user->can('view_any_department');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Vendor $model): bool
+    public function view(User $user, $model): bool
     {
-        return $user->can('view_vendor');
+        return $user->can('view_department');
     }
 
     /**
@@ -28,38 +27,38 @@ class VendorPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_vendor');
+        return $user->can('create_department');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Vendor $model): bool
+    public function update(User $user, $model): bool
     {
-        return $user->can('update_vendor');
+        return $user->can('update_department');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Vendor $model): bool
+    public function delete(User $user, $model): bool
     {
-        return $user->can('delete_vendor');
+        return $user->can('delete_department');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Vendor $model): bool
+    public function restore(User $user, $model): bool
     {
-        return $user->can('restore_vendor');
+        return $user->can('restore_department');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Vendor $model): bool
+    public function forceDelete(User $user, $model): bool
     {
-        return $user->can('force_delete_vendor');
+        return $user->can('force_delete_department');
     }
 }

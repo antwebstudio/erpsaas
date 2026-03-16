@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
 
 class BudgetResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Budget::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

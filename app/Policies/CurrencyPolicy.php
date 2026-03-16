@@ -15,15 +15,15 @@ class CurrencyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view_any_currency');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Currency $currency): bool
+    public function view(User $user, Currency $model): bool
     {
-        return true;
+        return $user->can('view_currency');
     }
 
     /**
@@ -31,7 +31,7 @@ class CurrencyPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create_currency');
     }
 
     /**
@@ -45,9 +45,9 @@ class CurrencyPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Currency $currency): bool
+    public function delete(User $user, Currency $model): bool
     {
-        return false;
+        return $user->can('delete_currency');
     }
 
     public function deleteAny(User $user): bool
@@ -58,16 +58,16 @@ class CurrencyPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Currency $currency): bool
+    public function restore(User $user, Currency $model): bool
     {
-        return false;
+        return $user->can('restore_currency');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Currency $currency): bool
+    public function forceDelete(User $user, Currency $model): bool
     {
-        return false;
+        return $user->can('force_delete_currency');
     }
 }

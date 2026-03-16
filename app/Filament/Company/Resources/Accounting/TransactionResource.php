@@ -31,6 +31,8 @@ use Illuminate\Support\Carbon;
 
 class TransactionResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Transaction::class;
 
     protected static ?string $recordTitleAttribute = 'description';

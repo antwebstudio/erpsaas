@@ -48,7 +48,8 @@ class UserPanelProvider extends PanelProvider
                                 ...Account::getNavigationItems(),
                                 NavigationItem::make('Quotation Builder')
                                     ->url(\App\Filament\User\Pages\CreateQuotation::getUrl())
-                                    ->icon('heroicon-o-document-text'),
+                                    ->icon('heroicon-o-document-text')
+                                    ->visible(\App\Filament\User\Pages\CreateQuotation::canAccess()),
                                 NavigationItem::make('company')
                                     ->label('Company Dashboard')
                                     ->icon('heroicon-s-building-office-2')
@@ -61,7 +62,8 @@ class UserPanelProvider extends PanelProvider
                                         }
 
                                         return Filament::getPanel($companyPanel)->getTenantRegistrationUrl();
-                                    }),
+                                    })
+                                    ->visible(fn() => Auth::user()?->allCompanies()->isNotEmpty()),
                             ]);
                     }),
             )

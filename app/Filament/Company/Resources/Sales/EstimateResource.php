@@ -48,6 +48,8 @@ use Illuminate\Support\Facades\Auth;
 
 class EstimateResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Estimate::class;
 
     public static function form(Form $form): Form

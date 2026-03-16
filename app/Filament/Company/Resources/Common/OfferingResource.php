@@ -24,6 +24,8 @@ use JaOcero\RadioDeck\Forms\Components\RadioDeck;
 
 class OfferingResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Offering::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';

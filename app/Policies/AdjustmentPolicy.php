@@ -13,15 +13,15 @@ class AdjustmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->can('view_any_adjustment');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Adjustment $adjustment): bool
+    public function view(User $user, Adjustment $model): bool
     {
-        return true;
+        return $user->can('view_adjustment');
     }
 
     /**
@@ -29,7 +29,7 @@ class AdjustmentPolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can('create_adjustment');
     }
 
     /**
@@ -47,24 +47,24 @@ class AdjustmentPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Adjustment $adjustment): bool
+    public function delete(User $user, Adjustment $model): bool
     {
-        return false;
+        return $user->can('delete_adjustment');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Adjustment $adjustment): bool
+    public function restore(User $user, Adjustment $model): bool
     {
-        return true;
+        return $user->can('restore_adjustment');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Adjustment $adjustment): bool
+    public function forceDelete(User $user, Adjustment $model): bool
     {
-        return true;
+        return $user->can('force_delete_adjustment');
     }
 }

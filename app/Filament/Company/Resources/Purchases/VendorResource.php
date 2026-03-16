@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VendorResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Vendor::class;
 
     public static function form(Form $form): Form

@@ -39,6 +39,8 @@ use Illuminate\Support\Facades\Auth;
 
 class RecurringInvoiceResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = RecurringInvoice::class;
 
     public static function form(Form $form): Form

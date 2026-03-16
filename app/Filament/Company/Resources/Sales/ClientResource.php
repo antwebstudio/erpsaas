@@ -23,9 +23,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ClientResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Client::class;
-
-
 
     public static function form(Form $form): Form
     {

@@ -48,6 +48,8 @@ use Illuminate\Support\Facades\Auth;
 
 class InvoiceResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Invoice::class;
 
     public static function form(Form $form): Form
