@@ -159,10 +159,12 @@ class EstimateResource extends Resource
                                         }
 
                                         $term = PaymentTerms::parse($paymentTerms);
-                                        $expected = Carbon::parse($date)->addDays($term->getDays());
+                                        if ($term) {
+                                            $expected = Carbon::parse($date)->addDays($term->getDays());
 
-                                        if (! Carbon::parse($state)->isSameDay($expected)) {
-                                            $set('payment_terms', 'custom');
+                                            if (! Carbon::parse($state)->isSameDay($expected)) {
+                                                $set('payment_terms', 'custom');
+                                            }
                                         }
                                     }),
                                 Forms\Components\Select::make('discount_method')

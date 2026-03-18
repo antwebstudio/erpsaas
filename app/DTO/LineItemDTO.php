@@ -13,6 +13,7 @@ readonly class LineItemDTO
         public int $quantity,
         public string $unitPrice,
         public string $subtotal,
+        public ?string $unit,
     ) {}
 
     public static function fromModel(DocumentLineItem $lineItem): self
@@ -23,6 +24,7 @@ readonly class LineItemDTO
             quantity: $lineItem->quantity,
             unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable->currency_code),
             subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable->currency_code),
+            unit: $lineItem->unit,
         );
     }
 

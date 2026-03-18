@@ -176,23 +176,23 @@ class LeadResource extends Resource
                                     ->blockNumbers(false),
                             ]),
                     ])->columns(1),
-                // Forms\Components\Section::make('Billing')
-                //     ->schema([
-                //         CreateCurrencySelect::make('currency_code')
-                //             ->softRequired(),
-                //         CustomSection::make('Billing Address')
-                //             ->relationship('billingAddress')
-                //             ->saveRelationshipsUsing(null)
-                //             ->saveRelationshipsBeforeChildrenUsing(null)
-                //             ->dehydrated(true)
-                //             ->contained(false)
-                //             ->schema([
-                //                 Forms\Components\Hidden::make('type')
-                //                     ->default('billing'),
-                //                 AddressFields::make(),
-                //             ])->columns(),
-                //     ])
-                //     ->columns(1),
+                Forms\Components\Section::make('Billing')
+                    ->schema([
+                        CreateCurrencySelect::make('currency_code')
+                            ->softRequired(),
+                        CustomSection::make('Billing Address')
+                            ->relationship('billingAddress')
+                            ->saveRelationshipsUsing(null)
+                            ->saveRelationshipsBeforeChildrenUsing(null)
+                            ->dehydrated(true)
+                            ->contained(false)
+                            ->schema([
+                                Forms\Components\Hidden::make('type')
+                                    ->default('billing'),
+                                AddressFields::make(),
+                            ])->columns(),
+                    ])
+                    ->columns(1),
                 // Forms\Components\Section::make('Shipping')
                 //     ->relationship('shippingAddress')
                 //     ->saveRelationshipsUsing(null)

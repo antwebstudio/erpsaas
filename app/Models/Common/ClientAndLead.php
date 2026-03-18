@@ -6,4 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ClientAndLead extends Client
 {
+    public function getMorphClass(): string
+    {
+        return Client::class;
+    }
 }

@@ -10,6 +10,7 @@ use App\Utilities\Currency\CurrencyAccessor;
 use App\Utilities\Currency\CurrencyConverter;
 use Filament\FontProviders\BunnyFontProvider;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 readonly class DocumentDTO
 {
@@ -38,7 +39,8 @@ readonly class DocumentDTO
         public iterable $lineItemGroups,
         public DocumentLabelDTO $label,
         public DocumentColumnLabelDTO $columnLabel,
-        public string $accentColor = '#000000',
+        public Model $createdBy,
+        public string $accentColor = '#080707ff',
         public bool $showLogo = true,
         public Font $font = Font::Inter,
     ) {}
@@ -85,10 +87,11 @@ readonly class DocumentDTO
             total: self::formatToMoney($document->total, $currencyCode),
             amountDue: $amountDue,
             company: CompanyDTO::fromModel($document->company),
-            client: $document->client ? ClientDTO::fromModel($document->client) : null,
+            client: $document->clientAndLead ? ClientDTO::fromModel($document->clientAndLead) : null,
             lineItems: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)),
             label: $document::documentType()->getLabels(),
             columnLabel: DocumentColumnLabelDTO::fromModel($settings),
+            createdBy: $document->createdBy,
             accentColor: $settings->accent_color ?? '#000000',
             showLogo: $settings->show_logo ?? false,
             font: $settings->font ?? Font::Inter,

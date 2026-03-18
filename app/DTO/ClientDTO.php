@@ -8,6 +8,8 @@ readonly class ClientDTO
 {
     public function __construct(
         public string $name,
+        public string $email,
+        public string $phone,
         public string $addressLine1,
         public string $addressLine2,
         public string $city,
@@ -22,6 +24,8 @@ readonly class ClientDTO
 
         return new self(
             name: $client->name,
+            email: $client->primaryContact?->email ?? '',
+            phone: $client->primaryContact?->primaryPhone ?? '',
             addressLine1: $address?->address_line_1 ?? '',
             addressLine2: $address?->address_line_2 ?? '',
             city: $address?->city ?? '',

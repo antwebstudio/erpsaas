@@ -176,7 +176,7 @@
                             <td class="items-td" style="width:60%;">
                                 {!! nl2br(e($item->description)) !!}
                             </td>
-                            <td class="items-td" style="width:15%;">{{ $item->quantity }}</td>
+                            <td class="items-td" style="width:15%;">{{ $item->quantity }} {{ $item->unit }}</td>
                             <td class="items-td" style="width:15%;">{{ $item->subtotal }}</td>
                         </tr>
                     @endforeach
