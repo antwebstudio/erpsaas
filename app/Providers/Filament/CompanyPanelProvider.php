@@ -45,6 +45,7 @@ use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource;
+use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Filament\Components\PanelShiftDropdown;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\User\Clusters\Account;
@@ -163,6 +164,7 @@ class CompanyPanelProvider extends PanelProvider
                                 ...EstimateTemplateResource::getNavigationItems(),
                                 ...InvoiceResource::getNavigationItems(),
                                 ...RecurringInvoiceResource::getNavigationItems(),
+                                ...VariationOrderResource::getNavigationItems(),
                             ]),
                         NavigationGroup::make('Purchases')
                             ->label('Purchases')

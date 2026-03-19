@@ -193,6 +193,12 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
             ->where('type', DocumentType::Invoice);
     }
 
+    public function defaultVariationOrder(): HasOne
+    {
+        return $this->hasOne(DocumentDefault::class, 'company_id')
+            ->where('type', DocumentType::VariationOrder);
+    }
+
     public function defaultRecurringInvoice(): HasOne
     {
         return $this->hasOne(DocumentDefault::class, 'company_id')
@@ -217,6 +223,11 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     public function recurringInvoices(): HasMany
     {
         return $this->hasMany(Accounting\RecurringInvoice::class, 'company_id');
+    }
+
+    public function variationOrders(): HasMany
+    {
+        return $this->hasMany(Accounting\VariationOrder::class, 'company_id');
     }
 
     public function locale(): HasOne

@@ -13,6 +13,7 @@ readonly class LineItemPreviewDTO extends LineItemDTO
                 quantity: 2,
                 unitPrice: self::formatToMoney(15000, null), // $150.00
                 subtotal: self::formatToMoney(30000, null),  // $300.00
+                unit: 'hrs',
             ),
             new self(
                 name: 'Software License',
@@ -20,6 +21,7 @@ readonly class LineItemPreviewDTO extends LineItemDTO
                 quantity: 3,
                 unitPrice: self::formatToMoney(20000, null), // $200.00
                 subtotal: self::formatToMoney(60000, null),  // $600.00
+                unit: 'license',
             ),
             new self(
                 name: 'Training Session',
@@ -27,6 +29,7 @@ readonly class LineItemPreviewDTO extends LineItemDTO
                 quantity: 1,
                 unitPrice: self::formatToMoney(10000, null), // $100.00
                 subtotal: self::formatToMoney(10000, null),  // $100.00
+                unit: 'session',
             ),
         ];
     }

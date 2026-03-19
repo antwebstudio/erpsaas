@@ -83,4 +83,12 @@ class DocumentDefaultFactory extends Factory
     {
         return $this->state($this->baseState(DocumentType::Estimate));
     }
+
+    /**
+     * Indicate that the model's type is variation order.
+     */
+    public function variationOrder(): self
+    {
+        return $this->state($this->baseState(DocumentType::VariationOrder));
+    }
 }

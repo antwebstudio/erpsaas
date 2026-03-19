@@ -172,9 +172,13 @@ class EstimateResource extends Resource
                                     ->options(DocumentDiscountMethod::class)
                                     ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false))
                                     ->softRequired()
-                                    ->default($settings->discount_method)
+                                    ->default($settings->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument)
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
                                         $discountMethod = DocumentDiscountMethod::parse($state);
+                                        
+                                        if ($discountMethod->isPerLineItem()) {
+                                            $set('lineItemGroups.*.items.*.salesDiscounts', []);
+                                        }
 
                                         if ($discountMethod->isPerDocument()) {
                                             $set('lineItems.*.salesDiscounts', []);

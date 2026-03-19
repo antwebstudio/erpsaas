@@ -164,7 +164,7 @@ class DocumentDefault extends Model
 
     public function getLabelOptionFor(string $optionType, ?string $optionValue)
     {
-        $optionValue = $optionValue ?? $this->{$optionType}['option'];
+        $optionValue = $optionValue ?? ($this->{$optionType}['option'] ?? null);
 
         if (! $optionValue) {
             return null;
