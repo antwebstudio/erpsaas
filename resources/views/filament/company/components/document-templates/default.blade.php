@@ -53,10 +53,12 @@
                         <td class="font-semibold text-right pr-2">{{ $document->label->date }}:</td>
                         <td class="text-left pl-2">{{ $document->date }}</td>
                     </tr>
+                    @if(config('erp.show_expiry_date', true))
                     <tr>
                         <td class="font-semibold text-right pr-2">{{ $document->label->dueDate }}:</td>
                         <td class="text-left pl-2">{{ $document->dueDate }}</td>
                     </tr>
+                    @endif
                     </tbody>
                 </table>
             </div>

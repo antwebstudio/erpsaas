@@ -103,6 +103,7 @@ class ViewVariationOrder extends ViewRecord
                                     ->visible(fn (VariationOrder $record) => filled($record->estimate_id)),
                                 TextEntry::make('expiry_date')
                                     ->label('Expiration date')
+                                    ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                     ->asRelativeDay(),
                                 TextEntry::make('approved_at')
                                     ->label('Approved at')

@@ -122,6 +122,7 @@ class VariationOrderResource extends Resource
                                             }
                                         }),
                                     Forms\Components\Select::make('payment_terms')
+                                        ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                         ->label('Payment terms')
                                         ->options(function () {
                                             return collect(PaymentTerms::cases())
@@ -149,36 +150,9 @@ class VariationOrderResource extends Resource
                                     ->label('Variation Order date')
                                     ->columns(3),
                                 Forms\Components\DatePicker::make('expiry_date')
+                                    ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                     ->label('Expiration date')
-                                    ->default(function () use ($settings) {
-                                        $days = $settings?->payment_terms?->getDays() ?? 30;
-                                        return company_today()->addDays($days)->toDateString();
-                                    })
-                                    ->minDate(static function (Forms\Get $get) {
-                                        return Carbon::parse($get('date'))->toDateString() ?? company_today()->toDateString();
-                                    })
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
-                                        if (! $state) {
-                                            return;
-                                        }
-
-                                        $date = $get('date');
-                                        $paymentTerms = $get('payment_terms');
-
-                                        if (! $date || $paymentTerms === 'custom') {
-                                            return;
-                                        }
-
-                                        $term = PaymentTerms::parse($paymentTerms);
-                                        if ($term) {
-                                            $expected = Carbon::parse($date)->addDays($term->getDays());
-
-                                            if (! Carbon::parse($state)->isSameDay($expected)) {
-                                                $set('payment_terms', 'custom');
-                                            }
-                                        }
-                                    }),
+                                    ->nullable(),
                                 Forms\Components\Select::make('discount_method')
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
@@ -949,16 +923,13 @@ class VariationOrderResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate())
-            ->defaultSort('expiry_date')
+            ->defaultSort('date', 'desc')
             ->columns([
                 Columns::id(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('expiry_date')
-                    ->label('Expiration date')
-                    ->asRelativeDay()
-                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('date')
                     ->date()
                     ->sortable(),
@@ -966,6 +937,12 @@ class VariationOrderResource extends Resource
                     ->label('Number')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('expiry_date')
+                    ->label('Expiration date')
+                    ->date()
+                    ->sortable()
+                    ->toggleable()
+                    ->hidden(fn () => ! config('erp.show_expiry_date', true)),
                 Tables\Columns\TextColumn::make('client.name')
                     ->sortable()
                     ->searchable(),
@@ -989,7 +966,9 @@ class VariationOrderResource extends Resource
                 DateRangeFilter::make('expiry_date')
                     ->fromLabel('From expiration date')
                     ->untilLabel('To expiration date')
-                    ->indicatorLabel('Due'),
+                    ->indicatorLabel('Expiration date')
+                    ->hidden(fn () => ! config('erp.show_expiry_date', true)),
+
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

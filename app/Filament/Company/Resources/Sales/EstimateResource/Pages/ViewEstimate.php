@@ -98,6 +98,7 @@ class ViewEstimate extends ViewRecord
                                     ->link(),
                                 TextEntry::make('expiration_date')
                                     ->label('Expiration date')
+                                     ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                     ->asRelativeDay(),
                                 TextEntry::make('approved_at')
                                     ->label('Approved at')

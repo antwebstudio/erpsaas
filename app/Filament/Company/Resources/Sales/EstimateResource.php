@@ -111,6 +111,8 @@ class EstimateResource extends Resource
                                             }
                                         }),
                                     Forms\Components\Select::make('payment_terms')
+                                        ->hidden(fn () => ! config('erp.show_expiry_date', true))
+										->nullable(fn () => ! config('erp.show_expiry_date', true))
                                         ->label('Payment terms')
                                         ->options(function () {
                                             return collect(PaymentTerms::cases())
@@ -138,6 +140,7 @@ class EstimateResource extends Resource
                                     ->label('Estimate date')
                                     ->columns(3),
                                 Forms\Components\DatePicker::make('expiration_date')
+                                    ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                     ->label('Expiration date')
                                     ->default(function () use ($settings) {
                                         return company_today()->addDays($settings->payment_terms->getDays())->toDateString();
@@ -1191,16 +1194,13 @@ class EstimateResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate())
-            ->defaultSort('expiration_date')
+            ->defaultSort('date', 'desc')
             ->columns([
                 Columns::id(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('expiration_date')
-                    ->label('Expiration date')
-                    ->asRelativeDay()
-                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('date')
                     ->date()
                     ->sortable(),
@@ -1208,6 +1208,12 @@ class EstimateResource extends Resource
                     ->label('Number')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('expiration_date')
+                    ->label('Expiration date')
+                    ->date()
+                    ->sortable()
+                    ->toggleable()
+                    ->hidden(fn () => ! config('erp.show_expiry_date', true)),
                 Tables\Columns\TextColumn::make('client.name')
                     ->sortable()
                     ->searchable()
@@ -1233,7 +1239,9 @@ class EstimateResource extends Resource
                 DateRangeFilter::make('expiration_date')
                     ->fromLabel('From expiration date')
                     ->untilLabel('To expiration date')
-                    ->indicatorLabel('Due'),
+                    ->indicatorLabel('Expiration date')
+                    ->hidden(fn () => ! config('erp.show_expiry_date', true)),
+
             ])
             ->headerActions([
                 Tables\Actions\ExportAction::make()
