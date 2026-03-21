@@ -25,7 +25,7 @@ class CreateVariationOrder extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         /** @var VariationOrder $record */
-        $data = collect($data)->filter()->toArray();
+        $data = collect($data)->reject(fn ($value) => is_null($value))->toArray();
         $record = parent::handleRecordCreation($data);
 
         $this->handleLineItems($record, collect($data['lineItemGroups'] ?? []));

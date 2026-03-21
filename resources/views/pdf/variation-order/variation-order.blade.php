@@ -174,7 +174,7 @@
                         <tr>
                             <td class="items-td" style="width:10%;">{{ $itemIndex++ }}</td>
                             <td class="items-td" style="width:60%;">
-                                {!! nl2br(e($item->description)) !!}
+                                {!! nl2br(e($item->description ?: $item->name)) !!}
                             </td>
                             <td class="items-td" style="width:15%;">{{ $item->quantity }} {{ $item->unit }}</td>
                             <td class="items-td" style="width:15%;">{{ $item->subtotal }}</td>

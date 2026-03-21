@@ -31,6 +31,7 @@ class DocumentTotals extends Grid
                 ->label('Discount rate')
                 ->hiddenLabel()
                 ->live()
+                ->default('0')
                 ->extraInputAttributes(['class' => 'text-right'])
                 ->rate(
                     computation: static fn (Get $get) => $get('discount_computation'),

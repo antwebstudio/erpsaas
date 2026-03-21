@@ -45,8 +45,9 @@ trait ManagesLineItems
 
             $lineItem->save();
 
-            $this->handleLineItemAdjustments($lineItem, $itemData, $record->discount_method);
-            $this->updateLineItemTotals($lineItem, $record->discount_method);
+            $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
+            $this->handleLineItemAdjustments($lineItem, $itemData, $discountMethod);
+            $this->updateLineItemTotals($lineItem, $discountMethod);
         }
     }
 
@@ -103,8 +104,9 @@ trait ManagesLineItems
 
                  $lineItem->save();
 
-                 $this->handleLineItemAdjustments($lineItem, $itemData, $record->discount_method);
-                 $this->updateLineItemTotals($lineItem, $record->discount_method);
+                 $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
+                 $this->handleLineItemAdjustments($lineItem, $itemData, $discountMethod);
+                 $this->updateLineItemTotals($lineItem, $discountMethod);
             }
 
             // Handle nested children groups

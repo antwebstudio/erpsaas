@@ -57,7 +57,6 @@ class EstimatePdfService
             $templateDefaults = DocumentDefault::where('company_id', $estimate->template_company_id)
                 ->type($documentTypeEnum)
                 ->first();
-            ds($templateDefaults->id, $templateDefaults?->cover_pdf);
             
             if ($templateDefaults?->cover_pdf) {
                 $coverPath = Storage::disk('public')->path($templateDefaults->cover_pdf);
