@@ -361,13 +361,28 @@ class VariationOrder extends Document
 
     public static function getDownloadMergedPdfAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
     {
-        return $action::make('downloadPdf')
+        $downloadAction = $action::make('downloadMergedPdf')
             ->label('Download PDF')
-            ->icon('heroicon-m-arrow-down-tray')
-            ->action(function (self $record) {
-                // Placeholder for PDF generation
-                return response()->json(['message' => 'PDF generation not implemented yet']);
+            ->icon('heroicon-m-arrow-down-tray');
+
+        if (config('erp.async_pdf_generation')) {
+            $downloadAction->modalHeading('Generating PDF')
+                ->modalSubmitAction(false)
+                ->modalCancelAction(false)
+                ->modalContent(fn (self $record) => view('components.variation-order-pdf-modal', ['record' => $record]))
+                ->action(fn () => null);
+        } else {
+            $downloadAction->action(function (self $record) {
+                $pdfService = new \App\Services\VariationOrderPdfService();
+                $finalPdfOutput = $pdfService->generate($record);
+                
+                return response()->streamDownload(function () use ($finalPdfOutput) {
+                    echo $finalPdfOutput;
+                }, "VariationOrder-{$record->documentNumber()}.pdf");
             });
+        }
+
+        return $downloadAction;
     }
 
     public function scopeIsTemplate(Builder $query): Builder
