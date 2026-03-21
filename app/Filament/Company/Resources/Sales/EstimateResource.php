@@ -83,6 +83,14 @@ class EstimateResource extends Resource
                                         }
                                     }),
                                 CreateCurrencySelect::make('currency_code'),
+                                Forms\Components\Select::make('template_company_id')
+                                    ->label('Document Template')
+                                    ->relationship(
+                                        name: 'templateCompany',
+                                        titleAttribute: 'name',
+                                    )
+                                    ->searchable()
+                                    ->preload(),
                             ]),
                             Forms\Components\Group::make([
                                 Forms\Components\TextInput::make('estimate_number')

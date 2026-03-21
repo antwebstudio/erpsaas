@@ -45,6 +45,7 @@ class VariationOrder extends Document
         'terms',
         'notes',
         'footer',
+        'template_company_id',
         'approved_at',
         'accepted_at',
         'converted_at',

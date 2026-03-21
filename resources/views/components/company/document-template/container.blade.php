@@ -1,5 +1,6 @@
 @props([
     'preview' => false,
+    'backgroundImage' => null,
 ])
 
 <div
@@ -14,6 +15,9 @@
                 'w-[51.25rem] h-[64rem]' => ! $preview,
                 'w-[48rem] min-h-[61.75rem] preview' => $preview,
             ])
+            @if($backgroundImage)
+                style="background-image: url('{{ $backgroundImage }}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+            @endif
         >
             {{ $slot }}
         </div>

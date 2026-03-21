@@ -38,6 +38,11 @@ abstract class Document extends Model
         return $this->morphMany(DocumentLineItemGroup::class, 'documentable')->orderBy('order');
     }
 
+    public function templateCompany(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Company::class, 'template_company_id');
+    }
+
     public function hasLineItems(): bool
     {
         return $this->lineItems()->exists();

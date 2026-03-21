@@ -1,4 +1,4 @@
-<x-company.document-template.container class="default-template-container" :preview="$preview">
+<x-company.document-template.container class="default-template-container" :backgroundImage="$document->backgroundImage" :preview="$preview">
 
     <x-company.document-template.header class="default-template-header border-b">
         <div class="w-1/3">

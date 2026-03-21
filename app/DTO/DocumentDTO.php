@@ -43,6 +43,7 @@ readonly class DocumentDTO
         public string $accentColor = '#080707ff',
         public bool $showLogo = true,
         public Font $font = Font::Inter,
+        public ?string $backgroundImage = null,
     ) {}
 
     public static function fromModel(Document $document): self
@@ -95,6 +96,7 @@ readonly class DocumentDTO
             accentColor: $settings->accent_color ?? '#000000',
             showLogo: $settings->show_logo ?? false,
             font: $settings->font ?? Font::Inter,
+            backgroundImage: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->background_image_url ?? $settings->background_image_url,
             lineItemGroups: $document->lineItemGroups->isNotEmpty() 
                 ? $document->lineItemGroups()
                     ->whereNull('parent_id')

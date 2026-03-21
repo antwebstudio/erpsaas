@@ -1,4 +1,4 @@
-<x-company.document-template.container class="modern-template-container" :preview="$preview">
+<x-company.document-template.container class="modern-template-container" :backgroundImage="$document->backgroundImage" :preview="$preview">
     <!-- Colored Header with Logo -->
     <x-company.document-template.header class="bg-gray-800 h-24">
         <!-- Logo -->

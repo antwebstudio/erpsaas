@@ -93,6 +93,14 @@ class VariationOrderResource extends Resource
                                     ->preload()
                                     ->live(),
                                 CreateCurrencySelect::make('currency_code'),
+                                Forms\Components\Select::make('template_company_id')
+                                    ->label('Document Template')
+                                    ->relationship(
+                                        name: 'templateCompany',
+                                        titleAttribute: 'name',
+                                    )
+                                    ->searchable()
+                                    ->preload(),
                             ]),
                             Forms\Components\Group::make([
                                 Forms\Components\TextInput::make('vo_number')

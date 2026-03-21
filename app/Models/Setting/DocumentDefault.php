@@ -31,6 +31,8 @@ class DocumentDefault extends Model
         'company_id',
         'type',
         'logo',
+        'background_image',
+        'cover_pdf',
         'show_logo',
         'number_prefix',
         'payment_terms',
@@ -65,12 +67,28 @@ class DocumentDefault extends Model
 
     protected $appends = [
         'logo_url',
+        'background_image_url',
+        'cover_pdf_url',
     ];
 
     protected function logoUrl(): Attribute
     {
         return Attribute::get(static function (mixed $value, array $attributes): ?string {
-            return $attributes['logo'] ? Storage::disk('public')->url($attributes['logo']) : null;
+            return ($attributes['logo'] ?? null) ? Storage::disk('public')->url($attributes['logo']) : null;
+        });
+    }
+
+    protected function backgroundImageUrl(): Attribute
+    {
+        return Attribute::get(static function (mixed $value, array $attributes): ?string {
+            return ($attributes['background_image'] ?? null) ? Storage::disk('public')->url($attributes['background_image']) : null;
+        });
+    }
+
+    protected function coverPdfUrl(): Attribute
+    {
+        return Attribute::get(static function (mixed $value, array $attributes): ?string {
+            return ($attributes['cover_pdf'] ?? null) ? Storage::disk('public')->url($attributes['cover_pdf']) : null;
         });
     }
 

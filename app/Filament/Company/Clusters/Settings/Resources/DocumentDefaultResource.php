@@ -104,6 +104,29 @@ class DocumentDefaultResource extends Resource
                         Forms\Components\Checkbox::make('show_logo')
                             ->localizeLabel()
                             ->hidden(is_demo_environment()),
+                        Forms\Components\FileUpload::make('background_image')
+                            ->localizeLabel()
+                            ->openable()
+                            ->directory('backgrounds/document')
+                            ->image()
+                            ->maxSize(2048)
+                            ->extraAttributes([
+                                'class' => 'es-file-upload document-background-preview',
+                            ])
+                            ->loadingIndicatorPosition('left')
+                            ->removeUploadedFileButtonPosition('right'),
+                        Forms\Components\FileUpload::make('cover_pdf')
+                            ->label('Cover')
+                            ->localizeLabel()
+                            ->openable()
+                            ->directory('covers/document')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(10240)
+                            ->extraAttributes([
+                                'class' => 'es-file-upload document-cover-preview',
+                            ])
+                            ->loadingIndicatorPosition('left')
+                            ->removeUploadedFileButtonPosition('right'),
                         Forms\Components\ColorPicker::make('accent_color')
                             ->localizeLabel(),
                         Forms\Components\Select::make('font')

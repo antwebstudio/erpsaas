@@ -5,8 +5,10 @@ namespace App\DTO;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
 use App\Enums\Setting\PaymentTerms;
+use App\Enums\Setting\Template;
 use App\Models\Setting\DocumentDefault;
 use App\Utilities\Currency\CurrencyAccessor;
+use Illuminate\Support\Facades\Storage;
 
 readonly class DocumentPreviewDTO extends DocumentDTO
 {
@@ -25,7 +27,7 @@ readonly class DocumentPreviewDTO extends DocumentDTO
             subheader: $data['subheader'] ?? $settings->subheader,
             footer: $data['footer'] ?? $settings->footer,
             terms: $data['terms'] ?? $settings->terms,
-            logo: $settings->logo_url,
+            logo: self::getPreviewLogo($settings, $data),
             number: self::generatePreviewNumber($settings, $data),
             referenceNumber: $settings->getNumberNext('ORD-'),
             date: $company->locale->date_format->getLabel(),
@@ -46,7 +48,38 @@ readonly class DocumentPreviewDTO extends DocumentDTO
             accentColor: $data['accent_color'] ?? $settings->accent_color ?? '#000000',
             showLogo: $data['show_logo'] ?? $settings->show_logo ?? true,
             font: Font::tryFrom($data['font']) ?? $settings->font ?? Font::Inter,
+            backgroundImage: self::getPreviewBackgroundImage($settings, $data),
         );
+    }
+
+    protected static function getPreviewBackgroundImage(DocumentDefault $settings, ?array $data): ?string
+    {
+        $backgroundImage = $data['background_image'] ?? $settings->background_image;
+
+        if (is_array($backgroundImage)) {
+            $backgroundImage = reset($backgroundImage);
+        }
+
+        if (! is_string($backgroundImage) || empty($backgroundImage)) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($backgroundImage);
+    }
+
+    protected static function getPreviewLogo(DocumentDefault $settings, ?array $data): ?string
+    {
+        $logo = $data['logo'] ?? $settings->logo;
+
+        if (is_array($logo)) {
+            $logo = reset($logo);
+        }
+
+        if (! is_string($logo) || empty($logo)) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($logo);
     }
 
     protected static function generatePreviewNumber(DocumentDefault $settings, ?array $data): string

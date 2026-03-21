@@ -65,6 +65,7 @@ class Estimate extends Document
         'total',
         'terms',
         'footer',
+        'template_company_id',
         'is_template',
         'created_by',
         'updated_by',

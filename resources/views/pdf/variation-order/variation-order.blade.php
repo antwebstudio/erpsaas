@@ -24,7 +24,7 @@
             left: 0;
             width: 210mm;
             height: 297mm;
-            background-image: url('data:image/png;base64,{{ base64_encode(file_get_contents(resource_path('quotation-template/template.png'))) }}');
+            background-image: url('{{ $document->backgroundImage ?: 'data:image/png;base64,' . base64_encode(file_get_contents(resource_path('quotation-template/template.png'))) }}');
             background-size: 210mm 297mm;
             background-repeat: no-repeat;
             background-position: center;
