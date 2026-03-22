@@ -40,6 +40,8 @@ class DocumentDefault extends Model
         'header',
         'subheader',
         'terms',
+        'materials_guide',
+        'terms_and_conditions',
         'footer',
         'accent_color',
         'font',

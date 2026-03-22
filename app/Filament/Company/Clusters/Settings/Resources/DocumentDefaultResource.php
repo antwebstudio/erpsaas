@@ -73,6 +73,14 @@ class DocumentDefaultResource extends Resource
                 Forms\Components\Textarea::make('terms')
                     ->localizeLabel()
                     ->nullable(),
+                Forms\Components\RichEditor::make('materials_guide')
+                    ->localizeLabel()
+                    ->nullable()
+                    ->columnSpanFull(),
+                Forms\Components\RichEditor::make('terms_and_conditions')
+                    ->localizeLabel()
+                    ->nullable()
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('footer')
                     ->localizeLabel('Footer')
                     ->nullable(),

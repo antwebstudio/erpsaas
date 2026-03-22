@@ -44,6 +44,8 @@ readonly class DocumentDTO
         public bool $showLogo = true,
         public Font $font = Font::Inter,
         public ?string $backgroundImage = null,
+        public ?string $materialsGuide = null,
+        public ?string $termsAndConditions = null,
     ) {}
 
     public static function fromModel(Document $document): self
@@ -97,6 +99,8 @@ readonly class DocumentDTO
             showLogo: $settings->show_logo ?? false,
             font: $settings->font ?? Font::Inter,
             backgroundImage: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->background_image_url ?? $settings->background_image_url,
+            materialsGuide: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->materials_guide ?? $settings->materials_guide,
+            termsAndConditions: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->terms_and_conditions ?? $settings->terms_and_conditions,
             lineItemGroups: $document->lineItemGroups->isNotEmpty() 
                 ? $document->lineItemGroups()
                     ->whereNull('parent_id')
