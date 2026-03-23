@@ -10,7 +10,10 @@ use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
 use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\ContractResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
+use App\Filament\Company\Resources\Sales\VariationOrderResource;
+use App\Models\Accounting\VariationOrder;
 use App\Models\Common\Client;
 use App\Models\Common\ClientAndLead;
 use App\Models\Company;
@@ -29,6 +32,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use App\Models\Accounting\DocumentLineItemGroup;
@@ -112,6 +116,11 @@ class Estimate extends Document
     public function invoice(): HasOne
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function variationOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(VariationOrder::class);
     }
 
     public static function documentType(): DocumentType
@@ -408,6 +417,47 @@ class Estimate extends Document
                 $record->markAsAccepted();
 
                 $action->success();
+            });
+    }
+
+    public static function getConvertToContractAction(string $action = Action::class): MountableAction
+    {
+        return $action::make('convertToContract')
+            ->label('Convert to Contract')
+            ->icon('heroicon-o-document-check')
+            ->color('success')
+            ->requiresConfirmation()
+            ->modalHeading('Convert Estimate to Contract')
+            ->modalDescription('Are you sure you want to convert this estimate to a contract? This will mark it as accepted and update the issuing company.')
+            ->visible(static function (self $record) {
+                return $record->status !== EstimateStatus::Accepted && $record->template_company_id !== null;
+            })
+            ->action(function (self $record, MountableAction $action) {
+                DB::transaction(function () use ($record) {
+                    $newCompanyId = $record->template_company_id;
+
+                    $record->update([
+                        'status' => \App\Enums\Accounting\EstimateStatus::Accepted,
+                        'accepted_at' => company_now(),
+                        'company_id' => $newCompanyId,
+                    ]);
+
+                    $record->lineItemGroups()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
+                    $record->lineItems()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
+
+                    $record->variationOrders()->withoutGlobalScopes()->each(function (VariationOrder $vo) use ($newCompanyId) {
+                        $vo->update(['company_id' => $newCompanyId]);
+                        $vo->lineItemGroups()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
+                        $vo->lineItems()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
+                    });
+                });
+
+                Notification::make()
+                    ->title('Estimate converted to contract')
+                    ->success()
+                    ->send();
+
+                return redirect()->to(ContractResource::getUrl('view', ['record' => $record]));
             });
     }
 

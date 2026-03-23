@@ -116,4 +116,9 @@ abstract class Document extends Model
     abstract public function referenceNumber(): ?string;
 
     abstract public function amountDue(): ?string;
+
+    public function getLabels(): \App\DTO\DocumentLabelDTO
+    {
+        return static::documentType()->getLabels();
+    }
 }

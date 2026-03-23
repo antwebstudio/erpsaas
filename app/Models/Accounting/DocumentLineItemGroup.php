@@ -37,21 +37,21 @@ class DocumentLineItemGroup extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(DocumentLineItem::class, 'group_id')->orderBy('line_number');
+        return $this->hasMany(DocumentLineItem::class, 'group_id')->withoutGlobalScopes()->orderBy('line_number');
     }
 
     public function offeringCategory(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Common\OfferingCategory::class);
+        return $this->belongsTo(\App\Models\Common\OfferingCategory::class)->withoutGlobalScopes();
     }
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id')->orderBy('order');
+        return $this->belongsTo(self::class, 'parent_id')->withoutGlobalScopes()->orderBy('order');
     }
 
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id')->orderBy('order');
+        return $this->hasMany(self::class, 'parent_id')->withoutGlobalScopes()->orderBy('order');
     }
 }

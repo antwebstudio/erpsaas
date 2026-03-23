@@ -73,12 +73,14 @@ readonly class DocumentDTO
             self::formatToMoney($document->amountDue(), $currencyCode) :
             null;
 
+        $labels = $document->getLabels();
+
         return new self(
-            header: $document->header,
+            header: ($document instanceof \App\Models\Accounting\Contract) ? $labels->title : $document->header,
             subheader: $document->subheader,
             footer: $document->footer,
             terms: $document->terms,
-            logo: $document->logo_url ?? $settings->logo_url,
+            logo: $document->logo_url ?? $settings?->logo_url,
             number: $document->documentNumber(),
             referenceNumber: $document->referenceNumber(),
             date: $document->documentDate(),
@@ -92,15 +94,15 @@ readonly class DocumentDTO
             company: CompanyDTO::fromModel($document->company),
             client: $document->clientAndLead ? ClientDTO::fromModel($document->clientAndLead) : null,
             lineItems: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)),
-            label: $document::documentType()->getLabels(),
-            columnLabel: DocumentColumnLabelDTO::fromModel($settings),
+            label: $labels,
+            columnLabel: $settings ? DocumentColumnLabelDTO::fromModel($settings) : DocumentColumnLabelDTO::getDefaultLabels(),
             createdBy: $document->createdBy,
-            accentColor: $settings->accent_color ?? '#000000',
-            showLogo: $settings->show_logo ?? false,
-            font: $settings->font ?? Font::Inter,
-            backgroundImage: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->background_image_url ?? $settings->background_image_url,
-            materialsGuide: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->materials_guide ?? $settings->materials_guide,
-            termsAndConditions: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->terms_and_conditions ?? $settings->terms_and_conditions,
+            accentColor: $settings?->accent_color ?? '#000000',
+            showLogo: $settings?->show_logo ?? false,
+            font: $settings?->font ?? Font::Inter,
+            backgroundImage: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->background_image_url ?? $settings?->background_image_url,
+            materialsGuide: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->materials_guide ?? $settings?->materials_guide,
+            termsAndConditions: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->terms_and_conditions ?? $settings?->terms_and_conditions,
             lineItemGroups: $document->lineItemGroups->isNotEmpty() 
                 ? $document->lineItemGroups()
                     ->whereNull('parent_id')

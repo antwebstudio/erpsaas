@@ -36,6 +36,7 @@ class ViewEstimate extends ViewRecord
                     Estimate::getApproveDraftAction(),
                     Estimate::getMarkAsSentAction(),
                     Estimate::getMarkAsAcceptedAction(),
+                    Estimate::getConvertToContractAction(),
                     Estimate::getMarkAsDeclinedAction(),
                     Estimate::getPreviewAction(),
                     Estimate::getPrintDocumentAction(),

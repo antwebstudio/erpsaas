@@ -74,22 +74,32 @@ class VariationOrder extends Document
 
     public function estimate(): BelongsTo
     {
-        return $this->belongsTo(Estimate::class);
+        return $this->belongsTo(Estimate::class)->withoutGlobalScopes();
     }
 
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withoutGlobalScopes();
     }
 
     public function clientAndLead(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id');
+        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id')->withoutGlobalScopes();
     }
 
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'currency_code', 'code');
+    }
+
+    public function lineItems(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return parent::lineItems()->withoutGlobalScopes();
+    }
+
+    public function lineItemGroups(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return parent::lineItemGroups()->withoutGlobalScopes();
     }
 
     public static function getNextDocumentNumber(?\App\Models\Company $company = null): string

@@ -47,12 +47,12 @@ class DocumentLineItem extends Model
 
     public function documentable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()->withoutGlobalScopes();
     }
 
     public function offering(): BelongsTo
     {
-        return $this->belongsTo(Offering::class);
+        return $this->belongsTo(Offering::class)->withoutGlobalScopes();
     }
 
     public function sellableOffering(): BelongsTo
@@ -67,12 +67,12 @@ class DocumentLineItem extends Model
 
     public function group(): BelongsTo
     {
-        return $this->belongsTo(DocumentLineItemGroup::class, 'group_id');
+        return $this->belongsTo(DocumentLineItemGroup::class, 'group_id')->withoutGlobalScopes();
     }
 
     public function adjustments(): MorphToMany
     {
-        return $this->morphToMany(Adjustment::class, 'adjustmentable', 'adjustmentables');
+        return $this->morphToMany(Adjustment::class, 'adjustmentable', 'adjustmentables')->withoutGlobalScopes();
     }
 
     public function salesTaxes(): MorphToMany

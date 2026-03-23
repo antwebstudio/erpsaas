@@ -22,8 +22,8 @@ readonly class LineItemDTO
             name: $lineItem->offering->name ?? '',
             description: $lineItem->description ?? '',
             quantity: $lineItem->quantity,
-            unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable->currency_code),
-            subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable->currency_code),
+            unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable?->currency_code),
+            subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable?->currency_code),
             unit: $lineItem->unit,
         );
     }

@@ -50,6 +50,8 @@ class ShieldSeeder extends Seeder
             'JobScopeOption' => 'common::job::scope::option',
             'EstimateTemplate' => 'sales::estimate::template',
             'DocumentDefault' => 'settings::document_default',
+            'Contract' => 'sales::contract',
+            'VariationOrder' => 'sales::variation_order',
         ];
 
         $prefixes = config('filament-shield.permission_prefixes.resource', [

@@ -37,6 +37,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Scopes\CurrentCompanyScope;
 use Illuminate\Database\Eloquent\Builder;
 
 class VariationOrderResource extends Resource
@@ -44,6 +45,14 @@ class VariationOrderResource extends Resource
     use \App\Filament\Traits\HasNavigationPermission;
 
     protected static ?string $model = VariationOrder::class;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                CurrentCompanyScope::class,
+            ]);
+    }
 
     protected static ?string $modelLabel = 'Variation Order';
 

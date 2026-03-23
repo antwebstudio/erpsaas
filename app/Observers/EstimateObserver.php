@@ -26,6 +26,18 @@ class EstimateObserver
         }
     }
 
+    public function updated(Estimate $estimate): void
+    {
+        if ($estimate->status === EstimateStatus::Accepted && $estimate->wasChanged('status')) {
+            $client = $estimate->clientAndLead;
+
+            if ($client && $client->type === 'lead') {
+                $client->type = 'client';
+                $client->save();
+            }
+        }
+    }
+
     public function deleted(Estimate $estimate): void
     {
         DB::transaction(function () use ($estimate) {
