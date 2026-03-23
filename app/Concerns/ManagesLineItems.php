@@ -229,7 +229,17 @@ trait ManagesLineItems
     {
         $currencyCode = $data['currency_code'] ?? $record->currency_code ?? CurrencyAccessor::getDefaultCurrency();
         $subtotalCents = $record->lineItems()->sum('subtotal');
-        $taxTotalCents = $record->lineItems()->sum('tax_total');
+        $taxKey = $record::documentType()->getTaxKey();
+        $taxIds = $data[$taxKey] ?? null;
+
+        if ($taxIds !== null) {
+            $record->{$taxKey}()->sync($taxIds);
+        }
+
+        $taxIds = $data[$taxKey] ?? $record->{$taxKey}->pluck('id')->toArray();
+        $documentTaxTotalCents = $this->calculateDocumentTaxTotal($taxIds, $subtotalCents);
+
+        $taxTotalCents = $record->lineItems()->sum('tax_total') + $documentTaxTotalCents;
         $discountTotalCents = $this->calculateDiscountTotal(
             DocumentDiscountMethod::parse($data['discount_method'] ?? $record->discount_method ?? DocumentDiscountMethod::PerLineItem),
             AdjustmentComputation::parse($data['discount_computation'] ?? $record->discount_computation ?? AdjustmentComputation::Fixed),
@@ -247,6 +257,23 @@ trait ManagesLineItems
             'discount_total' => $discountTotalCents,
             'total' => $grandTotalCents,
         ];
+    }
+
+    protected function calculateDocumentTaxTotal(array|Collection $taxIds, int $subtotalCents): int
+    {
+        if (empty($taxIds)) {
+            return 0;
+        }
+
+        $taxes = \App\Models\Accounting\Adjustment::whereIn('id', $taxIds)->get();
+
+        return $taxes->reduce(function (int $carry, \App\Models\Accounting\Adjustment $tax) use ($subtotalCents) {
+            if ($tax->computation->isPercentage()) {
+                return $carry + RateCalculator::calculatePercentage($subtotalCents, $tax->getRawOriginal('rate'));
+            } else {
+                return $carry + $tax->getRawOriginal('rate');
+            }
+        }, 0);
     }
 
     protected function calculateDiscountTotal(

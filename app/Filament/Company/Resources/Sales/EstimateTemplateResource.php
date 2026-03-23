@@ -80,6 +80,17 @@ class EstimateTemplateResource extends Resource
                             ->softRequired()
                             ->default($settings->discount_method)
                             ->live(),
+                        CreateAdjustmentSelect::make('salesTaxes')
+                            ->label('Document Taxes')
+                            ->category(AdjustmentCategory::Tax)
+                            ->type(AdjustmentType::Sales)
+                            ->adjustmentsRelationship('salesTaxes')
+                            ->forceEnableRelationship()
+                            ->preload()
+                            ->multiple()
+                            ->live()
+                            ->searchable()
+                            ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                         Forms\Components\Hidden::make('is_template')
                             ->default(true),
                     ]),

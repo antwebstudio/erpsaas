@@ -16,6 +16,19 @@ class CreateOfferingSelect extends Select
 
     protected bool $isSellable = true;
 
+    protected bool $isRelationshipDisabled = false;
+
+    protected static bool $nextIsDisabled = false;
+
+    public static function make(?string $name = null, bool $disabledRelationship = false): static
+    {
+        static::$nextIsDisabled = $disabledRelationship;
+        $static = parent::make($name);
+        static::$nextIsDisabled = false;
+
+        return $static;
+    }
+
     public function purchasable(bool $condition = true): static
     {
         $this->isPurchasable = $condition;
@@ -34,7 +47,13 @@ class CreateOfferingSelect extends Select
 
     protected function setUp(): void
     {
+        $this->isRelationshipDisabled = static::$nextIsDisabled;
+
         parent::setUp();
+
+        if ($this->isRelationshipDisabled) {
+            return;
+        }
 
         $this
             ->searchable()

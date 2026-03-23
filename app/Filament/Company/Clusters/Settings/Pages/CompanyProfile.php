@@ -219,6 +219,20 @@ class CompanyProfile extends Page
                 TextInput::make('tax_id')
                     ->localizeLabel('Tax ID')
                     ->maxLength(50),
+                Select::make('default_sales_tax_id')
+                    ->label('Default Tax')
+                    ->relationship(
+                        name: 'defaultSalesTax',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn ($query) => $query
+                            ->where('category', \App\Enums\Accounting\AdjustmentCategory::Tax)
+                            ->where('type', \App\Enums\Accounting\AdjustmentType::Sales)
+                            ->where('status', \App\Enums\Accounting\AdjustmentStatus::Active),
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->helperText('This tax will be auto-applied when this company is selected as a document template.'),
             ])->columns();
     }
 

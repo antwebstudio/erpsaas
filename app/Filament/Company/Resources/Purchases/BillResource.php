@@ -176,6 +176,17 @@ class BillResource extends Resource
                                         }
                                     })
                                     ->live(),
+                                CreateAdjustmentSelect::make('purchaseTaxes')
+                                    ->label('Document Taxes')
+                                    ->category(AdjustmentCategory::Tax)
+                                    ->type(AdjustmentType::Purchase)
+                                    ->adjustmentsRelationship('purchaseTaxes')
+                                    ->forceEnableRelationship()
+                                    ->preload()
+                                    ->multiple()
+                                    ->live()
+                                    ->searchable()
+                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
                         CustomTableRepeater::make('lineItems')

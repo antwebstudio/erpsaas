@@ -14,9 +14,28 @@ use Illuminate\Support\Facades\DB;
 
 class CreateCurrencySelect extends Select
 {
+    protected bool $isRelationshipDisabled = false;
+
+    protected static bool $nextIsDisabled = false;
+
+    public static function make(?string $name = null, bool $disabledRelationship = false): static
+    {
+        static::$nextIsDisabled = $disabledRelationship;
+        $static = parent::make($name);
+        static::$nextIsDisabled = false;
+
+        return $static;
+    }
+
     protected function setUp(): void
     {
+        $this->isRelationshipDisabled = static::$nextIsDisabled;
+
         parent::setUp();
+
+        if ($this->isRelationshipDisabled) {
+            return;
+        }
 
         $this->localizeLabel('Currency')
             ->default(CurrencyAccessor::getDefaultCurrency())

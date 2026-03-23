@@ -730,6 +730,9 @@ class Invoice extends Document
             });
         });
 
+        // Replicate Document Adjustments
+        $target->adjustments()->sync($this->adjustments->pluck('id'));
+
         // Replicate items without group
         $this->lineItems()->whereNull('group_id')->each(function (DocumentLineItem $lineItem) use ($target) {
             $replica = $lineItem->replicate([

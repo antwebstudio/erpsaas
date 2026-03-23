@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use App\Enums\Accounting\AdjustmentCategory;
+use App\Enums\Accounting\AdjustmentType;
 use Livewire\Component;
 
 abstract class Document extends Model
@@ -41,6 +44,21 @@ abstract class Document extends Model
     public function templateCompany(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Company::class, 'template_company_id');
+    }
+
+    public function adjustments(): MorphToMany
+    {
+        return $this->morphToMany(Adjustment::class, 'adjustmentable', 'adjustmentables');
+    }
+
+    public function salesTaxes(): MorphToMany
+    {
+        return $this->adjustments()->where('category', AdjustmentCategory::Tax)->where('type', AdjustmentType::Sales);
+    }
+
+    public function purchaseTaxes(): MorphToMany
+    {
+        return $this->adjustments()->where('category', AdjustmentCategory::Tax)->where('type', AdjustmentType::Purchase);
     }
 
     public function hasLineItems(): bool

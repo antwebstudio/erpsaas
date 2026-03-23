@@ -460,5 +460,8 @@ class Bill extends Document
 
             $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
         });
+
+        // Replicate Document Adjustments
+        $target->adjustments()->sync($this->adjustments->pluck('id'));
     }
 }

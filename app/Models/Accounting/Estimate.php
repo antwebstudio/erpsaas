@@ -584,6 +584,10 @@ class Estimate extends Document
 
             $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
         });
+
+        //if ($this->adjustments()->exists()) {
+        //    $target->adjustments()->sync($this->adjustments->pluck('id'));
+        //}
     }
 
     public static function createFromTemplate(self $template, int $clientId, ?int $estimateId = null, ?Company $company = null, ?int $userId = null): self

@@ -685,6 +685,9 @@ class RecurringInvoice extends Document
 
             $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
         });
+
+        // Replicate Document Adjustments
+        $target->adjustments()->sync($this->adjustments->pluck('id'));
     }
 
     public function shouldGenerateInvoice(): bool

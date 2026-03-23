@@ -93,14 +93,7 @@ class VariationOrderResource extends Resource
                                     ->preload()
                                     ->live(),
                                 CreateCurrencySelect::make('currency_code'),
-                                Forms\Components\Select::make('template_company_id')
-                                    ->label('Document Template')
-                                    ->relationship(
-                                        name: 'templateCompany',
-                                        titleAttribute: 'name',
-                                    )
-                                    ->searchable()
-                                    ->preload(),
+
                             ]),
                             Forms\Components\Group::make([
                                 Forms\Components\TextInput::make('vo_number')
@@ -179,6 +172,17 @@ class VariationOrderResource extends Resource
                                         }
                                     })
                                     ->live(),
+                                CreateAdjustmentSelect::make('salesTaxes')
+                                    ->label('Document Taxes')
+                                    ->category(AdjustmentCategory::Tax)
+                                    ->type(AdjustmentType::Sales)
+                                    ->adjustmentsRelationship('salesTaxes')
+                                    ->forceEnableRelationship()
+                                    ->preload()
+                                    ->multiple()
+                                    ->live()
+                                    ->searchable()
+                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
                     ]),
@@ -915,6 +919,29 @@ class VariationOrderResource extends Resource
                             ]),
                         DocumentTotals::make()
                             ->type(DocumentType::VariationOrder),
+                        Forms\Components\Select::make('template_company_id')
+                            ->label('Issue Company')
+                            ->relationship(
+                                name: 'templateCompany',
+                                titleAttribute: 'name',
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                if (! $state) {
+                                    return;
+                                }
+
+                                $company = \App\Models\Company::with('profile')->find($state);
+                                $defaultTaxId = $company?->profile?->default_sales_tax_id;
+
+                                if ($defaultTaxId) {
+                                    $set('salesTaxes', [$defaultTaxId]);
+                                } else {
+                                    $set('salesTaxes', []);
+                                }
+                            }),
                         Forms\Components\Textarea::make('terms')
                             ->default($settings?->terms)
                             ->columnSpanFull(),

@@ -103,6 +103,17 @@ class RecurringInvoiceResource extends Resource
                                         }
                                     })
                                     ->live(),
+                                CreateAdjustmentSelect::make('salesTaxes')
+                                    ->label('Document Taxes')
+                                    ->category(AdjustmentCategory::Tax)
+                                    ->type(AdjustmentType::Sales)
+                                    ->adjustmentsRelationship('salesTaxes')
+                                    ->forceEnableRelationship()
+                                    ->preload()
+                                    ->multiple()
+                                    ->live()
+                                    ->searchable()
+                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
                         CustomTableRepeater::make('lineItems')

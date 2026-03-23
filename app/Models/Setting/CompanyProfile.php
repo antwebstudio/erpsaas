@@ -5,12 +5,14 @@ namespace App\Models\Setting;
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Setting\EntityType;
+use App\Models\Accounting\Adjustment;
 use App\Models\Common\Address;
 use Database\Factories\Setting\CompanyProfileFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,6 +31,7 @@ class CompanyProfile extends Model
         'email',
         'tax_id',
         'entity_type',
+        'default_sales_tax_id',
         'created_by',
         'updated_by',
     ];
@@ -55,6 +58,11 @@ class CompanyProfile extends Model
     public function address(): MorphOne
     {
         return $this->morphOne(Address::class, 'addressable');
+    }
+
+    public function defaultSalesTax(): BelongsTo
+    {
+        return $this->belongsTo(Adjustment::class, 'default_sales_tax_id');
     }
 
     protected static function newFactory(): Factory

@@ -32,7 +32,14 @@ class DocumentTotalViewModel
         }
 
         $subtotalInCents = $lineItems->sum(fn ($item) => $this->calculateLineSubtotalInCents($item, $currencyCode));
-        $taxTotalInCents = $this->calculateAdjustmentsTotalInCents($lineItems, $this->documentType->getTaxKey(), $currencyCode);
+        
+        $lineTaxTotalInCents = $this->calculateAdjustmentsTotalInCents($lineItems, $this->documentType->getTaxKey(), $currencyCode);
+        $documentTaxKey = $this->documentType->getTaxKey();
+        $documentTaxIds = $this->data[$documentTaxKey] ?? [];
+        $documentTaxTotalInCents = $this->calculateDocumentTaxTotalInCents($documentTaxIds, $subtotalInCents);
+        
+        $taxTotalInCents = $lineTaxTotalInCents + $documentTaxTotalInCents;
+        
         $discountTotalInCents = $this->calculateDiscountTotalInCents($lineItems, $subtotalInCents, $currencyCode);
 
         $grandTotalInCents = $subtotalInCents + ($taxTotalInCents - $discountTotalInCents);
@@ -140,6 +147,23 @@ class DocumentTotalViewModel
         }
 
         return CurrencyConverter::convertToCents($discountRate, $currencyCode);
+    }
+
+    private function calculateDocumentTaxTotalInCents(array $taxIds, int $subtotalInCents): int
+    {
+        if (empty($taxIds)) {
+            return 0;
+        }
+
+        $taxes = Adjustment::whereIn('id', $taxIds)->get();
+
+        return $taxes->reduce(function (int $carry, Adjustment $tax) use ($subtotalInCents) {
+            if ($tax->computation->isPercentage()) {
+                return $carry + RateCalculator::calculatePercentage($subtotalInCents, $tax->getRawOriginal('rate'));
+            } else {
+                return $carry + $tax->getRawOriginal('rate');
+            }
+        }, 0);
     }
 
     private function buildConversionMessage(int $grandTotalInCents, string $currencyCode, string $defaultCurrencyCode): ?string

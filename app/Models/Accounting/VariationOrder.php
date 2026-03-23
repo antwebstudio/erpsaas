@@ -339,6 +339,9 @@ class VariationOrder extends Document
                 $replica->expiry_date = company_today()->addDays(30); // Default 30 days
             })
             ->databaseTransaction()
+            ->after(function (self $original, self $replica) {
+                $original->replicateLineItems($replica);
+            })
             ->successRedirectUrl(static function (self $replica) {
                 return \App\Filament\Company\Resources\Sales\VariationOrderResource::getUrl('edit', ['record' => $replica]);
             });
@@ -394,5 +397,30 @@ class VariationOrder extends Document
     public function scopeIsNotTemplate(Builder $query): Builder
     {
         return $query->where('is_template', false);
+    }
+
+    public function replicateLineItems(Model $target): void
+    {
+        $this->lineItems->each(function (DocumentLineItem $lineItem) use ($target) {
+            $replica = $lineItem->replicate([
+                'documentable_id',
+                'documentable_type',
+                'subtotal',
+                'total',
+                'created_by',
+                'updated_by',
+                'created_at',
+                'updated_at',
+            ]);
+
+            $replica->documentable_id = $target->id;
+            $replica->documentable_type = $target->getMorphClass();
+            $replica->save();
+
+            $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
+        });
+
+        // Replicate Document Adjustments
+        $target->adjustments()->sync($this->adjustments->pluck('id'));
     }
 }

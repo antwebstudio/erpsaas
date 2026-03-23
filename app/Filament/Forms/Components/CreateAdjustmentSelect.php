@@ -31,11 +31,11 @@ class CreateAdjustmentSelect extends Select
 
     protected string $adjustmentsRelationship = 'adjustments';
     
+    protected bool $forceEnabled = false;
+
     public bool $isRelationshipDisabled = false;
 
     protected static bool $nextIsDisabled = false;
-
-
 
     public static function make(?string $name = null, bool $disabledRelationship = false): static
     {
@@ -44,6 +44,13 @@ class CreateAdjustmentSelect extends Select
         static::$nextIsDisabled = false;
 
         return $static;
+    }
+
+    public function forceEnableRelationship(bool $condition = true): static
+    {
+        $this->forceEnabled = $condition;
+
+        return $this;
     }
 
     public function disableRelationship(bool $condition = true): static
@@ -55,6 +62,10 @@ class CreateAdjustmentSelect extends Select
 
     public function isRelationshipDisabled(): bool
     {
+        if ($this->forceEnabled) {
+            return false;
+        }
+
         return $this->isRelationshipDisabled || static::$nextIsDisabled || config('app.disable_custom_select_relationships', false);
     }
 
@@ -121,7 +132,7 @@ class CreateAdjustmentSelect extends Select
 
         parent::setUp();
 
-        if ($this->isRelationshipDisabled()) {
+        if ($this->isRelationshipDisabled || static::$nextIsDisabled) {
             return;
         }
 
@@ -158,7 +169,7 @@ class CreateAdjustmentSelect extends Select
                     $query->where(function (Builder $query) use ($existingAdjustmentIds) {
                         $query->where('status', AdjustmentStatus::Active);
                         if (!empty($existingAdjustmentIds)) {
-                            $query->orWhereIn('id', $existingAdjustmentIds);
+                            $query->orWhereIn('adjustments.id', $existingAdjustmentIds);
                         }
                     });
                 }
