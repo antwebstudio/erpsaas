@@ -4,7 +4,7 @@ namespace App\Filament\Company\Resources\Common;
 
 use App\Enums\Common\OfferingType;
 use App\Filament\Company\Resources\Common\JobScopeOptionResource\Pages;
-use App\Models\Common\Offering;
+use App\Models\Common\JobScopeOption;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,7 +16,7 @@ class JobScopeOptionResource extends Resource
 {
     use \App\Filament\Traits\HasNavigationPermission;
 
-    protected static ?string $model = Offering::class;
+    protected static ?string $model = JobScopeOption::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 

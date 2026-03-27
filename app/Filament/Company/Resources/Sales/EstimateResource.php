@@ -477,6 +477,8 @@ class EstimateResource extends Resource
                                             ->extraActions([
                                                 Forms\Components\Actions\Action::make('add_job_scope')
                                                     ->label('Select Job Scope')
+                                                    ->button()
+                                                    ->color('primary')
                                                     ->icon('heroicon-m-plus')
                                                     ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
                                                     ->fillForm(function (Forms\Get $get) {
@@ -1086,6 +1088,8 @@ class EstimateResource extends Resource
                                             ->extraActions([
                                                 Forms\Components\Actions\Action::make('add_job_scope')
                                                     ->label('Select Job Scope')
+                                                    ->button()
+                                                    ->color('primary')
                                                     ->icon('heroicon-m-plus')
                                                     ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
                                                     ->fillForm(function (Forms\Get $get) {

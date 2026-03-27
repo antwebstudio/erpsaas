@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Accounting;
 
 use App\Models\Accounting\Contract;
 use App\Models\User;
@@ -12,7 +12,6 @@ class ContractPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
         return $user->can('view_any_sales::contract');
     }
 

@@ -20,6 +20,8 @@ use Filament\Notifications\Notification;
 
 class ContractResource extends Resource
 {
+    use \App\Filament\Traits\HasNavigationPermission;
+
     protected static ?string $model = Contract::class;
 
     protected static ?string $slug = 'sales/contracts';
@@ -96,8 +98,8 @@ class ContractResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->url(static fn (Contract $record) => ViewContract::getUrl(['record' => $record])),
-                Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class, 'download_contract'),
-                Estimate::getPreviewAction(Tables\Actions\Action::class, 'preview_contract'),
+                Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
+                Estimate::getPreviewAction(Tables\Actions\Action::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

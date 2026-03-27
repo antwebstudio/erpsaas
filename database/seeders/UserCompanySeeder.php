@@ -3,9 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\Setting\CompanyProfile;
 use App\Models\User;
-use Database\Factories\CompanyFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
+use App\Enums\Setting\EntityType;
 
 class UserCompanySeeder extends Seeder
 {
@@ -14,53 +16,120 @@ class UserCompanySeeder extends Seeder
      */
     public function run(): void
     {
-        // Create a single admin user and their personal company
+        // Create a single admin user first, then create their personal company separately.
+        // Using withPersonalCompany() would double-call withCompanyProfile/withCompanyDefaults
+        // (once in UserFactory defaults, once in the callback), causing a unique constraint
+        // violation on document_defaults (company_id, type).
         $user = User::factory()
-            ->withPersonalCompany(function (CompanyFactory $factory) {
-                return $factory
-                    ->state([
-                        'name' => 'ERPSAAS',
-                    ])
-                    ->withTransactions(250)
-                    ->withOfferings()
-                    ->withClients()
-                    ->withVendors()
-                    ->withInvoices(30)
-                    ->withRecurringInvoices()
-                    ->withEstimates(30)
-                    ->withBills(30);
-            })
             ->create([
                 'name' => 'Admin',
                 'email' => 'admin@erpsaas.com',
                 'password' => bcrypt('password'),
-                'current_company_id' => 1,  // Assuming this will be the ID of the created company
             ]);
 
+        $primaryCompany = Company::factory()
+            ->state([
+                'name' => 'ERPSAAS',
+                'user_id' => $user->id,
+                'personal_company' => true,
+            ])
+            ->withCompanyProfile('SG')
+            ->withCompanyDefaults('SGD', 'en')
+            ->afterCreating(function (Company $company) {
+                CompanyProfile::factory()
+                    ->forCompany($company)
+                    ->withAddress('SG')
+                    ->create([
+                        'entity_type' => EntityType::Corporation,
+                    ]);
+            })
+            ->create();
+
+        $user->update(['current_company_id' => $primaryCompany->id]);
+
+        $stateId = \App\Models\Locale\State::where('country_id', 'SG')
+            ->where('name', 'Central Singapore')
+            ->first()?->id ?? \App\Models\Locale\State::where('country_id', 'SG')->first()?->id;
+
+        $contacts = [
+            'phone_number' => '+65 6242 5334',
+            'email' => 'enquiry@stylemyspace.com.sg',
+            'address' => [
+                'type' => \App\Enums\Common\AddressType::General,
+                'recipient' => 'Admin',
+                'phone' => '+65 6242 5334',
+                'address_line_1' => '8 BURN ROAD',
+                'address_line_2' => '#01-10, TRIVEX BUILDING',
+                'city' => 'Singapore',
+                'state_id' => $stateId,
+                'postal_code' => '369977',
+                'country_code' => 'SG',
+                'notes' => '',
+            ],
+        ];
+
+        // Update the admin user's personal company profile and address
+        if ($primaryCompany->profile) {
+            $primaryCompany->profile->update([
+                'phone_number' => $contacts['phone_number'],
+                'email' => $contacts['email'],
+            ]);
+            $primaryCompany->profile->address->update($contacts['address']);
+        }
+
         $additionalCompanies = [
-            ['name' => 'British Crown Analytics', 'country' => 'GB', 'currency' => 'GBP', 'locale' => 'en'],
-            ['name' => 'Berlin Tech Solutions', 'country' => 'DE', 'currency' => 'EUR', 'locale' => 'en'],
-            ['name' => 'Mumbai Software Services', 'country' => 'IN', 'currency' => 'INR', 'locale' => 'en'],
+            ['name' => 'Muyi Carpenters Pte Ltd', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'template.png', 'cover_pdf' => 'Cover Muyi Carpenters Pte Ltd.png'],
+            ['name' => 'Stylemyspace Design Studio', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'stylemyspace-design-studio.png', 'cover_pdf' => 'Cover Stylemyspace Design Studio.png'],
+            ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'stylemyspace.png', 'cover_pdf' => 'Cover Stylemyspace.png'],
         ];
 
         foreach ($additionalCompanies as $companyData) {
-            Company::factory()
+            $company = Company::factory()
                 ->state([
                     'name' => $companyData['name'],
                     'user_id' => $user->id,
                     'personal_company' => false,
                 ])
-                ->withCompanyProfile($companyData['country'])
+                ->withCompanyProfile($companyData['country']) // Uncommented
                 ->withCompanyDefaults($companyData['currency'], $companyData['locale'])
-                ->withTransactions(50)
-                ->withOfferings()
-                ->withClients()
-                ->withVendors()
-                ->withInvoices()
-                ->withRecurringInvoices()
-                ->withEstimates()
-                ->withBills()
+                // ->withTransactions(50)
+                // ->withOfferings()
+                // ->withClients()
+                // ->withVendors()
+                // ->withInvoices()
+                // ->withRecurringInvoices()
+                // ->withEstimates()
+                // ->withBills()
                 ->create();
+
+            $company->profile->update([
+                'phone_number' => $contacts['phone_number'],
+                'email' => $contacts['email'],
+            ]);
+            $company->profile->address->update($contacts['address']);
+
+            $materialsPath = storage_path("document/materials_guide_{$company->id}_estimate.html");
+            $termsPath = storage_path("document/terms_and_conditions_{$company->id}_estimate.html");
+
+            $materialsGuide = File::exists($materialsPath) ? File::get($materialsPath) : null;
+            $termsAndConditions = File::exists($termsPath) ? File::get($termsPath) : null;
+
+            $updateData = [
+                'background_image' => $companyData['background_image'],
+                'cover_pdf' => $companyData['cover_pdf'],
+            ];
+
+            if ($materialsGuide !== null) {
+                $updateData['materials_guide'] = $materialsGuide;
+            }
+
+            if ($termsAndConditions !== null) {
+                $updateData['terms_and_conditions'] = $termsAndConditions;
+            }
+
+            $company->defaultContract()->update($updateData);
+            $company->defaultEstimate()->update($updateData);
+            $company->defaultVariationOrder()->update($updateData);
         }
     }
 }

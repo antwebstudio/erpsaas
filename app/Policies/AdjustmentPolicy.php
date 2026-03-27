@@ -13,7 +13,7 @@ class AdjustmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_accounting::adjustment');
+        return $user->can('view_any_adjustment');
     }
 
     /**
@@ -21,7 +21,7 @@ class AdjustmentPolicy
      */
     public function view(User $user, Adjustment $model): bool
     {
-        return $user->can('view_accounting::adjustment');
+        return $user->can('view_adjustment');
     }
 
     /**
@@ -29,7 +29,7 @@ class AdjustmentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_accounting::adjustment');
+        return $user->can('create_adjustment');
     }
 
     /**
@@ -49,7 +49,7 @@ class AdjustmentPolicy
      */
     public function delete(User $user, Adjustment $model): bool
     {
-        return $user->can('delete_accounting::adjustment');
+        return $user->can('delete_adjustment');
     }
 
     /**
@@ -57,7 +57,7 @@ class AdjustmentPolicy
      */
     public function restore(User $user, Adjustment $model): bool
     {
-        return $user->can('restore_accounting::adjustment');
+        return $user->can('restore_adjustment');
     }
 
     /**
@@ -65,6 +65,6 @@ class AdjustmentPolicy
      */
     public function forceDelete(User $user, Adjustment $model): bool
     {
-        return $user->can('force_delete_accounting::adjustment');
+        return $user->can('force_delete_adjustment');
     }
 }

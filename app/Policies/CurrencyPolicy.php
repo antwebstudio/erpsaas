@@ -15,7 +15,7 @@ class CurrencyPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_currency');
+        return $user->can('view_any_setting::currency');
     }
 
     /**
@@ -23,7 +23,7 @@ class CurrencyPolicy
      */
     public function view(User $user, Currency $model): bool
     {
-        return $user->can('view_currency');
+        return $user->can('view_setting::currency');
     }
 
     /**
@@ -31,7 +31,7 @@ class CurrencyPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_currency');
+        return $user->can('create_setting::currency');
     }
 
     /**
@@ -47,7 +47,7 @@ class CurrencyPolicy
      */
     public function delete(User $user, Currency $model): bool
     {
-        return $user->can('delete_currency');
+        return $user->can('delete_setting::currency');
     }
 
     public function deleteAny(User $user): bool
@@ -60,7 +60,7 @@ class CurrencyPolicy
      */
     public function restore(User $user, Currency $model): bool
     {
-        return $user->can('restore_currency');
+        return $user->can('restore_setting::currency');
     }
 
     /**
@@ -68,6 +68,6 @@ class CurrencyPolicy
      */
     public function forceDelete(User $user, Currency $model): bool
     {
-        return $user->can('force_delete_currency');
+        return $user->can('force_delete_setting::currency');
     }
 }

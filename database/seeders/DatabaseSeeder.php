@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserCompanySeeder::class,
             VariationOrderDefaultSeeder::class,
-            OfferingCategorySeeder::class,
             ShieldSeeder::class,
         ]);
     }

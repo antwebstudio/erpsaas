@@ -203,6 +203,9 @@ class CreateQuotation extends Page
                 'updated_by' => $user->id,
             ]);
         } else {
+            $client = \App\Models\Common\Client::find($this->data['client_id']);
+            $currencyCode = $client?->currency_code ?? \App\Utilities\Currency\CurrencyAccessor::getDefaultCurrency() ?? 'SGD';
+
             $estimate = Estimate::create([
                 'company_id' => $company->id,
                 'client_id' => $this->data['client_id'],
@@ -212,7 +215,7 @@ class CreateQuotation extends Page
                 'date' => now(),
                 'expiration_date' => now()->addDays(30), 
                 'status' => EstimateStatus::Draft,
-                'currency_code' => $company->currency_code ?? 'USD',
+                'currency_code' => $currencyCode,
                 'discount_method' => DocumentDiscountMethod::PerLineItem, 
                 'discount_computation' => AdjustmentComputation::Percentage,
                 'discount_rate' => 0,
