@@ -13,7 +13,7 @@ class DocumentDefaultPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_setting:document_default');
+        return $user->can('view_any_document::default');
     }
 
     /**
@@ -21,7 +21,7 @@ class DocumentDefaultPolicy
      */
     public function view(User $user, DocumentDefault $documentDefault): bool
     {
-        return $user->can('view_setting::document_default');
+        return $user->can('view_document::default');
     }
 
     /**
@@ -29,7 +29,7 @@ class DocumentDefaultPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_setting::document_default');
+        return $user->can('create_document::default');
     }
 
     /**
@@ -37,7 +37,7 @@ class DocumentDefaultPolicy
      */
     public function update(User $user, DocumentDefault $documentDefault): bool
     {
-        return $user->can('update_setting::document_default');
+        return $user->can('update_document::default');
     }
 
     /**
@@ -45,7 +45,7 @@ class DocumentDefaultPolicy
      */
     public function delete(User $user, DocumentDefault $documentDefault): bool
     {
-        return $user->can('delete_setting::document_default');
+        return $user->can('delete_document::default');
     }
 
     /**
@@ -53,7 +53,7 @@ class DocumentDefaultPolicy
      */
     public function restore(User $user, DocumentDefault $documentDefault): bool
     {
-        return $user->can('restore_setting::document_default');
+        return $user->can('restore_document::default');
     }
 
     /**
@@ -61,6 +61,6 @@ class DocumentDefaultPolicy
      */
     public function forceDelete(User $user, DocumentDefault $documentDefault): bool
     {
-        return $user->can('force_delete_setting::document_default');
+        return $user->can('force_delete_document::default');
     }
 }

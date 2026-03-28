@@ -181,6 +181,12 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
             ->where('type', DocumentType::Bill);
     }
 
+    public function defaultContract(): HasOne
+    {
+        return $this->hasOne(DocumentDefault::class, 'company_id')
+            ->where('type', DocumentType::Contract);
+    }
+
     public function defaultEstimate(): HasOne
     {
         return $this->hasOne(DocumentDefault::class, 'company_id')

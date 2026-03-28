@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use App\Enums\Setting\EntityType;
+use Illuminate\Support\Facades\Storage;
 
 class UserCompanySeeder extends Seeder
 {
@@ -78,9 +79,9 @@ class UserCompanySeeder extends Seeder
         }
 
         $additionalCompanies = [
-            ['name' => 'Muyi Carpenters Pte Ltd', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'template.png', 'cover_pdf' => 'Cover Muyi Carpenters Pte Ltd.png'],
-            ['name' => 'Stylemyspace Design Studio', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'stylemyspace-design-studio.png', 'cover_pdf' => 'Cover Stylemyspace Design Studio.png'],
-            ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'background_image' => 'stylemyspace.png', 'cover_pdf' => 'Cover Stylemyspace.png'],
+            ['name' => 'Muyi Carpenters Pte Ltd', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
+            ['name' => 'Stylemyspace Design Studio', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
+            ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
         ];
 
         foreach ($additionalCompanies as $companyData) {
@@ -90,16 +91,8 @@ class UserCompanySeeder extends Seeder
                     'user_id' => $user->id,
                     'personal_company' => false,
                 ])
-                ->withCompanyProfile($companyData['country']) // Uncommented
+                ->withCompanyProfile($companyData['country'])
                 ->withCompanyDefaults($companyData['currency'], $companyData['locale'])
-                // ->withTransactions(50)
-                // ->withOfferings()
-                // ->withClients()
-                // ->withVendors()
-                // ->withInvoices()
-                // ->withRecurringInvoices()
-                // ->withEstimates()
-                // ->withBills()
                 ->create();
 
             $company->profile->update([
@@ -107,29 +100,7 @@ class UserCompanySeeder extends Seeder
                 'email' => $contacts['email'],
             ]);
             $company->profile->address->update($contacts['address']);
-
-            $materialsPath = storage_path("document/materials_guide_{$company->id}_estimate.html");
-            $termsPath = storage_path("document/terms_and_conditions_{$company->id}_estimate.html");
-
-            $materialsGuide = File::exists($materialsPath) ? File::get($materialsPath) : null;
-            $termsAndConditions = File::exists($termsPath) ? File::get($termsPath) : null;
-
-            $updateData = [
-                'background_image' => $companyData['background_image'],
-                'cover_pdf' => $companyData['cover_pdf'],
-            ];
-
-            if ($materialsGuide !== null) {
-                $updateData['materials_guide'] = $materialsGuide;
-            }
-
-            if ($termsAndConditions !== null) {
-                $updateData['terms_and_conditions'] = $termsAndConditions;
-            }
-
-            $company->defaultContract()->update($updateData);
-            $company->defaultEstimate()->update($updateData);
-            $company->defaultVariationOrder()->update($updateData);
         }
     }
 }
+

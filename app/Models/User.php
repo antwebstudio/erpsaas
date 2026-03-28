@@ -67,6 +67,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         return $this;
     }
 
+
+
     public function getRolesForCompany($companyId)
     {
         $sessionCompanyId = getPermissionsTeamId();
@@ -74,6 +76,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         $roles = $this->roles()->get();
         setPermissionsTeamId($sessionCompanyId);
         return $roles;
+    }
+
+    public function getPermissionsForCompany($companyId)
+    {
+        $sessionCompanyId = getPermissionsTeamId();
+        setPermissionsTeamId($companyId);
+        $permissions = $this->getAllPermissions();
+        setPermissionsTeamId($sessionCompanyId);
+        return $permissions;
     }
 
     public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany

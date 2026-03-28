@@ -91,6 +91,12 @@ class CompanyDefaultFactory extends Factory
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
+
+        DocumentDefault::factory()->contract()->createQuietly([
+            'company_id' => $company->id,
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
+        ]);
     }
 
     private function createLocalization(Company $company, User $user, string $countryCode, string $language): void

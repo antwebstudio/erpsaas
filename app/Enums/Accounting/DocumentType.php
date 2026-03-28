@@ -12,6 +12,7 @@ enum DocumentType: string implements HasIcon, HasLabel
     case Invoice = 'invoice';
     case Bill = 'bill';
     case Estimate = 'estimate';
+    case Contract = 'contract';
     case RecurringInvoice = 'recurring_invoice';
     case VariationOrder = 'variation_order';
 
@@ -20,7 +21,7 @@ enum DocumentType: string implements HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Invoice, self::Bill, self::Estimate => $this->name,
+            self::Invoice, self::Bill, self::Estimate, self::Contract => $this->name,
             self::RecurringInvoice => 'Recurring Invoice',
             self::VariationOrder => 'Variation Order',
         };
@@ -36,14 +37,14 @@ enum DocumentType: string implements HasIcon, HasLabel
         return match ($this->value) {
             self::Invoice->value, self::RecurringInvoice->value => 'heroicon-o-document-duplicate',
             self::Bill->value => 'heroicon-o-clipboard-document-list',
-            self::Estimate->value, self::VariationOrder->value => 'heroicon-o-document-text',
+            self::Estimate->value, self::Contract->value, self::VariationOrder->value => 'heroicon-o-document-text',
         };
     }
 
     public function getTaxKey(): string
     {
         return match ($this) {
-            self::Invoice, self::RecurringInvoice, self::Estimate, self::VariationOrder => 'salesTaxes',
+            self::Invoice, self::RecurringInvoice, self::Estimate, self::Contract, self::VariationOrder => 'salesTaxes',
             self::Bill => 'purchaseTaxes',
         };
     }
@@ -51,7 +52,7 @@ enum DocumentType: string implements HasIcon, HasLabel
     public function getDiscountKey(): string
     {
         return match ($this) {
-            self::Invoice, self::RecurringInvoice, self::Estimate, self::VariationOrder => 'salesDiscounts',
+            self::Invoice, self::RecurringInvoice, self::Estimate, self::Contract, self::VariationOrder => 'salesDiscounts',
             self::Bill => 'purchaseDiscounts',
         };
     }
@@ -91,6 +92,14 @@ enum DocumentType: string implements HasIcon, HasLabel
                 dueDate: 'Payment Due',
                 amountDue: 'Amount Due',
             ),
+            self::Contract => new DocumentLabelDTO(
+                title: self::Contract->getLabel(),
+                number: 'Contract Number',
+                referenceNumber: 'Reference Number',
+                date: 'Date',
+                dueDate: 'Expiry Date',
+                amountDue: null,
+            ),
             self::VariationOrder => new DocumentLabelDTO(
                 title: self::VariationOrder->getLabel(),
                 number: 'VO Number',
@@ -107,6 +116,7 @@ enum DocumentType: string implements HasIcon, HasLabel
         return match ($this) {
             self::Invoice => 'INV-',
             self::Estimate => 'EST-',
+            self::Contract => 'CON-',
             self::Bill => 'BILL-',
             self::VariationOrder => 'VO-',
             default => null,

@@ -91,4 +91,12 @@ class DocumentDefaultFactory extends Factory
     {
         return $this->state($this->baseState(DocumentType::VariationOrder));
     }
+
+    /**
+     * Indicate that the model's type is contract.
+     */
+    public function contract(): self
+    {
+        return $this->state($this->baseState(DocumentType::Contract));
+    }
 }
