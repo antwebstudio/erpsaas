@@ -29,6 +29,7 @@ class Client extends Model
         'company_id',
         'type',
         'name',
+        'nric',
         'currency_code',
         'account_number',
         'website',

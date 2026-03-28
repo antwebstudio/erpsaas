@@ -40,6 +40,13 @@ class ViewLead extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('create_quotation')
+                ->label('Create Quotation')
+                ->icon('heroicon-o-document-text')
+                ->url(fn () => route('filament.user.pages.create-quotation', [
+                    'tenant' => \Filament\Facades\Filament::getTenant(),
+                    'client' => $this->record->id,
+                ])),
             EditAction::make()
                 ->label('Edit lead')
                 ->outlined(),

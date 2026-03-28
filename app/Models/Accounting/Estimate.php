@@ -22,6 +22,7 @@ use App\Observers\EstimateObserver;
 use Filament\Actions\Action;
 use Filament\Actions\MountableAction;
 use Filament\Actions\ReplicateAction;
+use Filament\Forms;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -426,31 +427,115 @@ class Estimate extends Document
             ->label('Convert to Contract')
             ->icon('heroicon-o-document-check')
             ->color('success')
-            ->requiresConfirmation()
             ->modalHeading('Convert Estimate to Contract')
-            ->modalDescription('Are you sure you want to convert this estimate to a contract? This will mark it as accepted and update the issuing company.')
+            ->modalDescription('Please verify and complete the missing client details before converting this estimate to a contract.')
+            ->modalSubmitActionLabel('Convert & Update Details')
+            ->modalWidth('lg')
             ->visible(static function (self $record) {
                 return $record->status !== EstimateStatus::Accepted && $record->template_company_id !== null;
             })
-            ->action(function (self $record, MountableAction $action) {
-                DB::transaction(function () use ($record) {
-                    $newCompanyId = $record->template_company_id;
+            ->mountUsing(fn (Forms\ComponentContainer $form, self $record) => $form->fill([
+                'estimate_number' => $record->estimate_number,
+                'date' => $record->date?->toDateString(),
+                'client_name' => $record->client?->name,
+                'client_nric' => $record->client?->nric,
+                'client_phone' => $record->client?->primaryContact?->primaryPhone ?? '',
+                'client_email' => $record->client?->primaryContact?->email ?? '',
+                'client_address_line_1' => $record->client?->billingAddress?->address_line_1 ?? '',
+                'client_address_line_2' => $record->client?->billingAddress?->address_line_2,
+                'client_postal_code' => $record->client?->billingAddress?->postal_code,
+                'client_country_code' => $record->client?->billingAddress?->country_code ?? 
+                    $record->templateCompany?->profile?->address?->country_code ?? 
+                    $record->company?->profile?->address?->country_code,
+                'salesperson_name' => $record->createdBy?->name,
+                'salesperson_email' => $record->createdBy?->email,
+            ]))
+            ->form(function (Estimate $record): array {
+                $schema = [];
 
-                    $record->update([
-                        'status' => \App\Enums\Accounting\EstimateStatus::Accepted,
-                        'accepted_at' => company_now(),
-                        'company_id' => $newCompanyId,
-                    ]);
+                $schema[] = Forms\Components\Placeholder::make('instructions')
+                    ->label('Instructions')
+                    ->content('The following information is required for the contract. Please fill in any missing details.');
 
-                    $record->lineItemGroups()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
-                    $record->lineItems()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
+                if (blank($record->estimate_number)) {
+                    $schema[] = Forms\Components\TextInput::make('estimate_number')
+                        ->label('Reference No')
+                        ->required();
+                }
 
-                    $record->variationOrders()->withoutGlobalScopes()->each(function (VariationOrder $vo) use ($newCompanyId) {
-                        $vo->update(['company_id' => $newCompanyId]);
-                        $vo->lineItemGroups()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
-                        $vo->lineItems()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
-                    });
-                });
+                if (blank($record->date)) {
+                    $schema[] = Forms\Components\DatePicker::make('date')
+                        ->label('Date')
+                        ->required();
+                }
+
+                if (blank($record->client?->name)) {
+                    $schema[] = Forms\Components\TextInput::make('client_name')
+                        ->label('Customer Name')
+                        ->required();
+                }
+
+                if (blank($record->client?->nric)) {
+                    $schema[] = Forms\Components\TextInput::make('client_nric')
+                        ->label('NRIC last 4 digit')
+                        ->required();
+                }
+
+                if (blank($record->client?->primaryContact?->primaryPhone)) {
+                    $schema[] = Forms\Components\TextInput::make('client_phone')
+                        ->label('Contact No')
+                        ->required();
+                }
+
+                if (blank($record->client?->primaryContact?->email)) {
+                    $schema[] = Forms\Components\TextInput::make('client_email')
+                        ->label('Email')
+                        ->email()
+                        ->required();
+                }
+
+                if (blank($record->client?->billingAddress?->address_line_1)) {
+                    $schema[] = Forms\Components\TextInput::make('client_address_line_1')
+                        ->label('Address Line 1')
+                        ->required();
+                }
+
+                if (blank($record->client?->billingAddress?->address_line_2)) {
+                    $schema[] = Forms\Components\TextInput::make('client_address_line_2')
+                        ->label('Address Line 2');
+                }
+
+                if (blank($record->client?->billingAddress?->postal_code)) {
+                    $schema[] = Forms\Components\TextInput::make('client_postal_code')
+                        ->label('Postal Code')
+                        ->required();
+                }
+
+                if (blank($record->client?->billingAddress?->country_code)) {
+                    $schema[] = Forms\Components\Select::make('client_country_code')
+                        ->label('Country')
+                        ->searchable()
+                        ->options(\App\Models\Locale\Country::getAvailableCountryOptions())
+                        ->required();
+                }
+
+                if (blank($record->createdBy?->name)) {
+                    $schema[] = Forms\Components\TextInput::make('salesperson_name')
+                        ->label('Sale Person Name')
+                        ->required();
+                }
+
+                if (blank($record->createdBy?->email)) {
+                    $schema[] = Forms\Components\TextInput::make('salesperson_email')
+                        ->label('Sale Person Email')
+                        ->email()
+                        ->required();
+                }
+
+                return $schema;
+            })
+            ->action(function (Estimate $record, array $data) {
+                app(\App\Services\Accounting\EstimateService::class)->convertToContract($record, $data);
 
                 Notification::make()
                     ->title('Estimate converted to contract')

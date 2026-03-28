@@ -40,6 +40,9 @@ class ClientResource extends Resource
                                     ->label('Client name')
                                     ->required()
                                     ->maxLength(255),
+                                Forms\Components\TextInput::make('nric')
+                                    ->label('NRIC last 4 digit')
+                                    ->maxLength(255),
                                 Forms\Components\TextInput::make('account_number')
                                     ->maxLength(255)
                                     ->columnStart(1),

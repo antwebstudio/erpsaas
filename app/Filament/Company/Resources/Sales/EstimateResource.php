@@ -1339,6 +1339,7 @@ class EstimateResource extends Resource
                         Estimate::getMarkAsSentAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsAcceptedAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsDeclinedAction(Tables\Actions\Action::class),
+                        Estimate::getConvertToContractAction(Tables\Actions\Action::class),
                         Estimate::getConvertToInvoiceAction(Tables\Actions\Action::class),
                         Tables\Actions\Action::make('saveAsTemplate')
                             ->label('Save as Template')
