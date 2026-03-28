@@ -26,9 +26,20 @@ class DocumentTotalViewModel
         $lineItems = collect($this->data['lineItems'] ?? []);
 
         if (isset($this->data['lineItemGroups'])) {
-            $lineItems = collect($this->data['lineItemGroups'])
-                ->pluck('items')
-                ->flatten(1);
+            $items = collect();
+            foreach ($this->data['lineItemGroups'] as $group) {
+                if (isset($group['items'])) {
+                    $items = $items->concat(array_values($group['items']));
+                }
+                if (isset($group['children'])) {
+                    foreach ($group['children'] as $child) {
+                        if (isset($child['items'])) {
+                            $items = $items->concat(array_values($child['items']));
+                        }
+                    }
+                }
+            }
+            $lineItems = $items;
         }
 
         $subtotalInCents = $lineItems->sum(fn ($item) => $this->calculateLineSubtotalInCents($item, $currencyCode));

@@ -294,6 +294,15 @@ class EstimateResource extends Resource
                                                         ->live()
                                                         ->inlineSuffix()
                                                         ->sellable()
+                                                        ->options(function (Forms\Get $get) {
+                                                            $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
+                                                            if (! $categoryId) {
+                                                                return \App\Models\Common\Offering::pluck('name', 'id')->toArray();
+                                                            }
+                                                            $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
+                                                            return $category ? $category->offerings()->pluck('name', 'id')->toArray() : [];
+                                                        })
+                                                        ->searchable()
                                                         ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1)
                                                         ->dehydrated(true)
                                                         ->dehydratedWhenHidden(true)
@@ -901,6 +910,15 @@ class EstimateResource extends Resource
                                                         ->live()
                                                         ->inlineSuffix()
                                                         ->sellable()
+                                                        ->options(function (Forms\Get $get) {
+                                                            $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
+                                                            if (! $categoryId) {
+                                                                return \App\Models\Common\Offering::pluck('name', 'id')->toArray();
+                                                            }
+                                                            $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
+                                                            return $category ? $category->offerings()->pluck('name', 'id')->toArray() : [];
+                                                        })
+                                                        ->searchable()
                                                         ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1)
                                                         ->dehydrated(true)
                                                         ->dehydratedWhenHidden(true)

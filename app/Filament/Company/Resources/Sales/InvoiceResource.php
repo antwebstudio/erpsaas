@@ -254,7 +254,7 @@ class InvoiceResource extends Resource
                                     ->schema([
                                         Forms\Components\Hidden::make('id'),
                                         Forms\Components\Group::make([
-                                            CreateOfferingSelect::make('offering_id', true)
+                                            CreateOfferingSelect::make('offering_id')
                                                 ->label('Item')
                                                 ->hiddenLabel()
                                                 ->placeholder('Select item')
