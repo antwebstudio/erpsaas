@@ -303,10 +303,20 @@ class VariationOrderResource extends Resource
                                                         ->options(function (Forms\Get $get) {
                                                             $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
                                                             if (! $categoryId) {
-                                                                return \App\Models\Common\Offering::pluck('name', 'id')->toArray();
+                                                                return \App\Models\Common\Offering::where('sellable', true)->pluck('name', 'id')->toArray();
                                                             }
-                                                            $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-                                                            return $category ? $category->offerings()->pluck('name', 'id')->toArray() : [];
+                                                            $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                                                            if (! $category) {
+                                                                return [];
+                                                            }
+                                                            $categoryIds = \App\Models\Common\OfferingCategory::where('_lft', '>=', $category->_lft)
+                                                                ->where('_rgt', '<=', $category->_rgt)
+                                                                ->pluck('id')
+                                                                ->toArray();
+                                                            return \App\Models\Common\Offering::whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $categoryIds))
+                                                                ->where('sellable', true)
+                                                                ->pluck('name', 'id')
+                                                                ->toArray();
                                                         })
                                                         ->searchable()
                                                         ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1)
@@ -654,10 +664,20 @@ class VariationOrderResource extends Resource
                                                 ->options(function (Forms\Get $get) {
                                                     $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
                                                     if (! $categoryId) {
-                                                        return \App\Models\Common\Offering::pluck('name', 'id')->toArray();
+                                                        return \App\Models\Common\Offering::where('sellable', true)->pluck('name', 'id')->toArray();
                                                     }
-                                                    $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-                                                    return $category ? $category->offerings()->pluck('name', 'id')->toArray() : [];
+                                                    $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                                                    if (! $category) {
+                                                        return [];
+                                                    }
+                                                    $categoryIds = \App\Models\Common\OfferingCategory::where('_lft', '>=', $category->_lft)
+                                                        ->where('_rgt', '<=', $category->_rgt)
+                                                        ->pluck('id')
+                                                        ->toArray();
+                                                    return \App\Models\Common\Offering::whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $categoryIds))
+                                                        ->where('sellable', true)
+                                                        ->pluck('name', 'id')
+                                                        ->toArray();
                                                 })
                                                 ->searchable()
                                                 ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1)
