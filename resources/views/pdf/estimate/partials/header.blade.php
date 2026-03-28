@@ -48,11 +48,11 @@
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Sale Person:</td>
-                        <td style="padding: 1px 0;">{{ $document->createdBy->name }}</td>
+                        <td style="padding: 1px 0;">{{ $document->createdBy?->name }}</td>
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Sale Person Email:</td>
-                        <td style="padding: 1px 0;">{{ $document->createdBy->email }}</td>
+                        <td style="padding: 1px 0;">{{ $document->createdBy?->email }}</td>
                     </tr>
                 </table>
             </td>

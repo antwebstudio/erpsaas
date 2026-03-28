@@ -122,17 +122,20 @@ class InitTemplates extends Command
             $storagePath = "settings/background/{$id}_{$filename}";
             Storage::disk('public')->put($storagePath, File::get($sourcePath));
 
-            $updated = DocumentDefault::where('company_id', $id)
-                ->where('type', DocumentType::Estimate)
-                ->update(['background_image' => $storagePath]);
+            foreach ([DocumentType::Estimate, DocumentType::VariationOrder, DocumentType::Contract, DocumentType::Invoice] as $type) {
+                $updated = DocumentDefault::where('company_id', $id)
+                    ->where('type', $type)
+                    ->update(['background_image' => $storagePath]);
 
-            if (!$updated) {
-                 DocumentDefault::create([
-                    'company_id' => $id,
-                    'type' => DocumentType::Estimate,
-                    'background_image' => $storagePath
-                ]);
+                if (!$updated) {
+                    DocumentDefault::create([
+                        'company_id' => $id,
+                        'type' => $type,
+                        'background_image' => $storagePath
+                    ]);
+                }
             }
+            
             $this->info("Updated background for company {$id} (Estimate)");
         }
     }

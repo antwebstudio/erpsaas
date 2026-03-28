@@ -39,7 +39,7 @@ readonly class DocumentDTO
         public iterable $lineItemGroups,
         public DocumentLabelDTO $label,
         public DocumentColumnLabelDTO $columnLabel,
-        public Model $createdBy,
+        public ?Model $createdBy,
         public string $accentColor = '#080707ff',
         public bool $showLogo = true,
         public Font $font = Font::Inter,

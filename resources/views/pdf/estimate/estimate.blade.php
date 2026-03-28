@@ -153,9 +153,6 @@
                 <col style="width: 15%;">
             </colgroup>
             <thead>
-                @if(config('app.debug'))
-                    Background: {{ $document->backgroundImage ?? null }}
-                @endif
                 @include('pdf.estimate.partials.header')
                 <tr><td colspan="4" style="height: 10mm;"></td></tr>
                 @include('pdf.estimate.partials.intro')
