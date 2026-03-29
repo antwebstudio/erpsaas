@@ -216,6 +216,7 @@
             </tfoot>
         </table>
 
+        @if($document->materialsGuide || $document->termsAndConditions)
         <!-- Materials and Terms Section -->
         <table class="main-table">
             <colgroup>
@@ -247,6 +248,7 @@
                 @endif
             </tbody>
         </table>
+        @endif
 
     </div>
 </body>

@@ -799,9 +799,9 @@ class Estimate extends Document
         return $estimate;
     }
 
-    public static function getDownloadMergedPdfAction(string $action = Action::class): MountableAction
+    public static function getDownloadMergedPdfAction(string $action = Action::class, string $name = 'downloadMergedPdf'): MountableAction
     {
-        $downloadAction = $action::make('downloadMergedPdf')
+        $downloadAction = $action::make($name)
             ->label('Download PDF')
             ->icon('heroicon-m-arrow-down-tray');
 

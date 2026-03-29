@@ -128,9 +128,10 @@ class InitTemplates extends Command
                     ->update(['background_image' => $storagePath]);
 
                 if (!$updated) {
-                    DocumentDefault::create([
+                    DocumentDefault::updateOrCreate([
                         'company_id' => $id,
                         'type' => $type,
+                    ], [
                         'background_image' => $storagePath
                     ]);
                 }
@@ -165,9 +166,10 @@ class InitTemplates extends Command
                 ->update(['cover_pdf' => $storagePath]);
 
             if (!$updated) {
-                 DocumentDefault::create([
+                 DocumentDefault::updateOrCreate([
                     'company_id' => $id,
                     'type' => DocumentType::Estimate,
+                 ], [
                     'cover_pdf' => $storagePath
                 ]);
             }

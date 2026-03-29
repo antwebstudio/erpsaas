@@ -357,25 +357,25 @@ class VariationOrder extends Document
             });
     }
 
-    public static function getPreviewAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
+    public static function getPreviewAction(string $action = \Filament\Actions\Action::class, string $name = 'preview'): \Filament\Actions\MountableAction
     {
-        return $action::make('preview')
+        return $action::make($name)
             ->label('Preview')
             ->icon('heroicon-m-magnifying-glass')
             ->url(fn (self $record) => \App\Filament\Company\Resources\Sales\VariationOrderResource::getUrl('view', ['record' => $record]), shouldOpenInNewTab: true);
     }
 
-    public static function getPrintDocumentAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
+    public static function getPrintDocumentAction(string $action = \Filament\Actions\Action::class, string $name = 'printPdf'): \Filament\Actions\MountableAction
     {
-        return $action::make('print')
+        return $action::make($name)
             ->label('Print')
             ->icon('heroicon-m-printer')
             ->url(fn (self $record) => '#'); // Placeholder for print functionality
     }
 
-    public static function getDownloadMergedPdfAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
+    public static function getDownloadMergedPdfAction(string $action = \Filament\Actions\Action::class, string $name = 'downloadMergedPdf'): \Filament\Actions\MountableAction
     {
-        $downloadAction = $action::make('downloadMergedPdf')
+        $downloadAction = $action::make($name)
             ->label('Download PDF')
             ->icon('heroicon-m-arrow-down-tray');
 

@@ -3,7 +3,13 @@
         <tr>
             <!-- Left Column: Company Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 10mm;">
-                <!-- Company logo or details can go here -->
+                @if ($document->logo)
+                    <img src="{{ $document->logo }}" alt="Logo" style="max-height: 50px; margin-bottom: 10px;">
+                @endif
+                <div style="font-weight: bold; font-size: 11px;">{{ $document->company->name }}</div>
+                <div style="font-size: 8px;">
+                    {!! $document->company->getFormattedAddressHtml() !!}
+                </div>
             </td>
             <!-- Right Column: Quote info and Customer Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 30mm;">

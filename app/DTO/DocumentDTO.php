@@ -50,10 +50,14 @@ readonly class DocumentDTO
 
     public static function fromModel(Document $document): self
     {
+        $document->loadMissing(['lineItems.offering', 'lineItemGroups.items.offering', 'lineItemGroups.children.items.offering', 'clientAndLead', 'company', 'templateCompany', 'createdBy']);
+
+        $issuingCompany = $document->templateCompany ?? $document->company;
+
         /** @var DocumentDefault $settings */
-        $settings = $document->company->documentDefaults()
+        $settings = $issuingCompany->documentDefaults()
             ->type($document::documentType())
-            ->first() ?? $document->company->defaultInvoice;
+            ->first() ?? $issuingCompany->defaultInvoice;
 
         $currencyCode = $document->currency_code ?? CurrencyAccessor::getDefaultCurrency();
 
@@ -69,14 +73,19 @@ readonly class DocumentDTO
             ? self::formatToMoney($document->subtotal, $currencyCode)
             : null;
 
-        $amountDue = $document::documentType() !== DocumentType::Estimate ?
+        $documentType = $document::documentType();
+        if ($document instanceof \App\Models\Accounting\Estimate && $document->status === \App\Enums\Accounting\EstimateStatus::Accepted) {
+            $documentType = DocumentType::Contract;
+        }
+
+        $labels = $documentType->getLabels();
+
+        $amountDue = ! in_array($documentType, [DocumentType::Estimate, DocumentType::Contract, DocumentType::VariationOrder]) ?
             self::formatToMoney($document->amountDue(), $currencyCode) :
             null;
 
-        $labels = $document->getLabels();
-
         return new self(
-            header: ($document instanceof \App\Models\Accounting\Contract) ? $labels->title : $document->header,
+            header: ($documentType === DocumentType::Contract) ? $labels->title : $document->header,
             subheader: $document->subheader,
             footer: $document->footer,
             terms: $document->terms,
@@ -91,20 +100,21 @@ readonly class DocumentDTO
             tax: $tax,
             total: self::formatToMoney($document->total, $currencyCode),
             amountDue: $amountDue,
-            company: CompanyDTO::fromModel($document->company),
+            company: CompanyDTO::fromModel($issuingCompany),
             client: $document->clientAndLead ? ClientDTO::fromModel($document->clientAndLead) : null,
-            lineItems: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)),
+            lineItems: $document->lineItems()->withoutGlobalScopes()->with('offering')->get()->map(fn ($item) => LineItemDTO::fromModel($item)),
             label: $labels,
             columnLabel: $settings ? DocumentColumnLabelDTO::fromModel($settings) : DocumentColumnLabelDTO::getDefaultLabels(),
             createdBy: $document->createdBy,
             accentColor: $settings?->accent_color ?? '#000000',
             showLogo: $settings?->show_logo ?? false,
             font: $settings?->font ?? Font::Inter,
-            backgroundImage: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->background_image_url ?? $settings?->background_image_url,
-            materialsGuide: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->materials_guide ?? $settings?->materials_guide,
-            termsAndConditions: $document->templateCompany?->documentDefaults()->type($document::documentType())->first()?->terms_and_conditions ?? $settings?->terms_and_conditions,
-            lineItemGroups: $document->lineItemGroups->isNotEmpty() 
+            backgroundImage: $settings?->background_image_url,
+            materialsGuide: $settings?->materials_guide,
+            termsAndConditions: $settings?->terms_and_conditions,
+            lineItemGroups: $document->lineItemGroups()->withoutGlobalScopes()->whereNull('parent_id')->get()->isNotEmpty() 
                 ? $document->lineItemGroups()
+                    ->withoutGlobalScopes()
                     ->whereNull('parent_id')
                     ->with(['children.items', 'items'])
                     ->orderBy('order')
@@ -116,7 +126,7 @@ readonly class DocumentDTO
                         }
                         return $groups;
                     })
-                : collect([new LineItemGroupDTO(name: null, items: $document->lineItems->map(fn ($item) => LineItemDTO::fromModel($item)))]),
+                : collect([new LineItemGroupDTO(name: null, items: $document->lineItems()->withoutGlobalScopes()->with('offering')->get()->map(fn ($item) => LineItemDTO::fromModel($item)))]),
         );
     }
 

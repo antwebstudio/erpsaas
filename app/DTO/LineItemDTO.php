@@ -14,6 +14,7 @@ readonly class LineItemDTO
         public string $unitPrice,
         public string $subtotal,
         public ?string $unit,
+        public bool $isLocked,
     ) {}
 
     public static function fromModel(DocumentLineItem $lineItem): self
@@ -25,6 +26,7 @@ readonly class LineItemDTO
             unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable?->currency_code),
             subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable?->currency_code),
             unit: $lineItem->unit,
+            isLocked: $lineItem->is_locked ?? false,
         );
     }
 

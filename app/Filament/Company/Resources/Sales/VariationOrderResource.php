@@ -1011,6 +1011,12 @@ class VariationOrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Issuing Company')
+                    ->getStateUsing(fn (VariationOrder $record) => $record->templateCompany?->name ?? $record->company->name)
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('date')
                     ->date()

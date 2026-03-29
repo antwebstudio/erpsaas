@@ -93,6 +93,9 @@ class ViewEstimate extends ViewRecord
                                     ->label('Estimate #'),
                                 TextEntry::make('status')
                                     ->badge(),
+                                TextEntry::make('company.name')
+                                    ->label('Issuing Company')
+                                    ->getStateUsing(fn (Estimate $record) => $record->templateCompany?->name ?? $record->company->name),
                                 TextEntry::make('client.name')
                                     ->label('Client')
                                     ->url(static fn (Estimate $record) => $record->client_id ? ClientResource::getUrl('view', ['record' => $record->client_id]) : null)

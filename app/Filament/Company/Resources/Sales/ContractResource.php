@@ -99,7 +99,7 @@ class ContractResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->url(static fn (Contract $record) => ViewContract::getUrl(['record' => $record])),
                 Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
-                Estimate::getPreviewAction(Tables\Actions\Action::class),
+                static::getModel()::getPreviewAction(Tables\Actions\Action::class),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

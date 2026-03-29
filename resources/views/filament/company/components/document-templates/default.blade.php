@@ -1,4 +1,55 @@
 <x-company.document-template.container class="default-template-container" :backgroundImage="$document->backgroundImage" :preview="$preview">
+    <style>
+        .default-template-container {
+            color: #000000 !important;
+        }
+        /* Specificity matters: force common elements to stay dark even in dark mode */
+        .default-template-container h1,
+        .default-template-container h2,
+        .default-template-container h3,
+        .default-template-container h4,
+        .default-template-container p,
+        .default-template-container td,
+        .default-template-container th,
+        .default-template-container strong,
+        .default-template-container span,
+        .default-template-container table {
+            color: #000000 !important;
+        }
+        /* Exception for white text (e.g., table headers) */
+        .default-template-container .text-white,
+        .default-template-container .text-white * {
+            color: #ffffff !important;
+        }
+        /* Preserve standard Gray colors */
+        .default-template-container .text-gray-600 {
+            color: #4b5563 !important;
+        }
+        .default-template-container .text-gray-700 {
+            color: #374151 !important;
+        }
+        /* Background and border overrides */
+        .default-template-container .bg-gray-100 {
+            background-color: #f3f4f6 !important;
+        }
+        .default-template-container .bg-gray-100\/50 {
+            background-color: rgba(243, 244, 246, 0.5) !important;
+        }
+        .default-template-container .border-gray-100 {
+            border-color: #f3f4f6 !important;
+        }
+        .default-template-container .border-gray-200 {
+            border-color: #e5e7eb !important;
+        }
+        .default-template-container .border-gray-300 {
+            border-color: #d1d5db !important;
+        }
+        /* Success/Danger colors */
+        .default-template-container .text-success-800,
+        .default-template-container .text-success-800 * {
+            color: #166534 !important;
+        }
+    </style>
 
     <x-company.document-template.header class="default-template-header border-b">
         <div class="w-1/3">
@@ -29,7 +80,7 @@
         <div class="flex justify-between items-end">
             <!-- Billing Details -->
             <div class="text-sm">
-                <h3 class="text-gray-600 font-medium mb-1">BILL TO</h3>
+                <h3 class="text-gray-600 font-medium mb-1 uppercase tracking-tight">BILL TO</h3>
                 <p class="text-sm font-bold">{{ $document->client?->name ?? 'Client Not Found' }}</p>
                 @if($document->client && ($formattedAddress = $document->client->getFormattedAddressHtml()))
                     {!! $formattedAddress !!}
@@ -88,7 +139,9 @@
                 @foreach($group->items as $item)
                     <tr class="border-b border-gray-100 last:border-b-0">
                         <td class="text-left pl-6 font-semibold py-3">
-                            {{ $item->name }}
+                            @if(!$item->isLocked)
+                                {{ $item->name }}
+                            @endif
                             @if($item->description)
                                 <div class="text-gray-600 font-normal line-clamp-2 mt-1">{{ $item->description }}</div>
                             @endif

@@ -11,6 +11,11 @@ class Contract extends Estimate
         return Estimate::class;
     }
 
+    public static function documentType(): \App\Enums\Accounting\DocumentType
+    {
+        return \App\Enums\Accounting\DocumentType::Contract;
+    }
+
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return parent::client()->withoutGlobalScopes();

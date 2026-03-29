@@ -75,9 +75,9 @@ abstract class Document extends Model
         });
     }
 
-    public static function getPrintDocumentAction(string $action = Action::class): MountableAction
+    public static function getPrintDocumentAction(string $action = Action::class, string $name = 'printPdf'): MountableAction
     {
-        return $action::make('printPdf')
+        return $action::make($name)
             ->label('Print')
             ->icon('heroicon-m-printer')
             ->action(function (self $record, Component $livewire) {
@@ -90,9 +90,9 @@ abstract class Document extends Model
             });
     }
 
-    public static function getPreviewAction(string $action = Action::class): MountableAction
+    public static function getPreviewAction(string $action = Action::class, string $name = 'preview'): MountableAction
     {
-        return $action::make('preview')
+        return $action::make($name)
             ->label('Preview')
             ->icon('heroicon-o-eye')
             ->infolist(fn (Infolist $infolist) => $infolist

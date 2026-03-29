@@ -88,6 +88,9 @@ class ViewVariationOrder extends ViewRecord
                                     ->label('VO #'),
                                 TextEntry::make('status')
                                     ->badge(),
+                                TextEntry::make('company.name')
+                                    ->label('Issuing Company')
+                                    ->getStateUsing(fn (VariationOrder $record) => $record->templateCompany?->name ?? $record->company->name),
                                 TextEntry::make('client.name')
                                     ->label('Client')
                                     ->url(static fn (VariationOrder $record) => $record->client_id ? ClientResource::getUrl('view', ['record' => $record->client_id]) : null)
