@@ -48,7 +48,7 @@ abstract class Document extends Model
 
     public function adjustments(): MorphToMany
     {
-        return $this->morphToMany(Adjustment::class, 'adjustmentable', 'adjustmentables');
+        return $this->morphToMany(Adjustment::class, 'adjustmentable', 'adjustmentables')->withoutGlobalScopes();
     }
 
     public function salesTaxes(): MorphToMany

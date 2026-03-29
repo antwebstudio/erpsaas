@@ -211,7 +211,7 @@ trait ManagesLineItems
             ->filter()
             ->unique();
 
-        $lineItem->adjustments()->sync($adjustmentIds);
+        $lineItem->adjustments()->withoutGlobalScopes()->sync($adjustmentIds);
         $lineItem->refresh();
     }
 
@@ -233,10 +233,10 @@ trait ManagesLineItems
         $taxIds = $data[$taxKey] ?? null;
 
         if ($taxIds !== null) {
-            $record->{$taxKey}()->sync($taxIds);
+            $record->{$taxKey}()->withoutGlobalScopes()->sync($taxIds);
         }
 
-        $taxIds = $data[$taxKey] ?? $record->{$taxKey}->pluck('id')->toArray();
+        $taxIds = $data[$taxKey] ?? $record->{$taxKey}()->withoutGlobalScopes()->pluck('adjustments.id')->toArray();
         $documentTaxTotalCents = $this->calculateDocumentTaxTotal($taxIds, $subtotalCents);
 
         $taxTotalCents = $record->lineItems()->sum('tax_total') + $documentTaxTotalCents;
@@ -265,7 +265,7 @@ trait ManagesLineItems
             return 0;
         }
 
-        $taxes = \App\Models\Accounting\Adjustment::whereIn('id', $taxIds)->get();
+        $taxes = \App\Models\Accounting\Adjustment::withoutGlobalScopes()->whereIn('id', $taxIds)->get();
 
         return $taxes->reduce(function (int $carry, \App\Models\Accounting\Adjustment $tax) use ($subtotalCents) {
             if ($tax->computation->isPercentage()) {

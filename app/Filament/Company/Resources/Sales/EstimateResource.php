@@ -199,6 +199,7 @@ class EstimateResource extends Resource
                                     ->multiple()
                                     ->live()
                                     ->searchable()
+                                    ->saveRelationshipsUsing(null)
                                     ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
@@ -1251,7 +1252,7 @@ class EstimateResource extends Resource
                                     return;
                                 }
 
-                                $company = \App\Models\Company::with('profile')->find($state);
+                                $company = \App\Models\Company::with(['profile' => fn($query) => $query->withoutGlobalScopes()])->find($state);
                                 $defaultTaxId = $company?->profile?->default_sales_tax_id;
 
                                 if ($defaultTaxId) {

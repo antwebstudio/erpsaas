@@ -65,7 +65,7 @@ readonly class DocumentDTO
             ? self::formatToMoney($document->discount_total, $currencyCode)
             : null;
 
-        $tax = $document->tax_total > 0
+        $tax = $document->tax_total !== 0
             ? self::formatToMoney($document->tax_total, $currencyCode)
             : null;
 

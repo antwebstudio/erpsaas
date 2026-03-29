@@ -145,6 +145,8 @@ class CreateAdjustmentSelect extends Select
             name: $this->getAdjustmentsRelationship(),
             titleAttribute: 'name',
             modifyQueryUsing: function (Builder $query, ?Model $record) {
+                $query->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
+
                 if ($this->getCategory()) {
                     $query->where('category', $this->getCategory());
                 }

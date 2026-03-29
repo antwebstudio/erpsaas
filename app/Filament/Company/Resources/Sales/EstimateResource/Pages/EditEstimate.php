@@ -167,4 +167,14 @@ class EditEstimate extends EditRecord
 
         return parent::handleRecordUpdate($record, $data);
     }
+
+    protected function afterSave(): void
+    {
+        $taxKey = $this->record::documentType()->getTaxKey();
+        $taxIds = $this->data[$taxKey] ?? null;
+
+        if ($taxIds !== null) {
+            $this->record->{$taxKey}()->withoutGlobalScopes()->sync($taxIds);
+        }
+    }
 }

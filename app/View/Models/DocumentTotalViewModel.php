@@ -62,7 +62,7 @@ class DocumentTotalViewModel
         $discountMethod = DocumentDiscountMethod::parse($this->data['discount_method']);
         $isPerDocumentDiscount = $discountMethod->isPerDocument();
 
-        $taxTotal = $taxTotalInCents > 0
+        $taxTotal = ($taxTotalInCents !== 0)
             ? CurrencyConverter::formatCentsToMoney($taxTotalInCents, $currencyCode)
             : null;
 
@@ -108,7 +108,7 @@ class DocumentTotalViewModel
     {
         // Batch-load all adjustment IDs across all line items in a single query
         $allAdjustmentIds = $lineItems->pluck($key)->flatten()->filter()->unique()->values()->all();
-        $adjustmentCache = Adjustment::whereIn('id', $allAdjustmentIds)->get()->keyBy('id');
+        $adjustmentCache = Adjustment::withoutGlobalScopes()->whereIn('id', $allAdjustmentIds)->get()->keyBy('id');
 
         return $lineItems->reduce(function ($carry, $item) use ($key, $adjustmentCache) {
             $quantity = max((float) ($item['quantity'] ?? 0), 0);
@@ -166,7 +166,7 @@ class DocumentTotalViewModel
             return 0;
         }
 
-        $taxes = Adjustment::whereIn('id', $taxIds)->get();
+        $taxes = Adjustment::withoutGlobalScopes()->whereIn('id', $taxIds)->get();
 
         return $taxes->reduce(function (int $carry, Adjustment $tax) use ($subtotalInCents) {
             if ($tax->computation->isPercentage()) {

@@ -36,4 +36,14 @@ class CreateVariationOrder extends CreateRecord
 
         return $record;
     }
+
+    protected function afterCreate(): void
+    {
+        $taxKey = $this->record::documentType()->getTaxKey();
+        $taxIds = $this->data[$taxKey] ?? null;
+
+        if ($taxIds !== null) {
+            $this->record->{$taxKey}()->withoutGlobalScopes()->sync($taxIds);
+        }
+    }
 }
