@@ -37,6 +37,7 @@
         "spatie/laravel-pdf": "^2.2",
         "squirephp/model": "^3.4",
         "squirephp/repository": "^3.4",
+        "stechstudio/filament-impersonate": "*",
         "symfony/intl": "^6.3"
     },
     "require-dev": {

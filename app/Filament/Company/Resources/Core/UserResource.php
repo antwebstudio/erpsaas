@@ -82,6 +82,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                \STS\FilamentImpersonate\Tables\Actions\Impersonate::make(), 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

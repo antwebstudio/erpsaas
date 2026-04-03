@@ -199,4 +199,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     {
         return $this->morphMany(Notification::class, 'notifiable')->latest();
     }
+
+    public function canImpersonate(): bool
+    {
+        return $this->hasRole(config('filament-shield.super_admin.name'));
+    }
+
 }
