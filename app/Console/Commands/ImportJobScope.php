@@ -73,7 +73,9 @@ class ImportJobScope extends Command
                 'JobScopeOption' => 0,
             ];
 
-            DB::transaction(function () use ($rows, $companyId, &$currentJobScope, &$currentJobScopeDescription, &$importCount) {
+            $offeringOrder = 1;
+
+            DB::transaction(function () use ($rows, $companyId, &$currentJobScope, &$currentJobScopeDescription, &$importCount, &$offeringOrder) {
                 foreach ($rows as $index => $row) {
                     // Skip header if it exists (check if first row has "Type" or similar)
                     if ($index === 0 && (strcasecmp($row[0] ?? '', 'type') === 0 || strcasecmp($row[1] ?? '', 'name') === 0)) {
@@ -166,6 +168,7 @@ class ImportJobScope extends Command
                             $offering->unit = $unit;
                             $offering->sellable = true;
                             $offering->purchasable = false;
+                            $offering->sort_order = $offeringOrder++;
                             $offering->save();
 
                             // Link to category if not already linked

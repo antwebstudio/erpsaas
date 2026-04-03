@@ -21,11 +21,16 @@ class InitTemplates extends Command
     {
         $this->info('Starting template initialization...');
 
-        $this->importEstimateTemplates();
         $this->importJobScopes();
+        $this->line('');
+        $this->importEstimateTemplates();
+        $this->line('');
         $this->setDefaultBackgroundImages();
+        $this->line('');
         $this->setDefaultCoverPdfs();
+        $this->line('');
         $this->setDefaultDocumentHtmlContent();
+        $this->line('');
 
         $this->showSkipped();
 
@@ -61,7 +66,7 @@ class InitTemplates extends Command
                 'filename' => $relativePath,
                 '--company' => 1,
                 '--name' => $name
-            ]);
+            ], $this->output);
 
             if ($exitCode !== 0) {
                 $this->skipped[] = "Failed to import estimate template: {$filename}";
@@ -96,7 +101,7 @@ class InitTemplates extends Command
             Artisan::call('app:import-job-scope', [
                 'filename' => 'template/works.xlsx',
                 '--company' => 1
-            ]);
+            ], $this->output);
         } else {
             $this->skipped[] = "Neither directory 'template/works' nor file 'template/works.xlsx' found.";
         }
