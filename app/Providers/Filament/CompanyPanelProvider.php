@@ -40,6 +40,7 @@ use App\Filament\Company\Resources\Common\JobScopeOptionResource;
 use App\Filament\Company\Resources\Purchases\BillResource;
 use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
+use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
@@ -161,6 +162,7 @@ class CompanyPanelProvider extends PanelProvider
                             ->items([
                                 ...LeadResource::getNavigationItems(),
                                 ...ClientResource::getNavigationItems(),
+                                ...AllClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),
                                 ...ContractResource::getNavigationItems(),
                                 ...EstimateTemplateResource::getNavigationItems(),

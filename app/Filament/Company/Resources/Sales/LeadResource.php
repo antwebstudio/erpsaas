@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales;
 
 use App\Filament\Company\Resources\Sales\LeadResource\Pages;
+use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Exports\Common\ClientExporter;
 use App\Filament\Forms\Components\AddressFields;
 use App\Filament\Forms\Components\CreateCurrencySelect;
@@ -64,13 +65,16 @@ class LeadResource extends Resource
                                     ->default(true),
                                 Forms\Components\TextInput::make('first_name')
                                     ->label('First name')
+                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('last_name')
                                     ->label('Last name')
+                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('email')
                                     ->label('Email')
                                     ->email()
+                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
                                     ->columnSpanFull()
                                     ->maxLength(255),
                                 PhoneBuilder::make('phones')
@@ -85,8 +89,10 @@ class LeadResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('number')
                                                     ->label('Phone')
+                                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
                                                     ->maxLength(15),
                                             ])->maxItems(1),
+
                                         Forms\Components\Builder\Block::make('mobile')
                                             ->schema([
                                                 Forms\Components\TextInput::make('number')
@@ -336,7 +342,8 @@ class LeadResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\EstimatesRelationManager::class,
+            RelationManagers\VariationOrdersRelationManager::class,
         ];
     }
 

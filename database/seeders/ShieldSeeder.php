@@ -61,6 +61,7 @@ class ShieldSeeder extends Seeder
             'JobScope' => 'common::job::scope',
             'JobScopeDescription' => 'common::job::scope::description',
             'JobScopeOption' => 'common::job::scope::option',
+            'AllClient' => 'sales::all::client',
         ];
 
         $prefixes = config('filament-shield.permission_prefixes.resource', [

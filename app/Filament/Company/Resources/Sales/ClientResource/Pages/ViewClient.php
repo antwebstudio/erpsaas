@@ -7,6 +7,7 @@ use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Company\Resources\Sales\EstimateResource\Pages\CreateEstimate;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource\Pages\CreateRecurringInvoice;
+use App\Filament\Company\Resources\Sales\VariationOrderResource\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -22,12 +23,14 @@ class ViewClient extends ViewRecord
 {
     protected static string $resource = ClientResource::class;
 
-    protected function getAllRelationManagers(): array
+    public function getRelationManagers(): array
     {
         return [
             RelationManagers\InvoicesRelationManager::class,
             RelationManagers\RecurringInvoicesRelationManager::class,
+            RelationManagers\ContractsRelationManager::class,
             RelationManagers\EstimatesRelationManager::class,
+            RelationManagers\VariationOrdersRelationManager::class,
         ];
     }
 
@@ -56,6 +59,10 @@ class ViewClient extends ViewRecord
                         ->label('New recurring invoice')
                         ->icon('heroicon-m-arrow-path')
                         ->url(CreateRecurringInvoice::getUrl(['client' => $this->record->getKey()])),
+                    Action::make('newVariationOrder')
+                        ->label('New variation order')
+                        ->icon('heroicon-m-document-text')
+                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()])),
                 ])->dropdown(false),
                 DeleteAction::make(),
             ])

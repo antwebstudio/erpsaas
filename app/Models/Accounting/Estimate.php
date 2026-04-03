@@ -249,19 +249,22 @@ class Estimate extends Document
 
     public static function getNextDocumentNumber(?Company $company = null): string
     {
-        $company ??= auth()->user()?->currentCompany;
+        $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;
 
-        if (! $company) {
-            throw new \RuntimeException('No current company is set for the user.');
-        }
 
         $defaultEstimateSettings = $company->defaultEstimate;
 
         $numberPrefix = $defaultEstimateSettings->number_prefix ?? '';
 
         $latestDocument = static::query()
+            ->withoutGlobalScopes()
             ->whereNotNull('estimate_number')
-            ->latest('estimate_number')
+            ->when($numberPrefix !== '', function ($query) use ($numberPrefix) {
+                return $query->where('estimate_number', 'LIKE', "{$numberPrefix}%");
+            }, function ($query) use ($company) {
+                return $query->where('company_id', $company->id);
+            })
+            ->latest('id')
             ->first();
 
         $lastNumberNumericPart = $latestDocument
@@ -289,7 +292,6 @@ class Estimate extends Document
             'status' => EstimateStatus::Unsent,
         ]);
     }
-
     public function scopeIsTemplate(Builder $query): Builder
     {
         return $query->where('is_template', true);
@@ -431,13 +433,15 @@ class Estimate extends Document
             ->modalDescription('Please verify and complete the missing client details before converting this estimate to a contract.')
             ->modalSubmitActionLabel('Convert & Update Details')
             ->modalWidth('lg')
+            ->modal(fn (self $record) => $record->hasMissingRequiredContractData())
             ->visible(static function (self $record) {
                 return $record->status !== EstimateStatus::Accepted && $record->template_company_id !== null;
             })
             ->mountUsing(fn (Forms\ComponentContainer $form, self $record) => $form->fill([
                 'estimate_number' => $record->estimate_number,
+                'reference_number' => Contract::getNextDocumentNumber($record->company),
                 'date' => $record->date?->toDateString(),
-                'client_name' => $record->client?->name,
+                'client_name' => $record->client?->name ?? $record->clientAndLead?->name,
                 'client_nric' => $record->client?->nric,
                 'client_phone' => $record->client?->primaryContact?->primaryPhone ?? '',
                 'client_email' => $record->client?->primaryContact?->email ?? '',
@@ -457,15 +461,22 @@ class Estimate extends Document
                     ->label('Instructions')
                     ->content('The following information is required for the contract. Please fill in any missing details.');
 
+
                 if (blank($record->estimate_number)) {
                     $schema[] = Forms\Components\TextInput::make('estimate_number')
-                        ->label('Reference No')
+                        ->label('Estimate Number')
                         ->required();
                 }
 
                 if (blank($record->date)) {
                     $schema[] = Forms\Components\DatePicker::make('date')
                         ->label('Date')
+                        ->required();
+                }
+
+                if (blank($record->reference_number)) {
+                    $schema[] = Forms\Components\TextInput::make('reference_number')
+                        ->label('Reference Number')
                         ->required();
                 }
 
@@ -500,10 +511,9 @@ class Estimate extends Document
                         ->required();
                 }
 
-                if (blank($record->client?->billingAddress?->address_line_2)) {
-                    $schema[] = Forms\Components\TextInput::make('client_address_line_2')
-                        ->label('Address Line 2');
-                }
+                $schema[] = Forms\Components\TextInput::make('client_address_line_2')
+                    ->label('Address Line 2');
+
 
                 if (blank($record->client?->billingAddress?->postal_code)) {
                     $schema[] = Forms\Components\TextInput::make('client_postal_code')
@@ -544,6 +554,22 @@ class Estimate extends Document
 
                 return redirect()->to(ContractResource::getUrl('view', ['record' => $record]));
             });
+    }
+
+    public function hasMissingRequiredContractData(): bool
+    {
+        return blank($this->estimate_number) ||
+            blank($this->reference_number) ||
+            blank($this->date) ||
+            blank($this->client?->name) ||
+            blank($this->client?->nric) ||
+            blank($this->client?->primaryContact?->primaryPhone) ||
+            blank($this->client?->primaryContact?->email) ||
+            blank($this->client?->billingAddress?->address_line_1) ||
+            blank($this->client?->billingAddress?->postal_code) ||
+            blank($this->client?->billingAddress?->country_code) ||
+            blank($this->createdBy?->name) ||
+            blank($this->createdBy?->email);
     }
 
     public function markAsAccepted(?Carbon $acceptedAt = null): void
@@ -631,8 +657,8 @@ class Estimate extends Document
             'total' => $this->total,
             'terms' => $this->terms,
             'footer' => $this->footer,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
+            'created_by' => \Illuminate\Support\Facades\Auth::id(),
+            'updated_by' => \Illuminate\Support\Facades\Auth::id(),
         ]);
 
         $this->replicateLineItems($invoice);
@@ -727,8 +753,8 @@ class Estimate extends Document
 
     public static function createFromTemplate(self $template, int $clientId, ?int $estimateId = null, ?Company $company = null, ?int $userId = null): self
     {
-        $company ??= auth()->user()?->currentCompany;
-        $userId ??= auth()->id();
+        $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;
+        $userId ??= \Illuminate\Support\Facades\Auth::id();
 
         if ($estimateId) {
             $estimate = self::findOrFail($estimateId);

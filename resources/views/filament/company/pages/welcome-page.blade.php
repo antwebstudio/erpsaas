@@ -1,5 +1,23 @@
 <x-filament-panels::page>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <style>
+        .welcome-grid > .fi-section {
+            height: 100%;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .welcome-grid > .fi-section > .fi-section-content-ctn {
+            flex: 1 1 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .welcome-grid > .fi-section > .fi-section-content-ctn > .fi-section-content {
+            flex: 1 1 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+    </style>
+
+    <div class="welcome-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- 1) Accounting -> Chart of Accounts --}}
         <x-filament::section
             icon="heroicon-o-briefcase"
@@ -9,11 +27,11 @@
                 Accounting
             </x-slot>
 
-            <x-slot name="description">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
                 Manage your chart of accounts and financial records.
-            </x-slot>
-            
-            <div class="mt-4">
+            </p>
+
+            <div class="mt-auto pt-4">
                 <x-filament::dropdown class="w-full">
                     <x-slot name="trigger">
                         <x-filament::button
@@ -47,12 +65,12 @@
             <x-slot name="heading">
                 Leads Data
             </x-slot>
-            
-            <x-slot name="description">
-                View and manage your sales leads.
-            </x-slot>
 
-            <div class="mt-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                View and manage your sales leads.
+            </p>
+
+            <div class="mt-auto pt-4">
                 <x-filament::button
                     tag="a"
                     :href="\App\Filament\Company\Resources\Sales\LeadResource::getUrl('index', ['tenant' => $this->getCompanies()->first()])"
@@ -72,12 +90,12 @@
             <x-slot name="heading">
                 Client Data
             </x-slot>
-            
-            <x-slot name="description">
-                Manage your client database.
-            </x-slot>
 
-            <div class="mt-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Manage your client database.
+            </p>
+
+            <div class="mt-auto pt-4">
                 <x-filament::button
                     tag="a"
                     :href="\App\Filament\Company\Resources\Sales\ClientResource::getUrl('index', ['tenant' => filament()->getTenant()])"
@@ -97,12 +115,12 @@
             <x-slot name="heading">
                 Sales
             </x-slot>
-            
-            <x-slot name="description">
-                Manage invoices and sales records.
-            </x-slot>
 
-            <div class="mt-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Manage invoices and sales records.
+            </p>
+
+            <div class="mt-auto pt-4">
                 <x-filament::button
                     tag="a"
                     :href="\App\Filament\Company\Resources\Sales\InvoiceResource::getUrl('index', ['tenant' => filament()->getTenant()])"

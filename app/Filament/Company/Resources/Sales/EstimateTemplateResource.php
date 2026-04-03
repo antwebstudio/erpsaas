@@ -2,6 +2,9 @@
 
 namespace App\Filament\Company\Resources\Sales;
 
+use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Models\Accounting\Estimate;
+
 use App\Enums\Accounting\AdjustmentCategory;
 use App\Enums\Accounting\AdjustmentStatus;
 use App\Enums\Accounting\AdjustmentType;
@@ -19,7 +22,7 @@ use App\Filament\Forms\Components\DocumentFooterSection;
 use App\Filament\Forms\Components\DocumentTotals;
 use App\Models\Accounting\Adjustment;
 use App\Models\Accounting\DocumentLineItem;
-use App\Models\Accounting\Estimate;
+use App\Models\Accounting\EstimateTemplate;
 use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
 use App\Utilities\Currency\CurrencyAccessor;
@@ -41,7 +44,17 @@ class EstimateTemplateResource extends Resource
 {
     use \App\Filament\Traits\HasNavigationPermission;
 
-    protected static ?string $model = Estimate::class;
+    protected static ?string $model = EstimateTemplate::class;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (config('erp.hide_estimate_in_navigation', false)) {
+            return false;
+        }
+
+        return static::canViewAny();
+    }
+
 
     protected static ?string $slug = 'sales/estimate-templates';
 
@@ -1064,7 +1077,7 @@ class EstimateTemplateResource extends Resource
                     ->label('Use Template')
                     ->icon('heroicon-o-plus-circle')
                     ->color('success')
-                    ->action(function (Estimate $record) {
+                    ->action(function (EstimateTemplate $record) {
                         $replica = $record->replicate([
                             'is_template',
                             'estimate_number',

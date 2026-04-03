@@ -5,3 +5,4 @@
 - Act as a Senior Software Architect specializing in strict MVC (Model-View-Controller) design pattern
 - Filament Action should be treated as controller, so it should not contain any business logic
 - Keep agent knowledge whenever necessary
+- Check if the code work as expected after implemented it

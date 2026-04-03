@@ -20,6 +20,12 @@ class CreateQuotation extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ! config('erp.hide_estimate_in_navigation', false);
+    }
+
+
     protected static string $view = 'filament.user.pages.create-quotation';
 
     protected static ?string $navigationLabel = 'Quotation Builder';

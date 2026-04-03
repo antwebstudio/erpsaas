@@ -27,6 +27,13 @@ class EstimateService
             if (isset($data['date'])) {
                 $estimate->date = $data['date'];
             }
+            if (isset($data['reference_number'])) {
+                $estimate->reference_number = $data['reference_number'];
+            }
+
+            if (empty($estimate->reference_number)) {
+                $estimate->reference_number = \App\Models\Accounting\Contract::getNextDocumentNumber($estimate->company);
+            }
 
             // 2. Update Client and its relations (Contacts, Addresses)
             /** @var \App\Models\Common\Client $client */
@@ -124,7 +131,7 @@ class EstimateService
 
             // 5. Update Client Company Scoping (MUST use withoutGlobalScopes to bypass multi-tenancy filters)
             if ($client) {
-                $client->update(['company_id' => $newCompanyId]);
+                $client->update(['company_id' => $newCompanyId, 'type' => 'client']);
                 $client->contacts()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
                 $client->addresses()->withoutGlobalScopes()->update(['company_id' => $newCompanyId]);
             }

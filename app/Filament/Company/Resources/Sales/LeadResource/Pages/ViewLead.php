@@ -8,6 +8,7 @@ use App\Filament\Company\Resources\Sales\EstimateResource\Pages\CreateEstimate;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource\Pages\CreateRecurringInvoice;
+use App\Filament\Company\Resources\Sales\VariationOrderResource\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -23,12 +24,13 @@ class ViewLead extends ViewRecord
 {
     protected static string $resource = LeadResource::class;
 
-    protected function getAllRelationManagers(): array
+    public function getRelationManagers(): array
     {
         return [
             // RelationManagers\InvoicesRelationManager::class,
             // RelationManagers\RecurringInvoicesRelationManager::class,
-            // RelationManagers\EstimatesRelationManager::class,
+            RelationManagers\EstimatesRelationManager::class,
+            RelationManagers\VariationOrdersRelationManager::class,
         ];
     }
 
@@ -50,29 +52,21 @@ class ViewLead extends ViewRecord
             EditAction::make()
                 ->label('Edit lead')
                 ->outlined(),
-            // ActionGroup::make([
-            //     ActionGroup::make([
-            //         Action::make('newInvoice')
-            //             ->label('New invoice')
-            //             ->icon('heroicon-m-document-plus')
-            //             ->url(CreateInvoice::getUrl(['client' => $this->record->getKey()])),
-            //         Action::make('newEstimate')
-            //             ->label('New estimate')
-            //             ->icon('heroicon-m-document-duplicate')
-            //             ->url(CreateEstimate::getUrl(['client' => $this->record->getKey()])),
-            //         Action::make('newRecurringInvoice')
-            //             ->label('New recurring invoice')
-            //             ->icon('heroicon-m-arrow-path')
-            //             ->url(CreateRecurringInvoice::getUrl(['client' => $this->record->getKey()])),
-            //     ])->dropdown(false),
-            //     DeleteAction::make(),
-            // ])
-            //     ->label('Actions')
-            //     ->button()
-            //     ->outlined()
-            //     ->dropdownPlacement('bottom-end')
-            //     ->icon('heroicon-m-chevron-down')
-            //     ->iconPosition(IconPosition::After),
+            ActionGroup::make([
+                ActionGroup::make([
+                    Action::make('newVariationOrder')
+                        ->label('New variation order')
+                        ->icon('heroicon-m-document-text')
+                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()])),
+                ])->dropdown(false),
+                DeleteAction::make(),
+            ])
+                ->label('Actions')
+                ->button()
+                ->outlined()
+                ->dropdownPlacement('bottom-end')
+                ->icon('heroicon-m-chevron-down')
+                ->iconPosition(IconPosition::After),
         ];
     }
 

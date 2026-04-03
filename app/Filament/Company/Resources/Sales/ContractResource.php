@@ -24,6 +24,16 @@ class ContractResource extends Resource
 
     protected static ?string $model = Contract::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (config('erp.hide_contract_in_navigation', false)) {
+            return false;
+        }
+
+        return static::canViewAny();
+    }
+
+
     protected static ?string $slug = 'sales/contracts';
 
     protected static bool $isScopedToTenant = false;
@@ -73,8 +83,13 @@ class ContractResource extends Resource
                 TextColumn::make('date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('reference_number')
+                    ->label('Reference Number')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('estimate_number')
-                    ->label('Number')
+                    ->label('Estimate Number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('client.name')

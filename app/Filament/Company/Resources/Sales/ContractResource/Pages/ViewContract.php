@@ -56,8 +56,10 @@ class ViewContract extends ViewRecord
                             ->schema([
                                 TextEntry::make('company.name')
                                     ->label('Issuing Company'),
+                                TextEntry::make('reference_number')
+                                    ->label('Reference Number'),
                                 TextEntry::make('estimate_number')
-                                    ->label('Contract #'),
+                                    ->label('Estimate Number'),
                                 TextEntry::make('status')
                                     ->badge(),
                                 TextEntry::make('client.name')

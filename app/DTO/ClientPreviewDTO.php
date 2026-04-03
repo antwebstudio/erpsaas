@@ -8,6 +8,7 @@ readonly class ClientPreviewDTO extends ClientDTO
     {
         return new self(
             name: 'John Doe',
+            nric: '800101-14-5555',
             email: 'john@example.com',
             phone: '+1 555-555-5555',
             addressLine1: '1234 Elm St',

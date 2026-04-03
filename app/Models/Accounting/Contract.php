@@ -16,6 +16,41 @@ class Contract extends Estimate
         return \App\Enums\Accounting\DocumentType::Contract;
     }
 
+    public static function getNextDocumentNumber(?\App\Models\Company $company = null): string
+    {
+        $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;
+
+        if (! $company) {
+            throw new \RuntimeException('No current company is set for the user.');
+        }
+
+        $defaultContractSettings = $company->defaultContract;
+
+        $numberPrefix = $defaultContractSettings->number_prefix ?? '';
+
+        $latestDocument = static::query()
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class])
+            ->where('company_id', $company->id)
+            ->whereNotNull('reference_number')
+            ->latest('id')
+            ->first();
+
+        $lastNumberNumericPart = $latestDocument
+            ? (int) substr($latestDocument->reference_number, strlen($numberPrefix))
+            : \App\Models\Setting\DocumentDefault::getBaseNumber();
+
+        $numberNext = $lastNumberNumericPart + 1;
+
+        if ($defaultContractSettings) {
+            return $defaultContractSettings->getNumberNext(
+                prefix: $numberPrefix,
+                next: $numberNext
+            );
+        }
+
+        return $numberPrefix . $numberNext;
+    }
+
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return parent::client()->withoutGlobalScopes();

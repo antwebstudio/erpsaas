@@ -12,7 +12,7 @@ class EstimatePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::estimate') || $user->can('view_any_sales::estimate::template');
+        return $user->can('view_any_sales::estimate');
     }
 
     /**
@@ -20,7 +20,7 @@ class EstimatePolicy
      */
     public function view(User $user, Estimate $model): bool
     {
-        return $user->can('view_sales::estimate') || $user->can('view_sales::estimate::template');
+        return $user->can('view_sales::estimate');
     }
 
     /**
@@ -28,7 +28,7 @@ class EstimatePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_sales::estimate') || $user->can('create_sales::estimate::template');
+        return $user->can('create_sales::estimate');
     }
 
     /**
@@ -48,7 +48,7 @@ class EstimatePolicy
      */
     public function delete(User $user, Estimate $model): bool
     {
-        return $user->can('delete_sales::estimate') || $user->can('delete_sales::estimate::template');
+        return $user->can('delete_sales::estimate');
     }
 
     /**
@@ -56,7 +56,7 @@ class EstimatePolicy
      */
     public function restore(User $user, Estimate $model): bool
     {
-        return $user->can('restore_sales::estimate') || $user->can('restore_sales::estimate::template');
+        return $user->can('restore_sales::estimate');
     }
 
     /**
@@ -64,6 +64,6 @@ class EstimatePolicy
      */
     public function forceDelete(User $user, Estimate $model): bool
     {
-        return $user->can('force_delete_sales::estimate') || $user->can('force_delete_sales::estimate::template');
+        return $user->can('force_delete_sales::estimate');
     }
 }

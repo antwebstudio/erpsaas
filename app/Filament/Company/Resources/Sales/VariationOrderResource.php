@@ -64,6 +64,15 @@ class VariationOrderResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (config('erp.hide_estimate_in_navigation', false)) {
+            return false;
+        }
+
+        return static::canViewAny();
+    }
+    
     public static function form(Form $form): Form
     {
         /** @var Company $company */

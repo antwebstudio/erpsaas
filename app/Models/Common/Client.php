@@ -278,16 +278,28 @@ class Client extends Model
 
     public function estimates(): HasMany
     {
-        return $this->hasMany(Estimate::class);
+        return $this->hasMany(Estimate::class, 'client_id');
     }
 
     public function invoices(): HasMany
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(Invoice::class, 'client_id');
     }
 
     public function recurringInvoices(): HasMany
     {
-        return $this->hasMany(RecurringInvoice::class);
+        return $this->hasMany(RecurringInvoice::class, 'client_id');
+    }
+
+    public function variationOrders(): HasMany
+    {
+        return $this->hasMany(\App\Models\Accounting\VariationOrder::class, 'client_id');
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(\App\Models\Accounting\Contract::class, 'client_id')
+            ->where('status', \App\Enums\Accounting\EstimateStatus::Accepted)
+            ->isNotTemplate();
     }
 }

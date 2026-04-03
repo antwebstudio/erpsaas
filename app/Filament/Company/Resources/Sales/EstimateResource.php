@@ -52,6 +52,16 @@ class EstimateResource extends Resource
 
     protected static ?string $model = Estimate::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (config('erp.hide_estimate_in_navigation', false)) {
+            return false;
+        }
+
+        return static::canViewAny();
+    }
+
+
     public static function form(Form $form): Form
     {
         $company = Auth::user()->currentCompany;
@@ -87,10 +97,8 @@ class EstimateResource extends Resource
                             ]),
                             Forms\Components\Group::make([
                                 Forms\Components\TextInput::make('estimate_number')
-                                    ->label('Estimate number')
+                                    ->label('Estimate Number')
                                     ->default(static fn () => Estimate::getNextDocumentNumber()),
-                                Forms\Components\TextInput::make('reference_number')
-                                    ->label('Reference number'),
                                 Cluster::make([
                                     Forms\Components\DatePicker::make('date')
                                         ->label('Estimate date')
@@ -1273,7 +1281,7 @@ class EstimateResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate())
+            ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate()->where('status', '!=', EstimateStatus::Accepted))
             ->defaultSort('date', 'desc')
             ->columns([
                 Columns::id(),
@@ -1291,7 +1299,7 @@ class EstimateResource extends Resource
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('estimate_number')
-                    ->label('Number')
+                    ->label('Estimate Number')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('expiration_date')
