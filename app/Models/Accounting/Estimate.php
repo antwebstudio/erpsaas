@@ -16,6 +16,7 @@ use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Models\Accounting\VariationOrder;
 use App\Models\Common\Client;
 use App\Models\Common\ClientAndLead;
+use App\Models\Common\Lead;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
 use App\Observers\EstimateObserver;
@@ -37,6 +38,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use App\Models\Accounting\DocumentLineItemGroup;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Sales\EstimateMail;
 
 
 #[CollectedBy(DocumentCollection::class)]
@@ -106,12 +109,17 @@ class Estimate extends Document
 
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withoutGlobalScopes()->where('type', 'client');
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, 'client_id')->withoutGlobalScopes();
     }
 
     public function clientAndLead(): BelongsTo
     {
-        return $this->belongsTo(ClientAndLead::class, 'client_id');
+        return $this->belongsTo(ClientAndLead::class, 'client_id')->withoutGlobalScopes();
     }
 
     public function invoice(): HasOne
@@ -225,7 +233,7 @@ class Estimate extends Document
 
     public function canBeMarkedAsSent(): bool
     {
-        return ! $this->hasBeenSent();
+        return ! $this->hasBeenSent() && $this->wasApproved();
     }
 
     public function canBeMarkedAsAccepted(): bool
@@ -310,10 +318,14 @@ class Estimate extends Document
             ->visible(function (self $record) {
                 return $record->canBeApproved();
             })
-            ->requiresConfirmation()
-            ->databaseTransaction()
-            ->successNotificationTitle('Estimate approved')
-            ->action(function (self $record, MountableAction $action, Component $livewire) {
+            ->form([
+                Forms\Components\Select::make('template_company_id')
+                    ->label('Issue Company')
+                    ->relationship('templateCompany', 'name')
+                    ->required()
+                    ->default(fn (self $record) => $record->template_company_id),
+            ])
+            ->action(function (self $record, array $data, MountableAction $action, Component $livewire) {
                 if ($record->hasInactiveAdjustments()) {
                     $isViewPage = $livewire instanceof EstimateResource\Pages\ViewEstimate;
 
@@ -328,6 +340,7 @@ class Estimate extends Document
                             ->send();
                     }
                 } else {
+                    $record->update(['template_company_id' => $data['template_company_id']]);
                     $record->approveDraft();
 
                     $action->success();
@@ -335,7 +348,7 @@ class Estimate extends Document
             });
     }
 
-    public static function getMarkAsSentAction(string $action = Action::class): MountableAction
+    public static function getMarkAsSentAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
     {
         return $action::make('markAsSent')
             ->label('Mark as sent')
@@ -344,9 +357,36 @@ class Estimate extends Document
                 return $record->canBeMarkedAsSent();
             })
             ->successNotificationTitle('Estimate sent')
-            ->action(function (self $record, MountableAction $action) {
+            ->action(function (self $record, \Filament\Actions\MountableAction $action) {
                 $record->markAsSent();
+                $action->success();
+            });
+    }
 
+    public static function getSendEmailAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
+    {
+        return $action::make('sendEmail')
+            ->label('Send Email')
+            ->icon('heroicon-m-envelope')
+            ->visible(fn (self $record) => $record->wasApproved())
+            ->form([
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->default(fn (self $record) => $record->clientOrLead?->primaryContact?->email),
+                Forms\Components\TextInput::make('subject')
+                    ->required()
+                    ->default(fn (self $record) => "Estimate #" . $record->estimate_number),
+                Forms\Components\Textarea::make('message')
+                    ->required()
+                    ->rows(5)
+                    ->default(fn (self $record) => "Dear " . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached estimate " . $record->estimate_number . ".\n\nBest regards."),
+            ])
+            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
+                Mail::to($data['email'])->send(new EstimateMail($record, $data['message'], $data['subject']));
+                
+                $record->markAsSent();
+                
                 $action->success();
             });
     }
@@ -441,14 +481,14 @@ class Estimate extends Document
                 'estimate_number' => $record->estimate_number,
                 'reference_number' => Contract::getNextDocumentNumber($record->company),
                 'date' => $record->date?->toDateString(),
-                'client_name' => $record->client?->name ?? $record->clientAndLead?->name,
-                'client_nric' => $record->client?->nric,
-                'client_phone' => $record->client?->primaryContact?->primaryPhone ?? '',
-                'client_email' => $record->client?->primaryContact?->email ?? '',
-                'client_address_line_1' => $record->client?->billingAddress?->address_line_1 ?? '',
-                'client_address_line_2' => $record->client?->billingAddress?->address_line_2,
-                'client_postal_code' => $record->client?->billingAddress?->postal_code,
-                'client_country_code' => $record->client?->billingAddress?->country_code ?? 
+                'client_name' => $record->clientOrLead?->name,
+                'client_nric' => $record->clientOrLead?->nric,
+                'client_phone' => $record->clientOrLead?->primaryContact?->primaryPhone ?? '',
+                'client_email' => $record->clientOrLead?->primaryContact?->email ?? '',
+                'client_address_line_1' => $record->clientOrLead?->billingAddress?->address_line_1 ?? '',
+                'client_address_line_2' => $record->clientOrLead?->billingAddress?->address_line_2,
+                'client_postal_code' => $record->clientOrLead?->billingAddress?->postal_code,
+                'client_country_code' => $record->clientOrLead?->billingAddress?->country_code ?? 
                     $record->templateCompany?->profile?->address?->country_code ?? 
                     $record->company?->profile?->address?->country_code,
                 'salesperson_name' => $record->createdBy?->name,
@@ -474,54 +514,48 @@ class Estimate extends Document
                         ->required();
                 }
 
-                if (blank($record->reference_number)) {
-                    $schema[] = Forms\Components\TextInput::make('reference_number')
-                        ->label('Reference Number')
-                        ->required();
-                }
-
-                if (blank($record->client?->name)) {
+                if (blank($record->clientOrLead?->name)) {
                     $schema[] = Forms\Components\TextInput::make('client_name')
                         ->label('Customer Name')
                         ->required();
                 }
 
-                if (blank($record->client?->nric)) {
+                if (blank($record->clientOrLead?->nric)) {
                     $schema[] = Forms\Components\TextInput::make('client_nric')
                         ->label('NRIC last 4 digit')
                         ->required();
                 }
 
-                if (blank($record->client?->primaryContact?->primaryPhone)) {
+                if (blank($record->clientOrLead?->primaryContact?->primaryPhone)) {
                     $schema[] = Forms\Components\TextInput::make('client_phone')
                         ->label('Contact No')
                         ->required();
                 }
 
-                if (blank($record->client?->primaryContact?->email)) {
+                if (blank($record->clientOrLead?->primaryContact?->email)) {
                     $schema[] = Forms\Components\TextInput::make('client_email')
                         ->label('Email')
                         ->email()
                         ->required();
                 }
 
-                if (blank($record->client?->billingAddress?->address_line_1)) {
+                if (blank($record->clientOrLead?->billingAddress?->address_line_1)) {
                     $schema[] = Forms\Components\TextInput::make('client_address_line_1')
                         ->label('Address Line 1')
                         ->required();
+
+                    $schema[] = Forms\Components\TextInput::make('client_address_line_2')
+                        ->label('Address Line 2');
                 }
 
-                $schema[] = Forms\Components\TextInput::make('client_address_line_2')
-                    ->label('Address Line 2');
 
-
-                if (blank($record->client?->billingAddress?->postal_code)) {
+                if (blank($record->clientOrLead?->billingAddress?->postal_code)) {
                     $schema[] = Forms\Components\TextInput::make('client_postal_code')
                         ->label('Postal Code')
                         ->required();
                 }
 
-                if (blank($record->client?->billingAddress?->country_code)) {
+                if (blank($record->clientOrLead?->billingAddress?->country_code)) {
                     $schema[] = Forms\Components\Select::make('client_country_code')
                         ->label('Country')
                         ->searchable()
@@ -561,13 +595,13 @@ class Estimate extends Document
         return blank($this->estimate_number) ||
             blank($this->reference_number) ||
             blank($this->date) ||
-            blank($this->client?->name) ||
-            blank($this->client?->nric) ||
-            blank($this->client?->primaryContact?->primaryPhone) ||
-            blank($this->client?->primaryContact?->email) ||
-            blank($this->client?->billingAddress?->address_line_1) ||
-            blank($this->client?->billingAddress?->postal_code) ||
-            blank($this->client?->billingAddress?->country_code) ||
+            blank($this->clientOrLead?->name) ||
+            blank($this->clientOrLead?->nric) ||
+            blank($this->clientOrLead?->primaryContact?->primaryPhone) ||
+            blank($this->clientOrLead?->primaryContact?->email) ||
+            blank($this->clientOrLead?->billingAddress?->address_line_1) ||
+            blank($this->clientOrLead?->billingAddress?->postal_code) ||
+            blank($this->clientOrLead?->billingAddress?->country_code) ||
             blank($this->createdBy?->name) ||
             blank($this->createdBy?->email);
     }
@@ -849,5 +883,10 @@ class Estimate extends Document
         }
 
         return $downloadAction;
+    }
+
+    public function getClientOrLeadAttribute()
+    {
+        return $this->client ?? $this->lead;
     }
 }

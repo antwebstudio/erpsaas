@@ -24,7 +24,7 @@ readonly class LineItemDTO
             name: $lineItem->offering->name ?? '',
             description: $lineItem->description ?? '',
             quantity: $lineItem->quantity,
-            unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable?->currency_code),
+            unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable?->currency_code, true),
             subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable?->currency_code),
             unit: $lineItem->unit,
             isLocked: $lineItem->is_locked ?? false,
@@ -32,8 +32,12 @@ readonly class LineItemDTO
         );
     }
 
-    protected static function formatToMoney(float | string | int $value, ?string $currencyCode): string
+    protected static function formatToMoney(float | string | int $value, ?string $currencyCode, bool $allowFoc = false): string
     {
+        if ($allowFoc && (float) $value == 0) {
+            return 'FOC';
+        }
+
         if (is_int($value)) {
             return CurrencyConverter::formatCentsToMoney($value, $currencyCode);
         }

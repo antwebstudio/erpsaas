@@ -22,7 +22,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-// ...
+
 class LeadResource extends Resource
 {
     use \App\Filament\Traits\HasNavigationPermission;
@@ -195,7 +195,8 @@ class LeadResource extends Resource
                             ->schema([
                                 Forms\Components\Hidden::make('type')
                                     ->default('billing'),
-                                AddressFields::make(),
+                                AddressFields::make()
+                                    ->requiredIfAnyFilled(),
                             ])->columns(),
                     ])
                     ->columns(1),

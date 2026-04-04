@@ -188,7 +188,8 @@ class ClientResource extends Resource
                             ->schema([
                                 Forms\Components\Hidden::make('type')
                                     ->default('billing'),
-                                AddressFields::make(),
+                                AddressFields::make()
+                                    ->requiredIfAnyFilled(),
                             ])->columns(),
                     ])
                     ->columns(1),

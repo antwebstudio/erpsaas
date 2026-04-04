@@ -853,6 +853,7 @@ class VariationOrderResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate())
             ->defaultSort('date', 'desc')
+            ->recordAction(Tables\Actions\ViewAction::class)
             ->columns([
                 Columns::id(),
                 Tables\Columns\TextColumn::make('status')
@@ -878,6 +879,11 @@ class VariationOrderResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->hidden(fn () => ! config('erp.show_expiry_date', true)),
+                Tables\Columns\TextColumn::make('last_sent_at')
+                    ->label('Last Sent At')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('client.name')
                     ->sortable()
                     ->searchable(),
@@ -908,11 +914,14 @@ class VariationOrderResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ActionGroup::make([
-                        Tables\Actions\EditAction::make(),
-                        Tables\Actions\ViewAction::make(),
+                        Tables\Actions\EditAction::make()
+                            ->url(static fn (VariationOrder $record) => Pages\EditVariationOrder::getUrl(['record' => $record])),
+                        Tables\Actions\ViewAction::make()
+                            ->url(static fn (VariationOrder $record) => Pages\ViewVariationOrder::getUrl(['record' => $record])),
                         VariationOrder::getPreviewAction(Tables\Actions\Action::class),
                         VariationOrder::getReplicateAction(Tables\Actions\ReplicateAction::class),
                         VariationOrder::getApproveDraftAction(Tables\Actions\Action::class),
+                        VariationOrder::getSendEmailAction(Tables\Actions\Action::class),
                         VariationOrder::getMarkAsSentAction(Tables\Actions\Action::class),
                         VariationOrder::getMarkAsRejectedAction(Tables\Actions\Action::class),
                     ])->dropdown(false),

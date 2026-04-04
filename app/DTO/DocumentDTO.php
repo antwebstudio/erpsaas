@@ -101,7 +101,7 @@ readonly class DocumentDTO
             total: self::formatToMoney($document->total, $currencyCode),
             amountDue: $amountDue,
             company: CompanyDTO::fromModel($issuingCompany),
-            client: $document->clientAndLead ? ClientDTO::fromModel($document->clientAndLead) : null,
+            client: $document->clientOrLead ? ClientDTO::fromModel($document->clientOrLead) : null,
             lineItems: $document->lineItems()->withoutGlobalScopes()->with('offering')->get()->map(fn ($item) => LineItemDTO::fromModel($item)),
             label: $labels,
             columnLabel: $settings ? DocumentColumnLabelDTO::fromModel($settings) : DocumentColumnLabelDTO::getDefaultLabels(),
@@ -130,9 +130,13 @@ readonly class DocumentDTO
         );
     }
 
-    protected static function formatToMoney(int $value, ?string $currencyCode): string
+    protected static function formatToMoney(float | string | int $value, ?string $currencyCode): string
     {
-        return CurrencyConverter::formatCentsToMoney($value, $currencyCode);
+        if (is_int($value)) {
+            return CurrencyConverter::formatCentsToMoney($value, $currencyCode);
+        }
+
+        return CurrencyConverter::formatToMoney($value, $currencyCode);
     }
 
     public function getFontHtml(): Htmlable

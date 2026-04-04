@@ -1216,6 +1216,11 @@ class EstimateResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->hidden(fn () => ! config('erp.show_expiry_date', true)),
+                Tables\Columns\TextColumn::make('last_sent_at')
+                    ->label('Last Sent At')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('client.name')
                     ->sortable()
                     ->searchable()
@@ -1259,6 +1264,7 @@ class EstimateResource extends Resource
                         Estimate::getPreviewAction(Tables\Actions\Action::class),
                         Estimate::getReplicateAction(Tables\Actions\ReplicateAction::class),
                         Estimate::getApproveDraftAction(Tables\Actions\Action::class),
+                        Estimate::getSendEmailAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsSentAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsAcceptedAction(Tables\Actions\Action::class),
                         Estimate::getMarkAsDeclinedAction(Tables\Actions\Action::class),

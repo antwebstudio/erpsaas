@@ -149,7 +149,8 @@ class VendorResource extends Resource
                     ->schema([
                         Forms\Components\Hidden::make('type')
                             ->default('general'),
-                        AddressFields::make(),
+                        AddressFields::make()
+                            ->requiredIfAnyFilled(),
                     ])
                     ->columns(2),
             ]);

@@ -6,3 +6,4 @@
 - Filament Action should be treated as controller, so it should not contain any business logic
 - Keep agent knowledge whenever necessary
 - Check if the code work as expected after implemented it
+- Ask question whenever there is any additional information needed

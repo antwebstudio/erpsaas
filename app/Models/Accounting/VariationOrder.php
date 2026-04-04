@@ -7,12 +7,18 @@ use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\VariationOrderStatus;
 use App\Models\Common\Client;
 use App\Models\Common\ClientAndLead;
+use App\Models\Common\Lead;
 use App\Models\Setting\Currency;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Sales\VariationOrderMail;
+use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\MountableAction;
 
 class VariationOrder extends Document
 {
@@ -80,6 +86,11 @@ class VariationOrder extends Document
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class)->withoutGlobalScopes();
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, 'client_id')->withoutGlobalScopes();
     }
 
     public function clientAndLead(): BelongsTo
@@ -229,7 +240,7 @@ class VariationOrder extends Document
 
     public function canBeMarkedAsSent(): bool
     {
-        return ! $this->hasBeenSent();
+        return ! $this->hasBeenSent() && $this->wasApproved();
     }
 
     public function canBeMarkedAsAccepted(): bool
@@ -282,10 +293,15 @@ class VariationOrder extends Document
             ->visible(function (self $record) {
                 return $record->canBeApproved();
             })
-            ->requiresConfirmation()
-            ->databaseTransaction()
-            ->successNotificationTitle('Variation Order approved')
-            ->action(function (self $record, \Filament\Actions\MountableAction $action) {
+            ->form([
+                Forms\Components\Select::make('template_company_id')
+                    ->label('Issue Company')
+                    ->relationship('templateCompany', 'name')
+                    ->required()
+                    ->default(fn (self $record) => $record->template_company_id),
+            ])
+            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
+                $record->update(['template_company_id' => $data['template_company_id']]);
                 $record->approveDraft();
                 $action->success();
             });
@@ -302,6 +318,34 @@ class VariationOrder extends Document
             ->successNotificationTitle('Variation Order sent')
             ->action(function (self $record, \Filament\Actions\MountableAction $action) {
                 $record->markAsSent();
+                $action->success();
+            });
+    }
+
+    public static function getSendEmailAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
+    {
+        return $action::make('sendEmail')
+            ->label('Send Email')
+            ->icon('heroicon-m-envelope')
+            ->visible(fn (self $record) => $record->wasApproved())
+            ->form([
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->default(fn (self $record) => $record->clientOrLead?->primaryContact?->email),
+                Forms\Components\TextInput::make('subject')
+                    ->required()
+                    ->default(fn (self $record) => "Variation Order #" . $record->vo_number),
+                Forms\Components\Textarea::make('message')
+                    ->required()
+                    ->rows(5)
+                    ->default(fn (self $record) => "Dear " . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached variation order " . $record->vo_number . ".\n\nBest regards."),
+            ])
+            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
+                Mail::to($data['email'])->send(new VariationOrderMail($record, $data['message'], $data['subject']));
+                
+                $record->markAsSent();
+                
                 $action->success();
             });
     }
@@ -355,14 +399,6 @@ class VariationOrder extends Document
             ->successRedirectUrl(static function (self $replica) {
                 return \App\Filament\Company\Resources\Sales\VariationOrderResource::getUrl('edit', ['record' => $replica]);
             });
-    }
-
-    public static function getPreviewAction(string $action = \Filament\Actions\Action::class, string $name = 'preview'): \Filament\Actions\MountableAction
-    {
-        return $action::make($name)
-            ->label('Preview')
-            ->icon('heroicon-m-magnifying-glass')
-            ->url(fn (self $record) => \App\Filament\Company\Resources\Sales\VariationOrderResource::getUrl('view', ['record' => $record]), shouldOpenInNewTab: true);
     }
 
     public static function getPrintDocumentAction(string $action = \Filament\Actions\Action::class, string $name = 'printPdf'): \Filament\Actions\MountableAction
@@ -432,5 +468,10 @@ class VariationOrder extends Document
 
         // Replicate Document Adjustments
         $target->adjustments()->sync($this->adjustments->pluck('id'));
+    }
+
+    public function getClientOrLeadAttribute()
+    {
+        return $this->client ?? $this->lead;
     }
 }

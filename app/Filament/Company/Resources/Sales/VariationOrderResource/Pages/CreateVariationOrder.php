@@ -4,6 +4,8 @@ namespace App\Filament\Company\Resources\Sales\VariationOrderResource\Pages;
 
 use App\Concerns\HandlePageRedirect;
 use App\Concerns\ManagesLineItems;
+use App\Models\Common\Client;
+use Livewire\Attributes\Url;
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Models\Accounting\VariationOrder;
 use Filament\Resources\Pages\CreateRecord;
@@ -16,6 +18,22 @@ class CreateVariationOrder extends CreateRecord
     use ManagesLineItems;
 
     protected static string $resource = VariationOrderResource::class;
+
+    #[Url(as: 'client')]
+    public ?int $clientId = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        if ($this->clientId) {
+            $this->data['client_id'] = $this->clientId;
+
+            if ($currencyCode = Client::find($this->clientId)?->currency_code) {
+                $this->data['currency_code'] = $currencyCode;
+            }
+        }
+    }
 
     public function getMaxContentWidth(): MaxWidth | string | null
     {
