@@ -159,7 +159,7 @@
                 <tr>
                     <th class="items-th" style="width:10%;">Item</th>
                     <th class="items-th" style="width:60%;">Work Description</th>
-                    <th class="items-th" style="width:15%;">Quantity</th>
+                    <th class="items-th" style="width:15%;">Qty/Unit</th>
                     <th class="items-th" style="width:15%;">Amount</th>
                 </tr>
             </thead>
@@ -175,9 +175,18 @@
                         <tr>
                             <td class="items-td" style="width:10%;">{{ $itemIndex++ }}</td>
                             <td class="items-td" style="width:60%;">
-                                {!! nl2br(e($item->description ?: $item->name)) !!}
+                                @if($item->offeringId != 0 && $item->name)
+                                    <strong>{{ $item->name }}</strong><br>
+                                @endif
+                                {!! nl2br(e($item->description)) !!}
                             </td>
-                            <td class="items-td" style="width:15%;">{{ $item->quantity }} {{ $item->unit }}</td>
+                            <td class="items-td" style="width:15%;">
+                                @if($item->unit && $item->quantity == 1)
+                                    {{ $item->unit }}
+                                @else
+                                    {{ $item->quantity }} {{ $item->unit }}
+                                @endif
+                            </td>
                             <td class="items-td" style="width:15%;">{{ $item->subtotal }}</td>
                         </tr>
                     @endforeach

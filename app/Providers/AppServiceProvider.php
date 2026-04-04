@@ -53,5 +53,38 @@ class AppServiceProvider extends ServiceProvider
             Js::make('history-fix', __DIR__ . '/../../resources/js/history-fix.js'),
             Js::make('custom-print', __DIR__ . '/../../resources/js/custom-print.js'),
         ]);
+
+        if (config('app.env') !== 'testing' && \Illuminate\Support\Facades\Schema::hasTable('offerings')) {
+            $offeringExists = \Illuminate\Support\Facades\DB::table('offerings')
+                ->where('id', 0)
+                ->exists();
+
+            if (! $offeringExists) {
+                // Get the first available company to avoid foreign key errors
+                $companyId = \Illuminate\Support\Facades\DB::table('companies')->value('id');
+
+                if ($companyId) {
+                    try {
+                        // Ensure ID 0 can be inserted (MySQL specific, but safe to try)
+                        \Illuminate\Support\Facades\DB::statement("SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO'");
+                    } catch (\Exception $e) {
+                        // Ignore if sql_mode cannot be set (e.g., non-MySQL)
+                    }
+
+                    \Illuminate\Support\Facades\DB::table('offerings')->insert([
+                        'id' => 0,
+                        'company_id' => $companyId,
+                        'name' => 'Custom Item',
+                        'description' => 'Manual entry item',
+                        'type' => 'service',
+                        'sellable' => 1,
+                        'purchasable' => 0,
+                        'price' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
     }
 }

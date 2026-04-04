@@ -139,7 +139,7 @@
                 @foreach($group->items as $item)
                     <tr class="border-b border-gray-100 last:border-b-0">
                         <td class="text-left pl-6 font-semibold py-3">
-                            @if(!$item->isLocked)
+                            @if($item->offeringId != 0 && !$item->isLocked)
                                 {{ $item->name }}
                             @endif
                             @if($item->description)

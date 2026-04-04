@@ -21,10 +21,10 @@
 
 .item-group-darker {
     .fi-fo-repeater-item {
-        /* @apply bg-gray-300/50 ring-1 ring-gray-950/10 dark:bg-white/5 dark:ring-white/10; */
+        @apply ring-1 ring-gray-950/10 dark:ring-white/10;
         
         .fi-fo-repeater-item-header {
-            @apply bg-gray-200/50 dark:bg-white/5;
+            @apply bg-gray-300 dark:bg-white/15;
         }
     }
 }
