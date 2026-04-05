@@ -179,3 +179,26 @@
     padding-right: 0 !important;
 }
 
+.job-scope-checkbox-list label,
+.job-scope-checkbox-list .fi-fo-checkbox-list-option-label {
+    @apply transition-colors duration-200 rounded-lg px-2 py-0 cursor-pointer border border-transparent !important;
+    @apply flex items-center gap-1.5 !important;
+}
+
+.job-scope-checkbox-list label:hover,
+.job-scope-checkbox-list .fi-fo-checkbox-list-option-label:hover {
+    @apply bg-gray-950 dark:bg-white border-gray-950 dark:border-white !important;
+    
+    &, * {
+        @apply text-white dark:text-gray-950 !important;
+    }
+}
+
+.job-scope-section .fi-section-header {
+    @apply bg-gray-300 dark:bg-white/15 border-b border-gray-400 dark:border-white/10 !important;
+}
+
+.job-scope-section .fi-section-header-heading {
+    @apply text-gray-950 dark:text-white font-bold uppercase text-xs !important;
+}
+

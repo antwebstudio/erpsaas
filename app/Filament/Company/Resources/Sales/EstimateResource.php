@@ -301,9 +301,11 @@ class EstimateResource extends Resource
 
                                         if (!empty($rootOfferings)) {
                                             $schema[] = Forms\Components\Section::make('General')
+                                                ->extraAttributes(['class' => 'job-scope-section'])
                                                 ->schema([
                                                     Forms\Components\CheckboxList::make("job_scopes_root")
                                                         ->hiddenLabel()
+                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                         ->searchable(false)
                                                         ->bulkToggleable()
                                                         ->options(function (Forms\Get $get) use ($rootOfferings) {
@@ -353,9 +355,11 @@ class EstimateResource extends Resource
                                             }
 
                                             $schema[] = Forms\Components\Section::make($descriptionName)
+                                                ->extraAttributes(['class' => 'job-scope-section'])
                                                 ->schema([
                                                     Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
                                                         ->hiddenLabel()
+                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                         ->searchable(false)
                                                         ->bulkToggleable()
                                                         ->options(function (Forms\Get $get) use ($allOfferings) {
