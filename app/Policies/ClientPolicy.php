@@ -12,7 +12,7 @@ class ClientPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::client');
+        return $user->can('view_any_sales::client') || $user->can('view_any_sales::all::client');
     }
 
     /**
@@ -20,7 +20,7 @@ class ClientPolicy
      */
     public function view(User $user, Client $model): bool
     {
-        return $user->can('view_sales::client');
+        return $user->can('view_sales::client') || $user->can('view_sales::all::client');
     }
 
     /**
@@ -28,7 +28,7 @@ class ClientPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_sales::client');
+        return $user->can('create_sales::client') || $user->can('create_sales::all::client');
     }
 
     /**
@@ -36,7 +36,7 @@ class ClientPolicy
      */
     public function update(User $user, Client $model): bool
     {
-        return $user->can('update_sales::client');
+        return $user->can('update_sales::client') || $user->can('update_sales::all::client');
     }
 
     /**
@@ -44,7 +44,7 @@ class ClientPolicy
      */
     public function delete(User $user, Client $model): bool
     {
-        return $user->can('delete_sales::client');
+        return $user->can('delete_sales::client') || $user->can('delete_sales::all::client');
     }
 
     /**
@@ -52,7 +52,7 @@ class ClientPolicy
      */
     public function restore(User $user, Client $model): bool
     {
-        return $user->can('restore_sales::client');
+        return $user->can('restore_sales::client') || $user->can('restore_sales::all::client');
     }
 
     /**
@@ -60,6 +60,6 @@ class ClientPolicy
      */
     public function forceDelete(User $user, Client $model): bool
     {
-        return $user->can('force_delete_sales::client');
+        return $user->can('force_delete_sales::client') || $user->can('force_delete_sales::all::client');
     }
 }

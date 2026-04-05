@@ -5,18 +5,19 @@ namespace Database\Factories\Common;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Models\Common\Contact;
+use App\Models\Common\Lead;
 use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Client>
+ * @extends Factory<Lead>
  */
-class ClientFactory extends Factory
+class LeadFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      */
-    protected $model = Client::class;
+    protected $model = Lead::class;
 
     /**
      * Define the model's default state.
@@ -34,7 +35,7 @@ class ClientFactory extends Factory
             'notes' => $this->faker->sentence,
             'created_by' => 1,
             'updated_by' => 1,
-            'type' => 'client',
+            'type' => 'lead',
         ];
     }
 

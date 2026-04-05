@@ -4,9 +4,16 @@ namespace App\Models\Common;
 
 use App\Scopes\CurrentCompanyScope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class AllClient extends Client
 {
+    public function getMorphClass(): string
+    {
+        return Client::class;
+    }
+
     protected static function booted(): void
     {
         static::addGlobalScope('type', function ($builder) {
@@ -17,6 +24,43 @@ class AllClient extends Client
     public static function bootCompanyOwned(): void
     {
         // Don't add CurrentCompanyScope in this model
+    }
+    
+
+    public function addresses(): MorphMany
+    {
+        return parent::addresses()->withoutGlobalScopes([
+            CurrentCompanyScope::class,
+        ]);
+            ;
+    }
+
+    public function billingAddress(): MorphOne
+    {
+        return parent::billingAddress()->withoutGlobalScopes([
+            CurrentCompanyScope::class,
+        ]);
+    }
+
+    public function shippingAddress(): MorphOne
+    {
+        return parent::shippingAddress()->withoutGlobalScopes([
+            CurrentCompanyScope::class,
+        ]);
+    }
+
+    public function contacts(): MorphMany
+    {
+        return parent::contacts()->withoutGlobalScopes([
+            CurrentCompanyScope::class,
+        ]);
+    }
+
+    public function primaryContact(): MorphOne
+    {
+        return parent::primaryContact()->withoutGlobalScopes([
+            CurrentCompanyScope::class,
+        ]);
     }
 
     public function estimates(): \Illuminate\Database\Eloquent\Relations\HasMany
