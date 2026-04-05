@@ -147,6 +147,84 @@ class EditEstimate extends EditRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            Actions\Action::make('generateQuotation')
+                ->label('Generate Quotation')
+                ->color('success')
+                ->icon('heroicon-m-arrow-down-tray')
+                ->modalWidth(MaxWidth::Medium)
+                ->modalSubmitActionLabel('Generate')
+                ->form([
+                    \Filament\Forms\Components\Select::make('template_company_id')
+                        ->label('Issue Company')
+                        ->relationship('templateCompany', 'name')
+                        ->default(fn (Estimate $record) => $record->template_company_id)
+                        ->required()
+                        ->searchable()
+                        ->preload(),
+                ])
+                ->action(function (array $data) {
+                    // Update the state with the selected company ID
+                    $this->data['template_company_id'] = $data['template_company_id'];
+
+                    // Start exactly like the native save to ensure data consistency
+                    $this->authorizeAccess();
+                    $this->beginDatabaseTransaction();
+
+                    try {
+                        // 1. Retrieve & validate the form data
+                        $formData = $this->form->getState(afterValidate: function () {
+                            $this->callHook('afterValidate');
+                            $this->callHook('beforeSave');
+                        });
+
+                        // 2. Allow Filament/Page to mutate data before saving
+                        $formData = $this->mutateFormDataBeforeSave($formData);
+
+                        // 3. Update the Model using the page's handler (which also handles line items!)
+                        $this->handleRecordUpdate($this->getRecord(), $formData);
+
+                        // 4. ESSENTIAL: Save relationships (belongsToMany, repeater items built natively, etc)
+                        $this->form->model($this->getRecord())->saveRelationships();
+
+                        // 5. Post-save hooks (like syncing taxes)
+                        $this->callHook('afterSave');
+
+                        $this->commitDatabaseTransaction();
+                    } catch (\Throwable $exception) {
+                        $this->rollBackDatabaseTransaction();
+                        throw $exception;
+                    }
+
+                    $this->rememberData();
+                    
+                    // Refresh the model in-place to get all latest DB attributes & relationships
+                    $this->getRecord()->refresh();
+
+                    // Repopulate the Livewire form UI to reflect calculated backend changes
+                    $this->fillForm();
+
+                    /** @var Estimate $record */
+                    $record = $this->getRecord();
+
+                    // Generate the PDF
+                    $pdfService = new \App\Services\EstimatePdfService();
+                    $finalPdfOutput = $pdfService->generate($record);
+
+                    $filename = "Quotation-{$record->estimate_number}.pdf";
+
+                    // Return the stream download response directly from the action
+                    return response()->streamDownload(function () use ($finalPdfOutput) {
+                        echo $finalPdfOutput;
+                    }, $filename);
+                }),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     public function getMaxContentWidth(): MaxWidth | string | null
     {
         return MaxWidth::Full;
