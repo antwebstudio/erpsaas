@@ -54,7 +54,8 @@ class EstimatePdfService
         
         // Handle template company override if exists
         if ($estimate->template_company_id) {
-            $templateDefaults = DocumentDefault::where('company_id', $estimate->template_company_id)
+            $templateDefaults = DocumentDefault::withoutGlobalScopes()
+                ->where('company_id', $estimate->template_company_id)
                 ->type($documentTypeEnum)
                 ->first();
             

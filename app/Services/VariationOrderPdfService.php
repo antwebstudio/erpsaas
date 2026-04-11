@@ -54,7 +54,8 @@ class VariationOrderPdfService
         
         // Handle template company override if exists
         if ($variationOrder->template_company_id) {
-            $templateDefaults = DocumentDefault::where('company_id', $variationOrder->template_company_id)
+            $templateDefaults = DocumentDefault::withoutGlobalScopes()
+                ->where('company_id', $variationOrder->template_company_id)
                 ->type($documentTypeEnum)
                 ->first();
             
