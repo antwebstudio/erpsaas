@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\ContractResource;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 
@@ -19,6 +20,9 @@ class ContractsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return ContractResource::table($table);
+        return ContractResource::table($table)
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
+                \App\Scopes\CurrentCompanyScope::class,
+            ]));
     }
 }

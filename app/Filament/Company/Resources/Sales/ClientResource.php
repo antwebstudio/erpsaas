@@ -21,12 +21,23 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ClientResource extends Resource
 {
     use \App\Filament\Traits\HasNavigationPermission;
 
     protected static ?string $model = Client::class;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $systemCompanyId = config('erp.erp_system_company_id');
+        if ($systemCompanyId && Auth::user()?->currentCompany?->id == $systemCompanyId) {
+            return false;
+        }
+
+        return static::canViewAny();
+    }
 
     public static function form(Form $form): Form
     {

@@ -182,6 +182,7 @@ class OfferingResource extends Resource
             })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->searchable()
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('attributes')
                     ->label('Attributes')

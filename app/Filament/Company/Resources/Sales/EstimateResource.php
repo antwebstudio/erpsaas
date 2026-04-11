@@ -1165,6 +1165,7 @@ class EstimateResource extends Resource
                             ->relationship(
                                 name: 'templateCompany',
                                 titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')),
                             )
                             ->searchable()
                             ->preload()
@@ -1185,10 +1186,12 @@ class EstimateResource extends Resource
                             }),
                         Forms\Components\Textarea::make('terms')
                             ->default($settings->terms)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->hidden(fn () => config('erp.hide_document_terms', false)),
                     ]),
                 DocumentFooterSection::make('Estimate Footer')
-                    ->defaultFooter($settings->footer),
+                    ->defaultFooter($settings->footer)
+                    ->hidden(fn () => config('erp.hide_document_footer', false)),
             ]);
     }
 

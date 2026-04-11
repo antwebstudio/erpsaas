@@ -293,16 +293,44 @@ class VariationOrder extends Document
             ->visible(function (self $record) {
                 return $record->canBeApproved();
             })
-            ->form([
-                Forms\Components\Select::make('template_company_id')
-                    ->label('Issue Company')
-                    ->relationship('templateCompany', 'name')
-                    ->required()
-                    ->default(fn (self $record) => $record->template_company_id),
-            ])
-            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
-                $record->update(['template_company_id' => $data['template_company_id']]);
+            ->form(function (self $record, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
+
+                return $templateCompanyId ? [] : [
+                    Forms\Components\Select::make('template_company_id')
+                        ->label('Issue Company')
+                        ->relationship('templateCompany', 'name', fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')))
+                        ->required()
+                        ->default(fn (self $record) => $record->template_company_id),
+                ];
+            })
+            ->modalHidden(function (self $record, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
+
+                return $templateCompanyId !== null;
+            })
+            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+
+                if (! $templateCompanyId) {
+                    \Filament\Notifications\Notification::make()
+                        ->warning()
+                        ->title('Issue Company Required')
+                        ->body('Please select an issue company before approving.')
+                        ->send();
+
+                    $action->halt();
+
+                    return;
+                }
+
+                $record->update(['template_company_id' => $templateCompanyId]);
                 $record->approveDraft();
+
+                if (method_exists($livewire, 'refresh')) {
+                    $livewire->refresh();
+                }
+
                 $action->success();
             });
     }

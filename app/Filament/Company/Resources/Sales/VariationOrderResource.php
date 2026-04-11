@@ -820,6 +820,7 @@ class VariationOrderResource extends Resource
                             ->relationship(
                                 name: 'templateCompany',
                                 titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')),
                             )
                             ->searchable()
                             ->preload()
@@ -840,13 +841,16 @@ class VariationOrderResource extends Resource
                             }),
                         Forms\Components\Textarea::make('terms')
                             ->default($settings?->terms)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->hidden(fn () => config('erp.hide_document_terms', false)),
                         Forms\Components\Textarea::make('notes')
                             ->default($settings?->notes)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->hidden(fn () => config('erp.hide_document_notes', false)),
                     ]),
                 DocumentFooterSection::make('Variation Order Footer')
-                    ->defaultFooter($settings?->footer),
+                    ->defaultFooter($settings?->footer)
+                    ->hidden(fn () => config('erp.hide_document_footer', false)),
             ]);
     }
 

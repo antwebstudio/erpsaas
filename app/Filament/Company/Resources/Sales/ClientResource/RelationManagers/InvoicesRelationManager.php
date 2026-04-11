@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\InvoiceResource;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -21,6 +22,21 @@ class InvoicesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return InvoiceResource::table($table)
+            ->modifyQueryUsing(function (Builder $query, Tables\Contracts\HasTable $livewire) {
+                $query->withoutGlobalScopes([
+                    \App\Scopes\CurrentCompanyScope::class,
+                ]);
+
+                if (property_exists($livewire, 'recurringInvoice')) {
+                    $recurringInvoiceId = $livewire->recurringInvoice;
+
+                    if (! empty($recurringInvoiceId)) {
+                        $query->where('recurring_invoice_id', $recurringInvoiceId);
+                    }
+                }
+
+                return $query;
+            })
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->url(InvoiceResource\Pages\CreateInvoice::getUrl(['client' => $this->getOwnerRecord()->getKey()])),

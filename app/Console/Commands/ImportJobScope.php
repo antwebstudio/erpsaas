@@ -98,17 +98,10 @@ class ImportJobScope extends Command
 
                     switch ($type) {
                         case 1: // JobScope (Root Category)
-                            $currentJobScope = OfferingCategory::where('company_id', $companyId)
-                                ->where('name', $name)
-                                ->whereNull('parent_id')
-                                ->first();
-
-                            if (!$currentJobScope) {
-                                $currentJobScope = new OfferingCategory();
-                                $currentJobScope->company_id = $companyId;
-                                $currentJobScope->name = $name;
-                                $currentJobScope->parent_id = null;
-                            }
+                            $currentJobScope = new OfferingCategory();
+                            $currentJobScope->company_id = $companyId;
+                            $currentJobScope->name = $name;
+                            $currentJobScope->parent_id = null;
                             
                             $currentJobScope->description = $description;
                             $currentJobScope->save();
@@ -123,17 +116,10 @@ class ImportJobScope extends Command
                                 continue 2;
                             }
 
-                            $currentJobScopeDescription = OfferingCategory::where('company_id', $companyId)
-                                ->where('name', $name)
-                                ->where('parent_id', $currentJobScope->id)
-                                ->first();
-
-                            if (!$currentJobScopeDescription) {
-                                $currentJobScopeDescription = new OfferingCategory();
-                                $currentJobScopeDescription->company_id = $companyId;
-                                $currentJobScopeDescription->name = $name;
-                                $currentJobScopeDescription->parent_id = $currentJobScope->id;
-                            }
+                            $currentJobScopeDescription = new OfferingCategory();
+                            $currentJobScopeDescription->company_id = $companyId;
+                            $currentJobScopeDescription->name = $name;
+                            $currentJobScopeDescription->parent_id = $currentJobScope->id;
 
                             $currentJobScopeDescription->description = $description;
                             $currentJobScopeDescription->save();
@@ -152,16 +138,10 @@ class ImportJobScope extends Command
                             $price = $row[3] ?? 0;
                             $unit = $row[4] ?? null;
 
-                            $offering = Offering::where('company_id', $companyId)
-                                ->where('name', $name)
-                                ->first();
-
-                            if (!$offering) {
-                                $offering = new Offering();
-                                $offering->company_id = $companyId;
-                                $offering->name = $name;
-                                $offering->type = OfferingType::Service;
-                            }
+                            $offering = new Offering();
+                            $offering->company_id = $companyId;
+                            $offering->name = $name;
+                            $offering->type = OfferingType::Service;
 
                             $offering->description = $description;
                             $offering->price = $price;
@@ -172,11 +152,7 @@ class ImportJobScope extends Command
                             $offering->save();
 
                             // Link to category if not already linked
-                            if (!$offering->categories()
-                                ->where('offering_category_id', $targetCategory->id)
-                                ->exists()) {
-                                $offering->categories()->attach($targetCategory->id);
-                            }
+                            $offering->categories()->attach($targetCategory->id);
                             
                             $importCount['JobScopeOption']++;
                             break;

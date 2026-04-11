@@ -175,7 +175,7 @@
                         <tr>
                             <td class="items-td" style="width:10%;">{{ $itemIndex++ }}</td>
                             <td class="items-td" style="width:60%;">
-                                @if(!$item->isLocked)
+                                @if(config('erp.hide_item_name', false) && !$item->isLocked)
                                     <strong>{{ $item->name }}</strong><br>
                                 @endif
                                 {!! nl2br(e($item->description)) !!}

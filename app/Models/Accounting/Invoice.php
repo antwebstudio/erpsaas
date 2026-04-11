@@ -104,12 +104,12 @@ class Invoice extends Document
 
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withoutGlobalScopes();
     }
 
     public function clientAndLead(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id');
+        return $this->belongsTo(\App\Models\Common\ClientAndLead::class, 'client_id')->withoutGlobalScopes();
     }
 
     public function estimate(): BelongsTo

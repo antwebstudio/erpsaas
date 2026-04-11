@@ -239,19 +239,22 @@ class Client extends Model
 
     public function contacts(): MorphMany
     {
-        return $this->morphMany(Contact::class, 'contactable');
+        return $this->morphMany(Contact::class, 'contactable')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function primaryContact(): MorphOne
     {
         return $this->morphOne(Contact::class, 'contactable')
-            ->where('is_primary', true);
+            ->where('is_primary', true)
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function secondaryContacts(): MorphMany
     {
         return $this->morphMany(Contact::class, 'contactable')
-            ->where('is_primary', false);
+            ->where('is_primary', false)
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function currency(): BelongsTo
@@ -261,45 +264,53 @@ class Client extends Model
 
     public function addresses(): MorphMany
     {
-        return $this->morphMany(Address::class, 'addressable');
+        return $this->morphMany(Address::class, 'addressable')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function billingAddress(): MorphOne
     {
         return $this->morphOne(Address::class, 'addressable')
-            ->where('type', AddressType::Billing);
+            ->where('type', AddressType::Billing)
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function shippingAddress(): MorphOne
     {
         return $this->morphOne(Address::class, 'addressable')
-            ->where('type', AddressType::Shipping);
+            ->where('type', AddressType::Shipping)
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function estimates(): HasMany
     {
-        return $this->hasMany(Estimate::class, 'client_id');
+        return $this->hasMany(Estimate::class, 'client_id')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function invoices(): HasMany
     {
-        return $this->hasMany(Invoice::class, 'client_id');
+        return $this->hasMany(Invoice::class, 'client_id')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function recurringInvoices(): HasMany
     {
-        return $this->hasMany(RecurringInvoice::class, 'client_id');
+        return $this->hasMany(RecurringInvoice::class, 'client_id')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function variationOrders(): HasMany
     {
-        return $this->hasMany(\App\Models\Accounting\VariationOrder::class, 'client_id');
+        return $this->hasMany(\App\Models\Accounting\VariationOrder::class, 'client_id')
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 
     public function contracts(): HasMany
     {
         return $this->hasMany(\App\Models\Accounting\Contract::class, 'client_id')
             ->where('status', \App\Enums\Accounting\EstimateStatus::Accepted)
-            ->isNotTemplate();
+            ->isNotTemplate()
+            ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
 }

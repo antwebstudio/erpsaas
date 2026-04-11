@@ -9,6 +9,7 @@ use App\Models\Accounting\Estimate;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\MaxWidth;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class EditEstimate extends EditRecord
@@ -157,18 +158,31 @@ class EditEstimate extends EditRecord
                 ->icon('heroicon-m-arrow-down-tray')
                 ->modalWidth(MaxWidth::Medium)
                 ->modalSubmitActionLabel('Generate')
-                ->form([
+                ->form(fn (Estimate $record) => ($this->data['template_company_id'] ?? $record->template_company_id) ? [] : [
                     \Filament\Forms\Components\Select::make('template_company_id')
                         ->label('Issue Company')
-                        ->relationship('templateCompany', 'name')
+                        ->relationship('templateCompany', 'name', fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')))
                         ->default(fn (Estimate $record) => $record->template_company_id)
                         ->required()
                         ->searchable()
                         ->preload(),
                 ])
-                ->action(function (array $data) {
+                ->modalHidden(fn (Estimate $record) => ($this->data['template_company_id'] ?? $record->template_company_id) !== null)
+                ->action(function (array $data, Estimate $record) {
+                    $templateCompanyId = $data['template_company_id'] ?? ($this->data['template_company_id'] ?? $record->template_company_id);
+
+                    if (! $templateCompanyId) {
+                        \Filament\Notifications\Notification::make()
+                            ->warning()
+                            ->title('Issue Company Required')
+                            ->body('Please select an issue company before generating quotation.')
+                            ->send();
+
+                        return;
+                    }
+
                     // Update the state with the selected company ID
-                    $this->data['template_company_id'] = $data['template_company_id'];
+                    $this->data['template_company_id'] = $templateCompanyId;
 
                     // Start exactly like the native save to ensure data consistency
                     $this->authorizeAccess();

@@ -332,6 +332,14 @@ class LeadResource extends Resource
                             'client' => $record->id,
                         ]))
                         ->openUrlInNewTab(false),
+                    Tables\Actions\Action::make('create_variation_order')
+                        ->label('Create Variation Order')
+                        ->icon('heroicon-o-document-plus')
+                        ->url(fn (Lead $record) => VariationOrderResource::getUrl('create', [
+                            'tenant' => \Filament\Facades\Filament::getTenant(),
+                            'client' => $record->id,
+                        ]))
+                        ->openUrlInNewTab(false),
                     Tables\Actions\DeleteAction::make(),
                 ]),
             ])

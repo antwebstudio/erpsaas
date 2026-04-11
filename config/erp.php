@@ -7,6 +7,11 @@ return [
     'hide_estimate_in_navigation' => env('HIDE_ESTIMATE_IN_NAVIGATION', false),
     'hide_contract_in_navigation' => env('HIDE_CONTRACT_IN_NAVIGATION', false),
     'require_lead_email_and_contact' => env('REQUIRE_LEAD_EMAIL_AND_CONTACT', false),
+    'hide_item_name' => env('HIDE_ITEM_NAME', false),
+    'hide_document_terms' => env('HIDE_DOCUMENT_TERMS', false),
+    'hide_document_notes' => env('HIDE_DOCUMENT_NOTES', false),
+    'hide_document_footer' => env('HIDE_DOCUMENT_FOOTER', false),
+    'erp_system_company_id' => env('ERP_SYSTEM_COMPANY_ID'),
 ];
 
 
