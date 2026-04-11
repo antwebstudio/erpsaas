@@ -769,6 +769,7 @@ class EstimateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live()
+                                                    ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
@@ -1051,6 +1052,7 @@ class EstimateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live()
+                                                    ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)

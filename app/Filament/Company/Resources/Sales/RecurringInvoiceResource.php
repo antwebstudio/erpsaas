@@ -230,6 +230,7 @@ class RecurringInvoiceResource extends Resource
                                     ->hiddenLabel()
                                     ->money(useAffix: false)
                                     ->live()
+                                    ->required()
                                     ->default(0),
                                 Forms\Components\Group::make([
                                     CreateAdjustmentSelect::make('salesTaxes')

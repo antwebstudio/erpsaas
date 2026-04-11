@@ -264,6 +264,7 @@ class EstimateTemplateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live()
+                                                    ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
                                                     CreateAdjustmentSelect::make('salesTaxes')
@@ -845,6 +846,7 @@ class EstimateTemplateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live()
+                                                    ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
                                                     CreateAdjustmentSelect::make('salesTaxes')
