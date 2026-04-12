@@ -73,7 +73,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     {
         $sessionCompanyId = getPermissionsTeamId();
         setPermissionsTeamId($companyId);
-        $roles = $this->roles()->get();
+        $roles = $this->roles()->withoutGlobalScopes()->get();
         setPermissionsTeamId($sessionCompanyId);
         return $roles;
     }

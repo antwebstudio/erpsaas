@@ -11,7 +11,7 @@ class LeadPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::lead');
+        return $user->can('view_any_sales::lead') || $user->can('view_mine_sales::lead');
     }
 
     /**
@@ -19,7 +19,15 @@ class LeadPolicy
      */
     public function view(User $user, $model): bool
     {
-        return $user->can('view_sales::lead');
+        if ($user->can('view_sales::lead')) {
+            return true;
+        }
+
+        if ($user->can('view_mine_sales::lead') && $model->created_by === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

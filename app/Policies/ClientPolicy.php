@@ -12,7 +12,7 @@ class ClientPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::client') || $user->can('view_any_sales::all::client');
+        return $user->can('view_any_sales::client') || $user->can('view_any_sales::all::client') || $user->can('view_mine_sales::client') || $user->can('view_mine_sales::all::client');
     }
 
     /**
@@ -20,7 +20,15 @@ class ClientPolicy
      */
     public function view(User $user, Client $model): bool
     {
-        return $user->can('view_sales::client') || $user->can('view_sales::all::client');
+        if ($user->can('view_sales::client') || $user->can('view_sales::all::client')) {
+            return true;
+        }
+
+        if (($user->can('view_mine_sales::client') || $user->can('view_mine_sales::all::client')) && $model->created_by === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

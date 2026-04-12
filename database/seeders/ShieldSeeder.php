@@ -65,7 +65,7 @@ class ShieldSeeder extends Seeder
         ];
 
         $prefixes = config('filament-shield.permission_prefixes.resource', [
-            'view', 'view_any', 'create', 'update', 'restore', 'restore_any', 
+            'view', 'view_any', 'view_mine', 'create', 'update', 'update_any', 'restore', 'restore_any', 
             'replicate', 'reorder', 'delete', 'delete_any', 'force_delete', 'force_delete_any'
         ]);
 
@@ -131,6 +131,8 @@ class ShieldSeeder extends Seeder
             ]);
         }
 
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
         $allPermissions = Permission::all();
         $companies = Company::all();
 
@@ -158,6 +160,43 @@ class ShieldSeeder extends Seeder
 
             $adminRole->syncPermissions($adminPermissions);
             $this->command->info("Admin role and permissions synced for company: {$company->name}");
+
+            $salesRole = Role::firstOrCreate([
+                'name' => 'Sales',
+                'guard_name' => 'web',
+                'company_id' => $company->id,
+            ]);
+
+            $salesPermissions = array_merge($pagePermissions, [
+                'view_mine_sales::lead',
+                'view_sales::lead',
+                'create_sales::lead',
+                'update_sales::lead',
+                'delete_sales::lead',
+                'view_mine_sales::client',
+                'view_sales::client',
+                'create_sales::client',
+                'update_sales::client',
+                'delete_sales::client',
+                'view_mine_sales::all::client',
+                'view_sales::all::client',
+                'create_sales::all::client',
+                'update_sales::all::client',
+                'delete_sales::all::client',
+                'view_mine_sales::estimate',
+                'view_sales::estimate',
+                'create_sales::estimate',
+                'update_sales::estimate',
+                'delete_sales::estimate',
+                'view_mine_sales::variation::order',
+                'view_sales::variation::order',
+                'create_sales::variation::order',
+                'update_sales::variation::order',
+                'delete_sales::variation::order',
+            ]);
+
+            $salesRole->syncPermissions($salesPermissions);
+            $this->command->info("Sales role and permissions synced for company: {$company->name}");
         }
 
         // Create/Assign user
@@ -243,6 +282,35 @@ class ShieldSeeder extends Seeder
 
             $companyAdmin->assignRolesForCompany($company->id, 'Admin');
             $this->command->info("User {$companyAdminEmail} assigned the Admin role exclusively for company: {$company->name}");
+        }
+
+        // Create 2 Sales users
+        foreach (['sales1@erpsaas.com', 'sales2@erpsaas.com'] as $index => $salesEmail) {
+            $salesUser = User::where('email', $salesEmail)->first();
+            
+            if (!$salesUser) {
+                $salesUser = User::create([
+                    'name' => 'Sales User ' . ($index + 1),
+                    'email' => $salesEmail,
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'current_company_id' => 1,
+                ]);
+                $this->command->info("User {$salesEmail} created.");
+            }
+
+            if ($firstCompany && !$salesUser->current_company_id) {
+                $salesUser->switchCompany($firstCompany);
+            }
+
+            foreach ($companies as $company) {
+                if (!$salesUser->belongsToCompany($company)) {
+                    $salesUser->companies()->attach($company, ['role' => 'user']);
+                }
+
+                $salesUser->assignRolesForCompany($company->id, 'Sales');
+                $this->command->info("User {$salesEmail} assigned the Sales role in company: {$company->name}");
+            }
         }
     }
 }

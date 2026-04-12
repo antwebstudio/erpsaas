@@ -22,6 +22,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class LeadResource extends Resource
 {
@@ -354,6 +355,17 @@ class LeadResource extends Resource
             RelationManagers\EstimatesRelationManager::class,
             RelationManagers\VariationOrdersRelationManager::class,
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (Auth::user()->can('view_mine_sales::lead') && !Auth::user()->can('view_any_sales::lead')) {
+            $query->where('created_by', Auth::id());
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

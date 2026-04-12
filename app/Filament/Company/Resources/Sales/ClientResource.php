@@ -347,6 +347,17 @@ class ClientResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (Auth::user()->can('view_mine_sales::client') && !Auth::user()->can('view_any_sales::client')) {
+            $query->where('created_by', Auth::id());
+        }
+
+        return $query;
+    }
+
     public static function getPages(): array
     {
         return [

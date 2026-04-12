@@ -37,8 +37,10 @@ return [
         'resource' => [
             'view',
             'view_any',
+            'view_mine',
             'create',
             'update',
+            'update_any',
             'restore',
             'restore_any',
             'replicate',

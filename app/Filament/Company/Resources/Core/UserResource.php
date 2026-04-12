@@ -50,13 +50,50 @@ class UserResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $context): bool => $context === 'create'),
-                        Forms\Components\CheckboxList::make('roles')
-                            ->label('Roles')
-                            ->relationship('roles', 'name')
-                            ->searchable(),
                         Forms\Components\CheckboxList::make('companies')
                             ->relationship('companies', 'name')
-                            ->searchable(),
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, $old) {
+                                $newCompanies = array_diff($state ?? [], $old ?? []);
+                                foreach ($newCompanies as $companyId) {
+                                    $set("company_roles_{$companyId}", []);
+                                }
+                            }),
+                        Forms\Components\Group::make()
+                            ->schema(fn (Forms\Get $get, ?\App\Models\User $record): array => collect($get('companies') ?? [])
+                                ->map(function ($companyId) use ($record) {
+                                    $company = \App\Models\Company::find($companyId);
+                                    if (! $company) {
+                                        return null;
+                                    }
+                                    return Forms\Components\CheckboxList::make("company_roles_{$company->id}")
+                                        ->label("Roles in {$company->name}")
+                                        ->default([])
+                                        ->options(\Spatie\Permission\Models\Role::withoutGlobalScopes()->where('company_id', $company->id)->orWhereNull('company_id')->pluck('name', 'id'))
+                                        ->afterStateHydrated(function (Forms\Components\CheckboxList $component, ?\App\Models\User $record) use ($company) {
+                                            if ($record) {
+                                                $component->state($record->getRolesForCompany($company->id)->pluck('id')->map(fn ($id) => (string) $id)->toArray());
+                                            }
+                                        })
+                                        ->dehydrated(false)
+                                        ->saveRelationshipsUsing(function (\App\Models\User $record, $state) use ($company) {
+                                            $sessionCompanyId = getPermissionsTeamId();
+                                            setPermissionsTeamId($company->id);
+                                            
+                                            $roleIds = is_array($state) ? $state : [];
+                                            $roles = \Spatie\Permission\Models\Role::withoutGlobalScopes()
+                                                        ->whereIn('id', $roleIds)
+                                                        ->get();
+                                                        
+                                            $record->syncRoles($roles);
+                                            
+                                            setPermissionsTeamId($sessionCompanyId);
+                                        });
+                                })
+                                ->filter()
+                                ->toArray()
+                            ),
                     ]),
             ]);
     }

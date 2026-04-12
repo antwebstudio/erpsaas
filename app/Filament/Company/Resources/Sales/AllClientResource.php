@@ -5,6 +5,8 @@ namespace App\Filament\Company\Resources\Sales;
 use App\Filament\Company\Resources\Sales\AllClientResource\Pages;
 use App\Models\Common\AllClient;
 use Filament\Tables;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class AllClientResource extends ClientResource
 {
@@ -37,6 +39,17 @@ class AllClientResource extends ClientResource
                     ->sortable(),
                 ...$parentTable->getColumns(),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (Auth::user()->can('view_mine_sales::all::client') && !Auth::user()->can('view_any_sales::all::client')) {
+            $query->where('created_by', Auth::id());
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

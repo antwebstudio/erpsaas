@@ -40,7 +40,11 @@ class EstimatePolicy
             return false;
         }
 
-        return true;
+        if ($user->can('update_any_sales::estimate')) {
+            return true;
+        }
+
+        return $user->can('update_sales::estimate') && $estimate->created_by === $user->id;
     }
 
     /**
