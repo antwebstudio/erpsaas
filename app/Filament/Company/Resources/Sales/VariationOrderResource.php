@@ -48,10 +48,19 @@ class VariationOrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 CurrentCompanyScope::class,
             ]);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        // Users with only view_mine should only see their own variation orders
+        if ($user && ! $user->can('view_any_sales::variation::order') && $user->can('view_mine_sales::variation::order')) {
+            $query->where('created_by', $user->id);
+        }
+
+        return $query;
     }
 
     protected static ?string $modelLabel = 'Variation Order';

@@ -12,7 +12,8 @@ class EstimatePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::estimate');
+        return $user->can('view_any_sales::estimate')
+            || $user->can('view_mine_sales::estimate');
     }
 
     /**
@@ -20,7 +21,11 @@ class EstimatePolicy
      */
     public function view(User $user, Estimate $model): bool
     {
-        return $user->can('view_sales::estimate');
+        if ($user->can('view_any_sales::estimate') || $user->can('view_sales::estimate')) {
+            return true;
+        }
+
+        return $user->can('view_mine_sales::estimate') && $this->isOwnedByUser($user, $model);
     }
 
     /**
@@ -44,7 +49,7 @@ class EstimatePolicy
             return true;
         }
 
-        return $user->can('update_sales::estimate') && $estimate->created_by === $user->id;
+        return $user->can('update_sales::estimate') && $this->isOwnedByUser($user, $estimate);
     }
 
     /**
@@ -69,5 +74,21 @@ class EstimatePolicy
     public function forceDelete(User $user, Estimate $model): bool
     {
         return $user->can('force_delete_sales::estimate');
+    }
+
+    /**
+     * Check if the user owns the estimate (created the estimate or created the associated client).
+     */
+    protected function isOwnedByUser(User $user, Estimate $estimate): bool
+    {
+        if ($estimate->created_by === $user->id) {
+            return true;
+        }
+
+        if ($estimate->client_id && $estimate->clientAndLead?->created_by === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 }

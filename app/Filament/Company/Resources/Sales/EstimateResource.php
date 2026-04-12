@@ -61,6 +61,24 @@ class EstimateResource extends Resource
         return static::canViewAny();
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = Auth::user();
+
+        // Users with only view_mine should only see estimates they created or issued to their clients
+        if ($user && ! $user->can('view_any_sales::estimate') && $user->can('view_mine_sales::estimate')) {
+            $query->where(function (Builder $q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
+                      $q->where('created_by', $user->id);
+                  });
+            });
+        }
+
+        return $query;
+    }
 
     public static function form(Form $form): Form
     {
