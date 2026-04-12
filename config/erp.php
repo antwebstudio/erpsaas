@@ -12,6 +12,10 @@ return [
     'hide_document_notes' => env('HIDE_DOCUMENT_NOTES', false),
     'hide_document_footer' => env('HIDE_DOCUMENT_FOOTER', false),
     'erp_system_company_id' => env('ERP_SYSTEM_COMPANY_ID'),
+    'allow_edit_group_header' => env('ALLOW_EDIT_GROUP_HEADER', false),
+    'allow_edit_sub_group_header' => env('ALLOW_EDIT_SUB_GROUP_HEADER', false),
+    'hide_add_item_for_group' => env('HIDE_ADD_ITEM_FOR_GROUP', false),
+    'hide_add_item_for_sub_group' => env('HIDE_ADD_ITEM_FOR_SUB_GROUP', false),
 ];
 
 

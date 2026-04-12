@@ -816,6 +816,7 @@ class Estimate extends Document
     {
         $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;
         $userId ??= \Illuminate\Support\Facades\Auth::id();
+        $currencyCode = \App\Utilities\Currency\CurrencyAccessor::getDefaultCurrency();
 
         if ($estimateId) {
             $estimate = self::findOrFail($estimateId);
@@ -829,7 +830,7 @@ class Estimate extends Document
                 'client_id' => $clientId,
                 'header' => $template->header,
                 'subheader' => $template->subheader,
-                'currency_code' => $template->currency_code,
+                'currency_code' => $currencyCode,
                 'discount_method' => $template->discount_method,
                 'discount_computation' => $template->discount_computation,
                 'discount_rate' => $template->discount_rate,
@@ -864,6 +865,7 @@ class Estimate extends Document
             $estimate->status = EstimateStatus::Draft;
             $estimate->date = now();
             $estimate->expiration_date = now()->addDays(30);
+            $estimate->currency_code = $currencyCode;
             $estimate->created_by = $userId;
             $estimate->updated_by = $userId;
             $estimate->save();

@@ -73,7 +73,7 @@
             <div class="mt-auto pt-4">
                 <x-filament::button
                     tag="a"
-                    :href="\App\Filament\Company\Resources\Sales\LeadResource::getUrl('index', ['tenant' => $this->getCompanies()->first()])"
+                    :href="\App\Filament\Company\Resources\Sales\LeadResource::getUrl('index', ['tenant' => $this->getSystemCompany() ?? $this->getCompanies()->first()])"
                     class="w-full"
                     color="warning"
                 >
@@ -98,7 +98,7 @@
             <div class="mt-auto pt-4">
                 <x-filament::button
                     tag="a"
-                    :href="\App\Filament\Company\Resources\Sales\ClientResource::getUrl('index', ['tenant' => filament()->getTenant()])"
+                    :href="\App\Filament\Company\Resources\Sales\AllClientResource::getUrl('index', ['tenant' => $this->getSystemCompany() ?? filament()->getTenant()])"
                     class="w-full"
                     color="success"
                 >

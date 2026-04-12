@@ -21,6 +21,23 @@ class WelcomePage extends Page
         /** @var \App\Models\User $user */
         $user = filament()->auth()->user();
 
-        return $user->allCompanies();
+        $companies = $user->allCompanies();
+
+        if ($erpSystemCompanyId = config('erp.erp_system_company_id')) {
+            $companies = $companies->reject(fn ($company) => $company->id == $erpSystemCompanyId);
+        }
+
+        return $companies;
+    }
+
+    public function getSystemCompany()
+    {
+        $erpSystemCompanyId = config('erp.erp_system_company_id');
+
+        if (! $erpSystemCompanyId) {
+            return null;
+        }
+
+        return \App\Models\Company::find($erpSystemCompanyId);
     }
 }

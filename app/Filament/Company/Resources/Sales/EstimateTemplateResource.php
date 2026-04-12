@@ -127,7 +127,7 @@ class EstimateTemplateResource extends Resource
                                 Forms\Components\Hidden::make('offering_category_id'),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Section Name (Optional)')
-                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_group_header', false))
                                     ->dehydrated(true)
                                     ->dehydratedWhenHidden()
                                     ->placeholder('e.g. Materials, Labor')
@@ -146,6 +146,7 @@ class EstimateTemplateResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
+                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -430,6 +431,7 @@ class EstimateTemplateResource extends Resource
                                                                 ->schema([
                                                                     Forms\Components\CheckboxList::make("job_scopes_root")
                                                                         ->hiddenLabel()
+                                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                                         ->searchable(false)
                                                                         ->bulkToggleable()
                                                                         ->options(function (Forms\Get $get) use ($rootOfferings) {
@@ -479,6 +481,7 @@ class EstimateTemplateResource extends Resource
                                                                 ->schema([
                                                                     Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
                                                                         ->hiddenLabel()
+                                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                                         ->searchable(false)
                                                                         ->bulkToggleable()
                                                                         ->options(function (Forms\Get $get) use ($allOfferings) {
@@ -695,6 +698,7 @@ class EstimateTemplateResource extends Resource
                                             ]),
                                 // Nested child groups
                                 Forms\Components\Repeater::make('children')
+                                    ->extraAttributes(['class' => 'item-group-sub'])
                                     ->relationship('children')
                                     ->saveRelationshipsUsing(null)
                                     ->dehydrated(true)
@@ -711,7 +715,7 @@ class EstimateTemplateResource extends Resource
                                         Forms\Components\Hidden::make('parent_id'),
                                         Forms\Components\TextInput::make('name')
                                             ->label('Sub-Section Name')
-                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')))
+                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
                                             ->dehydrated(true)
                                             ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Foundation, Framing')
@@ -728,6 +732,7 @@ class EstimateTemplateResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
+                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -973,6 +978,7 @@ class EstimateTemplateResource extends Resource
                                                         return [
                                                             Forms\Components\CheckboxList::make('job_scopes')
                                                                 ->hiddenLabel()
+                                                                ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                                 ->options($offerings->pluck('name', 'id'))
                                                                 ->bulkToggleable()
                                                                 ->searchable(),
@@ -1102,6 +1108,7 @@ class EstimateTemplateResource extends Resource
                         $replica->status = EstimateStatus::Draft;
                         $replica->estimate_number = Estimate::getNextDocumentNumber();
                         $replica->date = company_today();
+                        $replica->currency_code = \App\Utilities\Currency\CurrencyAccessor::getDefaultCurrency();
                         // Expiration date logic
                         $settings = Auth::user()->currentCompany->defaultEstimate;
                         $replica->expiration_date = company_today()->addDays($settings->payment_terms->getDays());

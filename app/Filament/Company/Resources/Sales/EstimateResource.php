@@ -78,7 +78,7 @@ class EstimateResource extends Resource
                         Forms\Components\Split::make([
                             Forms\Components\Group::make([
                                 CreateClientSelect::make('client_id')
-                                    ->label('Client')
+                                    ->label('Lead')
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
@@ -598,6 +598,7 @@ class EstimateResource extends Resource
                             ->saveRelationshipsUsing(null)
                             ->dehydrated(true)
                             ->orderColumn('order')
+                            ->extraAttributes(['class' => 'item-group-darker'])
                             ->defaultItems(1)
                             ->label('Item Groups')
                             ->hiddenLabel()
@@ -607,7 +608,7 @@ class EstimateResource extends Resource
                                 Forms\Components\Hidden::make('offering_category_id'),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Section Name (Optional)')
-                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_group_header', false))
                                     ->dehydrated(true)
                                     ->dehydratedWhenHidden()
                                     ->placeholder('e.g. Materials, Labor')
@@ -626,6 +627,7 @@ class EstimateResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
+                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -873,7 +875,7 @@ class EstimateResource extends Resource
                                             ]),
                                         // Nested child groups
                                 Forms\Components\Repeater::make('children')
-                                    ->extraAttributes(['class' => 'item-group-darker'])
+                                    ->extraAttributes(['class' => 'item-group-sub'])
                                     ->relationship('children')
                                     ->saveRelationshipsUsing(null)
                                     ->dehydrated(true)
@@ -888,7 +890,7 @@ class EstimateResource extends Resource
                                         Forms\Components\Hidden::make('parent_id'),
                                         Forms\Components\TextInput::make('name')
                                             ->label('Sub-Section Name')
-                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')))
+                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
                                             ->dehydrated(true)
                                             ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Foundation, Framing')
@@ -905,6 +907,7 @@ class EstimateResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
+                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -1230,7 +1233,8 @@ class EstimateResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('client.name')
+                 Tables\Columns\TextColumn::make('clientAndLead.name')
+                    ->label('Lead')
                     ->sortable()
                     ->searchable()
                     ->hiddenOn(EstimatesRelationManager::class),
@@ -1241,7 +1245,8 @@ class EstimateResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('client')
-                    ->relationship('client', 'name')
+                    ->label('Lead')
+                    ->relationship('clientAndLead', 'name')
                     ->searchable()
                     ->preload()
                     ->hiddenOn(EstimatesRelationManager::class),

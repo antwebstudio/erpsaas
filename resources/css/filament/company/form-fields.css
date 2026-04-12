@@ -24,6 +24,14 @@
         @apply ring-1 ring-gray-950/10 dark:ring-white/10;
         
         .fi-fo-repeater-item-header {
+            @apply bg-gray-400 dark:bg-white/25;
+        }
+    }
+
+    .item-group-sub .fi-fo-repeater-item {
+        @apply ring-1 ring-gray-950/10 dark:ring-white/10;
+        
+        .fi-fo-repeater-item-header {
             @apply bg-gray-300 dark:bg-white/15;
         }
     }
@@ -179,19 +187,32 @@
     padding-right: 0 !important;
 }
 
-.job-scope-checkbox-list label,
-.job-scope-checkbox-list .fi-fo-checkbox-list-option-label {
-    @apply transition-colors duration-200 rounded-lg px-2 py-0 cursor-pointer border border-transparent !important;
-    @apply flex items-center gap-1.5 !important;
+/* Override Filament's default Grid item padding and gap to condense the list */
+.job-scope-checkbox-list.fi-fo-checkbox-list {
+    @apply gap-2 mt-2 !important;
 }
 
-.job-scope-checkbox-list label:hover,
-.job-scope-checkbox-list .fi-fo-checkbox-list-option-label:hover {
-    @apply bg-gray-950 dark:bg-white border-gray-950 dark:border-white !important;
-    
-    &, * {
-        @apply text-white dark:text-gray-950 !important;
-    }
+.job-scope-checkbox-list > div.break-inside-avoid,
+.job-scope-checkbox-list > div {
+    @apply pt-0 pb-0 mb-0 !important;
+}
+
+/* Target ONLY the label, not the span which shares the exact same class in Filament v3 */
+.job-scope-checkbox-list label.fi-fo-checkbox-list-option-label {
+    @apply transition-colors duration-200 rounded p-1.5 mb-0 cursor-pointer border border-gray-200 dark:border-gray-700 !important;
+    @apply flex items-start gap-2 !important;
+}
+
+.job-scope-checkbox-list label.fi-fo-checkbox-list-option-label span.fi-fo-checkbox-list-option-label {
+    @apply font-bold mt-0.5 text-xs !important;
+}
+
+.job-scope-checkbox-list label.fi-fo-checkbox-list-option-label:hover {
+    @apply bg-gray-900 dark:bg-gray-100 border-gray-900 dark:border-gray-100 !important;
+}
+
+.job-scope-checkbox-list label.fi-fo-checkbox-list-option-label:hover span.fi-fo-checkbox-list-option-label {
+    @apply text-white dark:text-gray-900 !important;
 }
 
 .job-scope-section .fi-section-header {

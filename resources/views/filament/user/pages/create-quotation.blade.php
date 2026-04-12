@@ -42,16 +42,15 @@
             <!-- Templates Section -->
             <div x-show="data.templates && data.templates.length > 0" class="mb-8">
                 <h3 class="text-lg font-bold mb-3 text-gray-800 dark:text-gray-200">Start from a Template</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4">
                     <template x-for="(template, index) in data.templates" :key="template.id">
                         <label 
                             :class="template.selected ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'"
                             class="relative flex flex-col p-4 border rounded-xl cursor-pointer hover:border-indigo-500 transition-all shadow-sm">
-                            <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start justify-between">
                                 <span class="font-bold text-base" x-text="template.name"></span>
                                 <input type="checkbox" x-model="template.selected" @change="toggleTemplate(index)" class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                             </div>
-                            <p class="text-xs opacity-80" x-text="template.description || 'No description'"></p>
                         </label>
                     </template>
                 </div>

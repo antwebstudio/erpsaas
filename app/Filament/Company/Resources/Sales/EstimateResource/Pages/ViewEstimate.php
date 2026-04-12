@@ -5,6 +5,7 @@ namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
 use App\Enums\Accounting\DocumentType;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Infolists\Components\BannerEntry;
 use App\Filament\Infolists\Components\DocumentPreview;
 use App\Models\Accounting\Estimate;
@@ -96,9 +97,21 @@ class ViewEstimate extends ViewRecord
                                 TextEntry::make('company.name')
                                     ->label('Issuing Company')
                                     ->getStateUsing(fn (Estimate $record) => $record->templateCompany?->name ?? $record->company->name),
-                                TextEntry::make('client.name')
-                                    ->label('Client')
-                                    ->url(static fn (Estimate $record) => $record->client_id ? ClientResource::getUrl('view', ['record' => $record->client_id]) : null)
+                                TextEntry::make('clientAndLead.name')
+                                    ->label('Lead')
+                                    ->url(static function (Estimate $record) {
+                                        if (! $record->client_id) {
+                                            return null;
+                                        }
+
+                                        $client = $record->clientAndLead;
+
+                                        if ($client && $client->type === 'client') {
+                                            return ClientResource::getUrl('view', ['record' => $record->client_id]);
+                                        }
+
+                                        return LeadResource::getUrl('view', ['record' => $record->client_id]);
+                                    })
                                     ->link(),
                                 TextEntry::make('expiration_date')
                                     ->label('Expiration date')

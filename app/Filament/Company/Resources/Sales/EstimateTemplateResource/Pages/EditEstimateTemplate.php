@@ -35,6 +35,7 @@ class EditEstimateTemplate extends EditRecord
                 ->form([
                     CheckboxList::make('categories')
                         ->label('Work Scopes')
+                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                         ->searchable()
                         ->bulkToggleable()
                         ->columns(2)

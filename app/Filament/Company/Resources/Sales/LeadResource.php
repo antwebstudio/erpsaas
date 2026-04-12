@@ -65,16 +65,16 @@ class LeadResource extends Resource
                                     ->default(true),
                                 Forms\Components\TextInput::make('first_name')
                                     ->label('First name')
-                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
+                                    ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('last_name')
                                     ->label('Last name')
-                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
+                                    ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('email')
                                     ->label('Email')
                                     ->email()
-                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
+                                    ->required()
                                     ->columnSpanFull()
                                     ->maxLength(255),
                                 PhoneBuilder::make('phones')
@@ -89,7 +89,7 @@ class LeadResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('number')
                                                     ->label('Phone')
-                                                    ->required(fn () => config('erp.require_lead_email_and_contact', false))
+                                                    ->required()
                                                     ->maxLength(15),
                                             ])->maxItems(1),
 

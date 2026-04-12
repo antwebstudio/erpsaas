@@ -229,7 +229,7 @@ class VariationOrderResource extends Resource
                                 Forms\Components\Hidden::make('offering_category_id'),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Section Name (Optional)')
-                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')))
+                                    ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_group_header', false))
                                     ->dehydrated(true)
                                     ->dehydratedWhenHidden()
                                     ->placeholder('e.g. Materials, Labor')
@@ -237,6 +237,7 @@ class VariationOrderResource extends Resource
 
                                 // Nested child groups (Sub-Groups)
                                 Forms\Components\Repeater::make('children')
+                                    ->extraAttributes(['class' => 'item-group-sub'])
                                     ->relationship('children')
                                     ->saveRelationshipsUsing(null)
                                     ->dehydrated(true)
@@ -251,7 +252,7 @@ class VariationOrderResource extends Resource
                                         Forms\Components\Hidden::make('parent_id'),
                                         Forms\Components\TextInput::make('name')
                                             ->label('Sub-Section Name')
-                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')))
+                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
                                             ->dehydrated(true)
                                             ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Foundation, Framing')
@@ -268,6 +269,7 @@ class VariationOrderResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
+                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -472,6 +474,7 @@ class VariationOrderResource extends Resource
 
                                                         $schema[] = Forms\Components\CheckboxList::make('job_scopes')
                                                             ->label('Select Offerings')
+                                                            ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                             ->options($offerings->pluck('name', 'id')->toArray())
                                                             ->searchable()
                                                             ->bulkToggleable();
@@ -548,6 +551,7 @@ class VariationOrderResource extends Resource
                                     ->reorderAtStart()
                                     ->cloneable()
                                     ->addActionLabel('Add an item')
+                                    ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
                                     ->headers(function (Forms\Get $get) use ($settings) {
                                         $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
                                         $hasDiscounts = $discountMethod->isPerLineItem();
@@ -752,6 +756,7 @@ class VariationOrderResource extends Resource
 
                                                 $schema[] = Forms\Components\CheckboxList::make('job_scopes')
                                                     ->label('Select Offerings')
+                                                    ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                     ->options($offerings->pluck('name', 'id')->toArray())
                                                     ->searchable()
                                                     ->bulkToggleable();

@@ -42,6 +42,7 @@ class CreateEstimateTemplate extends CreateRecord
                 ->form([
                     CheckboxList::make('categories')
                         ->label('Work Scopes')
+                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                         ->searchable()
                         ->bulkToggleable()
                         ->columns(2)
