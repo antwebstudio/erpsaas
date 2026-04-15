@@ -63,7 +63,14 @@ class EstimateResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with([
+                'lineItemGroups.items.salesTaxes',
+                'lineItemGroups.items.salesDiscounts',
+                'lineItemGroups.children.items.salesTaxes',
+                'lineItemGroups.children.items.salesDiscounts',
+                'salesTaxes',
+            ]);
 
         $user = Auth::user();
 
@@ -98,7 +105,7 @@ class EstimateResource extends Resource
                                 CreateClientSelect::make('client_id')
                                     ->label('Lead')
                                     ->required()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
                                         if (! $state) {
                                             return;
@@ -120,7 +127,7 @@ class EstimateResource extends Resource
                                 Cluster::make([
                                     Forms\Components\DatePicker::make('date')
                                         ->label('Estimate date')
-                                        ->live()
+                                        ->live(onBlur: true)
                                         ->default(company_today()->toDateString())
                                         ->columnSpan(2)
                                         ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
@@ -151,7 +158,7 @@ class EstimateResource extends Resource
                                         })
                                         ->selectablePlaceholder(false)
                                         ->default($settings->payment_terms->value)
-                                        ->live()
+                                        ->live(onBlur: true)
                                         ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
                                             if (! $state || $state === 'custom') {
                                                 return;
@@ -175,7 +182,7 @@ class EstimateResource extends Resource
                                     ->minDate(static function (Forms\Get $get) {
                                         return Carbon::parse($get('date'))->toDateString() ?? company_today()->toDateString();
                                     })
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state) {
                                         if (! $state) {
                                             return;
@@ -214,7 +221,7 @@ class EstimateResource extends Resource
                                             $set('lineItems.*.salesDiscounts', []);
                                         }
                                     })
-                                    ->live(),
+                                    ->live(onBlur: true),
                                 CreateAdjustmentSelect::make('salesTaxes')
                                     ->label('Document Taxes')
                                     ->category(AdjustmentCategory::Tax)
@@ -223,7 +230,7 @@ class EstimateResource extends Resource
                                     ->forceEnableRelationship()
                                     ->preload()
                                     ->multiple()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->searchable()
                                     ->saveRelationshipsUsing(null)
                                     ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
@@ -687,7 +694,7 @@ class EstimateResource extends Resource
                                                         ->placeholder('Select item')
                                                         ->default('0')
                                                         ->required(fn (Forms\Get $get) => $get('offering_id') != '0')
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->inlineSuffix()
                                                         ->sellable()
                                                         ->options(function (Forms\Get $get) {
@@ -780,7 +787,7 @@ class EstimateResource extends Resource
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required()
                                                     ->numeric()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
                                                 Forms\Components\TextInput::make('unit_price')
@@ -788,7 +795,7 @@ class EstimateResource extends Resource
                                                     ->money(useAffix: false)
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
@@ -804,7 +811,7 @@ class EstimateResource extends Resource
                                                         ->inlineSuffix()
                                                         ->preload()
                                                         ->multiple()
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                         ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
                                                             if ($record) {
@@ -824,7 +831,7 @@ class EstimateResource extends Resource
                                                         ->dehydrated(true)
                                                         ->inlineSuffix()
                                                         ->multiple()
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                         ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
                                                             if ($record) {
@@ -840,57 +847,53 @@ class EstimateResource extends Resource
                                                         ->searchable(),
                                                 ])->columnSpan(1)
                                                   ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
-                                                Forms\Components\Placeholder::make('line_total_amount')
-                                                    ->hiddenLabel()
-                                                    ->dehydrated(true)
-                                                    ->extraAttributes(['class' => 'text-left sm:text-right'])
-                                                    ->content(function (Forms\Get $get) {
-                                                        $quantity = max((float) ($get('quantity') ?? 0), 0);
-                                                        $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
-                                                            ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
-                                                            : 0;
-                                                        $salesTaxes = $get('salesTaxes') ?? [];
-                                                        $salesDiscounts = $get('salesDiscounts') ?? [];
-                                                        $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
+                                                 Forms\Components\Placeholder::make('line_total_amount')
+                                                     ->hiddenLabel()
+                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
+                                                     ->content(function (Forms\Get $get) {
+                                                         $quantity = max((float) ($get('quantity') ?? 0), 0);
+                                                         $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
+                                                             ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
+                                                             : 0;
+                                                         $salesTaxes = $get('salesTaxes') ?? [];
+                                                         $salesDiscounts = $get('salesDiscounts') ?? [];
+                                                         $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
 
-                                                        $subtotal = $quantity * $unitPrice;
+                                                         $subtotal = $quantity * $unitPrice;
+                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
-                                                        $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
+                                                         static $companyAdjustments = [];
+                                                         $companyId = auth()->user()->current_company_id;
 
-                                                        static $companyAdjustments = [];
-                                                        $companyId = \Filament\Facades\Filament::getTenant()?->id ?? auth()->user()?->current_company_id ?? 1;
-                                                        if (!isset($companyAdjustments[$companyId])) {
-                                                            $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
-                                                        }
+                                                         if (! isset($companyAdjustments[$companyId])) {
+                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                                         }
 
-                                                        $taxAmountInCents = collect($salesTaxes)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
-                                                            ->filter()
-                                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                                if ($adjustment->computation->isPercentage()) {
-                                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                                } else {
-                                                                    return $adjustment->getRawOriginal('rate');
-                                                                }
-                                                            });
+                                                         $taxAmountInCents = 0;
+                                                         foreach ($salesTaxes as $id) {
+                                                             $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                             if ($adjustment) {
+                                                                 $taxAmountInCents += $adjustment->computation->isPercentage()
+                                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                                     : $adjustment->getRawOriginal('rate');
+                                                             }
+                                                         }
 
-                                                        $discountAmountInCents = collect($salesDiscounts)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
-                                                            ->filter()
-                                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                                if ($adjustment->computation->isPercentage()) {
-                                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                                } else {
-                                                                    return $adjustment->getRawOriginal('rate');
-                                                                }
-                                                            });
+                                                         $discountAmountInCents = 0;
+                                                         foreach ($salesDiscounts as $id) {
+                                                             $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                             if ($adjustment) {
+                                                                 $discountAmountInCents += $adjustment->computation->isPercentage()
+                                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                                     : $adjustment->getRawOriginal('rate');
+                                                             }
+                                                         }
 
-                                                        // Final total
-                                                        $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
+                                                         $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
 
-                                                        return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
-                                                    }),
-                                            ]),
+                                                         return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
+                                                     }),
+                                             ]),
                                         // Nested child groups
                                 Forms\Components\Repeater::make('children')
                                     ->extraAttributes(['class' => 'item-group-sub'])
@@ -967,7 +970,7 @@ class EstimateResource extends Resource
                                                         ->placeholder('Select item')
                                                         ->default('0')
                                                         ->required(fn (Forms\Get $get) => $get('offering_id') != '0')
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->inlineSuffix()
                                                         ->sellable()
                                                         ->options(function (Forms\Get $get) {
@@ -1064,7 +1067,7 @@ class EstimateResource extends Resource
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required()
                                                     ->numeric()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
                                                 Forms\Components\TextInput::make('unit_price')
@@ -1072,7 +1075,7 @@ class EstimateResource extends Resource
                                                     ->money(useAffix: false)
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
@@ -1088,7 +1091,7 @@ class EstimateResource extends Resource
                                                         ->inlineSuffix()
                                                         // ->preload()
                                                         ->multiple()
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                         ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
                                                             if ($record) {
@@ -1108,7 +1111,7 @@ class EstimateResource extends Resource
                                                         ->dehydrated(true)
                                                         ->inlineSuffix()
                                                         ->multiple()
-                                                        ->live()
+                                                        ->live(onBlur: true)
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                         ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
                                                             if ($record) {
@@ -1190,7 +1193,7 @@ class EstimateResource extends Resource
                             )
                             ->searchable()
                             ->preload()
-                            ->live()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function (Forms\Set $set, $state) {
                                 if (! $state) {
                                     return;
@@ -1499,6 +1502,8 @@ class EstimateResource extends Resource
             //
         ];
     }
+
+
 
     public static function getPages(): array
     {

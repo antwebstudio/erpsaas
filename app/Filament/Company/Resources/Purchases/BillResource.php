@@ -296,13 +296,13 @@ class BillResource extends Resource
                                 Forms\Components\TextInput::make('quantity')
                                     ->required()
                                     ->numeric()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->maxValue(9999999999.99)
                                     ->default(1),
                                 Forms\Components\TextInput::make('unit_price')
                                     ->hiddenLabel()
                                     ->money(useAffix: false)
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->required()
                                     ->default(0),
                                 Forms\Components\Group::make([
@@ -355,25 +355,32 @@ class BillResource extends Resource
 
                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
-                                        $taxAmountInCents = Adjustment::whereIn('id', $purchaseTaxes)
-                                            ->get()
-                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                if ($adjustment->computation->isPercentage()) {
-                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                } else {
-                                                    return $adjustment->getRawOriginal('rate');
-                                                }
-                                            });
+                                        static $companyAdjustments = [];
+                                        $companyId = auth()->user()->current_company_id;
 
-                                        $discountAmountInCents = Adjustment::whereIn('id', $purchaseDiscounts)
-                                            ->get()
-                                            ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
-                                                if ($adjustment->computation->isPercentage()) {
-                                                    return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
-                                                } else {
-                                                    return $adjustment->getRawOriginal('rate');
-                                                }
-                                            });
+                                        if (! isset($companyAdjustments[$companyId])) {
+                                            $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                        }
+
+                                         $taxAmountInCents = 0;
+                                         foreach ($purchaseTaxes as $id) {
+                                             $adjustment = $companyAdjustments[$companyId]->get($id);
+                                             if ($adjustment) {
+                                                 $taxAmountInCents += $adjustment->computation->isPercentage()
+                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                     : $adjustment->getRawOriginal('rate');
+                                             }
+                                         }
+
+                                         $discountAmountInCents = 0;
+                                         foreach ($purchaseDiscounts as $id) {
+                                             $adjustment = $companyAdjustments[$companyId]->get($id);
+                                             if ($adjustment) {
+                                                 $discountAmountInCents += $adjustment->computation->isPercentage()
+                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                     : $adjustment->getRawOriginal('rate');
+                                             }
+                                         }
 
                                         // Final total
                                         $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
@@ -648,6 +655,16 @@ class BillResource extends Resource
                             'updated_at',
                         ]),
                 ]),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with([
+                'lineItems.purchaseTaxes',
+                'lineItems.purchaseDiscounts',
+                'purchaseTaxes',
             ]);
     }
 

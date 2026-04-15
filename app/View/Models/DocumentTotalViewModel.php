@@ -23,35 +23,120 @@ class DocumentTotalViewModel
         $currencyCode = $this->data['currency_code'] ?? CurrencyAccessor::getDefaultCurrency();
         $defaultCurrencyCode = CurrencyAccessor::getDefaultCurrency();
 
-        $lineItems = collect($this->data['lineItems'] ?? []);
+        $lineItems = $this->data['lineItems'] ?? [];
 
-        if (isset($this->data['lineItemGroups'])) {
-            $items = collect();
+        if (isset($this->data['lineItemGroups']) && is_array($this->data['lineItemGroups'])) {
+            $flattenedItems = [];
             foreach ($this->data['lineItemGroups'] as $group) {
-                if (isset($group['items'])) {
-                    $items = $items->concat(array_values($group['items']));
+                if (isset($group['items']) && is_array($group['items'])) {
+                    foreach ($group['items'] as $item) {
+                        $flattenedItems[] = $item;
+                    }
                 }
-                if (isset($group['children'])) {
+                if (isset($group['children']) && is_array($group['children'])) {
                     foreach ($group['children'] as $child) {
-                        if (isset($child['items'])) {
-                            $items = $items->concat(array_values($child['items']));
+                        if (isset($child['items']) && is_array($child['items'])) {
+                            foreach ($child['items'] as $item) {
+                                $flattenedItems[] = $item;
+                            }
                         }
                     }
                 }
             }
-            $lineItems = $items;
+            $lineItems = $flattenedItems;
         }
 
-        $subtotalInCents = $lineItems->sum(fn ($item) => $this->calculateLineSubtotalInCents($item, $currencyCode));
-        
-        $lineTaxTotalInCents = $this->calculateAdjustmentsTotalInCents($lineItems, $this->documentType->getTaxKey(), $currencyCode);
-        $documentTaxKey = $this->documentType->getTaxKey();
-        $documentTaxIds = $this->data[$documentTaxKey] ?? [];
-        $documentTaxTotalInCents = $this->calculateDocumentTaxTotalInCents($documentTaxIds, $subtotalInCents);
-        
+        $taxKey = $this->documentType->getTaxKey();
+        $discountKey = $this->documentType->getDiscountKey();
+        $documentTaxIds = $this->data[$taxKey] ?? [];
+
+        // Batch-load all adjustment IDs across all line items and document in a single query
+        $allAdjustmentIds = [];
+        foreach ($lineItems as $item) {
+            $lineTaxIds = (array) ($item[$taxKey] ?? []);
+            foreach ($lineTaxIds as $id) $allAdjustmentIds[$id] = $id;
+
+            $lineDiscountIds = (array) ($item[$discountKey] ?? []);
+            foreach ($lineDiscountIds as $id) $allAdjustmentIds[$id] = $id;
+        }
+        foreach ($documentTaxIds as $id) $allAdjustmentIds[$id] = $id;
+
+        $adjustmentCache = empty($allAdjustmentIds) 
+            ? collect() 
+            : Adjustment::withoutGlobalScopes()->whereIn('id', array_keys($allAdjustmentIds))->get()->keyBy('id');
+
+        $subtotalInCents = 0;
+        $lineTaxTotalInCents = 0;
+        $lineDiscountTotalInCents = 0;
+
+        foreach ($lineItems as $item) {
+            $quantity = max((float) ($item['quantity'] ?? 0), 0);
+            $unitPrice = CurrencyConverter::isValidAmount($item['unit_price'], 'USD')
+                ? CurrencyConverter::convertToFloat($item['unit_price'], 'USD')
+                : 0;
+
+            $lineSubtotal = $quantity * $unitPrice;
+            $lineSubtotalInCents = CurrencyConverter::convertToCents($lineSubtotal, 'USD');
+            $subtotalInCents += $lineSubtotalInCents;
+
+            // Line Taxes
+            $lineTaxIds = $item[$taxKey] ?? [];
+            foreach ($lineTaxIds as $id) {
+                $adjustment = $adjustmentCache->get($id);
+                if ($adjustment) {
+                    if ($adjustment->computation->isPercentage()) {
+                        $lineTaxTotalInCents += RateCalculator::calculatePercentage($lineSubtotalInCents, $adjustment->getRawOriginal('rate'));
+                    } else {
+                        $lineTaxTotalInCents += $adjustment->getRawOriginal('rate');
+                    }
+                }
+            }
+
+            // Line Discounts
+            $lineDiscountIds = $item[$discountKey] ?? [];
+            foreach ($lineDiscountIds as $id) {
+                $adjustment = $adjustmentCache->get($id);
+                if ($adjustment) {
+                    if ($adjustment->computation->isPercentage()) {
+                        $lineDiscountTotalInCents += RateCalculator::calculatePercentage($lineSubtotalInCents, $adjustment->getRawOriginal('rate'));
+                    } else {
+                        $lineDiscountTotalInCents += $adjustment->getRawOriginal('rate');
+                    }
+                }
+            }
+        }
+
+        $documentTaxTotalInCents = 0;
+        foreach ($documentTaxIds as $id) {
+            $adjustment = $adjustmentCache->get($id);
+            if ($adjustment) {
+                if ($adjustment->computation->isPercentage()) {
+                    $documentTaxTotalInCents += RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
+                } else {
+                    $documentTaxTotalInCents += $adjustment->getRawOriginal('rate');
+                }
+            }
+        }
+
         $taxTotalInCents = $lineTaxTotalInCents + $documentTaxTotalInCents;
-        
-        $discountTotalInCents = $this->calculateDiscountTotalInCents($lineItems, $subtotalInCents, $currencyCode);
+
+        $discountMethod = DocumentDiscountMethod::parse($this->data['discount_method']) ?? DocumentDiscountMethod::PerLineItem;
+        if ($discountMethod->isPerLineItem()) {
+            $discountTotalInCents = $lineDiscountTotalInCents;
+        } else {
+            $discountComputation = AdjustmentComputation::parse($this->data['discount_computation']) ?? AdjustmentComputation::Percentage;
+            $discountRate = blank($this->data['discount_rate']) ? '0' : $this->data['discount_rate'];
+
+            if ($discountComputation->isPercentage()) {
+                $scaledDiscountRate = RateCalculator::parseLocalizedRate($discountRate);
+                $discountTotalInCents = RateCalculator::calculatePercentage($subtotalInCents, $scaledDiscountRate);
+            } else {
+                if (! CurrencyConverter::isValidAmount($discountRate, $currencyCode)) {
+                    $discountRate = '0';
+                }
+                $discountTotalInCents = CurrencyConverter::convertToCents($discountRate, $currencyCode);
+            }
+        }
 
         $grandTotalInCents = $subtotalInCents + ($taxTotalInCents - $discountTotalInCents);
 
@@ -90,91 +175,6 @@ class DocumentTotalViewModel
             'conversionMessage' => $conversionMessage,
             'isPerDocumentDiscount' => $isPerDocumentDiscount,
         ];
-    }
-
-    private function calculateLineSubtotalInCents(array $item, string $currencyCode): int
-    {
-        $quantity = max((float) ($item['quantity'] ?? 0), 0);
-        $unitPrice = CurrencyConverter::isValidAmount($item['unit_price'], 'USD')
-            ? CurrencyConverter::convertToFloat($item['unit_price'], 'USD')
-            : 0;
-
-        $subtotal = $quantity * $unitPrice;
-
-        return CurrencyConverter::convertToCents($subtotal, 'USD');
-    }
-
-    private function calculateAdjustmentsTotalInCents($lineItems, string $key, string $currencyCode): int
-    {
-        // Batch-load all adjustment IDs across all line items in a single query
-        $allAdjustmentIds = $lineItems->pluck($key)->flatten()->filter()->unique()->values()->all();
-        $adjustmentCache = Adjustment::withoutGlobalScopes()->whereIn('id', $allAdjustmentIds)->get()->keyBy('id');
-
-        return $lineItems->reduce(function ($carry, $item) use ($key, $adjustmentCache) {
-            $quantity = max((float) ($item['quantity'] ?? 0), 0);
-            $unitPrice = CurrencyConverter::isValidAmount($item['unit_price'], 'USD')
-                ? CurrencyConverter::convertToFloat($item['unit_price'], 'USD')
-                : 0;
-
-            $adjustmentIds = $item[$key] ?? [];
-            $lineTotal = $quantity * $unitPrice;
-
-            $lineTotalInCents = CurrencyConverter::convertToCents($lineTotal, 'USD');
-
-            $adjustmentTotal = collect($adjustmentIds)
-                ->sum(function ($id) use ($adjustmentCache, $lineTotalInCents) {
-                    $adjustment = $adjustmentCache->get($id);
-                    if (! $adjustment) return 0;
-                    if ($adjustment->computation->isPercentage()) {
-                        return RateCalculator::calculatePercentage($lineTotalInCents, $adjustment->getRawOriginal('rate'));
-                    } else {
-                        return $adjustment->getRawOriginal('rate');
-                    }
-                });
-
-            return $carry + $adjustmentTotal;
-        }, 0);
-    }
-
-    private function calculateDiscountTotalInCents($lineItems, int $subtotalInCents, string $currencyCode): int
-    {
-        $discountMethod = DocumentDiscountMethod::parse($this->data['discount_method']) ?? DocumentDiscountMethod::PerLineItem;
-
-        if ($discountMethod->isPerLineItem()) {
-            return $this->calculateAdjustmentsTotalInCents($lineItems, $this->documentType->getDiscountKey(), $currencyCode);
-        }
-
-        $discountComputation = AdjustmentComputation::parse($this->data['discount_computation']) ?? AdjustmentComputation::Percentage;
-        $discountRate = blank($this->data['discount_rate']) ? '0' : $this->data['discount_rate'];
-
-        if ($discountComputation->isPercentage()) {
-            $scaledDiscountRate = RateCalculator::parseLocalizedRate($discountRate);
-
-            return RateCalculator::calculatePercentage($subtotalInCents, $scaledDiscountRate);
-        }
-
-        if (! CurrencyConverter::isValidAmount($discountRate, $currencyCode)) {
-            $discountRate = '0';
-        }
-
-        return CurrencyConverter::convertToCents($discountRate, $currencyCode);
-    }
-
-    private function calculateDocumentTaxTotalInCents(array $taxIds, int $subtotalInCents): int
-    {
-        if (empty($taxIds)) {
-            return 0;
-        }
-
-        $taxes = Adjustment::withoutGlobalScopes()->whereIn('id', $taxIds)->get();
-
-        return $taxes->reduce(function (int $carry, Adjustment $tax) use ($subtotalInCents) {
-            if ($tax->computation->isPercentage()) {
-                return $carry + RateCalculator::calculatePercentage($subtotalInCents, $tax->getRawOriginal('rate'));
-            } else {
-                return $carry + $tax->getRawOriginal('rate');
-            }
-        }, 0);
     }
 
     private function buildConversionMessage(int $grandTotalInCents, string $currencyCode, string $defaultCurrencyCode): ?string

@@ -57,28 +57,40 @@ class CurrencyConverter
 
     public static function formatCentsToMoney(int $amount, ?string $currency = null, bool $withCode = false): string
     {
+        static $moneyCache = [];
+
         $currency ??= CurrencyAccessor::getDefaultCurrency();
+        
+        $key = "cents_{$amount}_{$currency}_" . ($withCode ? '1' : '0');
+
+        if (isset($moneyCache[$key])) {
+            return $moneyCache[$key];
+        }
 
         $money = money($amount, $currency);
 
-        if ($withCode) {
-            return $money->formatWithCode();
-        }
+        $result = $withCode ? $money->formatWithCode() : $money->format();
 
-        return $money->format();
+        return $moneyCache[$key] = $result;
     }
 
     public static function formatToMoney(string | float $amount, ?string $currency = null, bool $withCode = false): string
     {
+        static $formatCache = [];
+
         $currency ??= CurrencyAccessor::getDefaultCurrency();
+
+        $key = "money_{$amount}_{$currency}_" . ($withCode ? '1' : '0');
+
+        if (isset($formatCache[$key])) {
+            return $formatCache[$key];
+        }
 
         $money = money($amount, $currency, true);
 
-        if ($withCode) {
-            return $money->formatWithCode();
-        }
+        $result = $withCode ? $money->formatWithCode() : $money->format();
 
-        return $money->format();
+        return $formatCache[$key] = $result;
     }
 
     public static function convertCentsToFloat(int $amount, ?string $currency = null): float

@@ -329,7 +329,7 @@ class VariationOrderResource extends Resource
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required()
                                                     ->numeric()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
                                                 Forms\Components\TextInput::make('unit_price')
@@ -337,7 +337,7 @@ class VariationOrderResource extends Resource
                                                     ->money(useAffix: false)
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
@@ -611,7 +611,7 @@ class VariationOrderResource extends Resource
                                         Forms\Components\TextInput::make('quantity')
                                             ->required()
                                             ->numeric()
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->maxValue(9999999999.99)
                                             ->default(1),
                                         Forms\Components\TextInput::make('unit_price')
@@ -619,7 +619,7 @@ class VariationOrderResource extends Resource
                                             ->money(useAffix: false)
                                             ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                             ->dehydrated(true)
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->required()
                                             ->default(0),
                                         Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [

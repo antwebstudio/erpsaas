@@ -256,7 +256,7 @@ class EstimateTemplateResource extends Resource
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required()
                                                     ->numeric()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
                                                 Forms\Components\TextInput::make('unit_price')
@@ -264,7 +264,7 @@ class EstimateTemplateResource extends Resource
                                                     ->money(useAffix: false)
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
@@ -320,8 +320,16 @@ class EstimateTemplateResource extends Resource
 
                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
 
-                                                        $taxAmountInCents = Adjustment::whereIn('id', $salesTaxes)
-                                                            ->get()
+                                                        static $companyAdjustments = [];
+                                                        $companyId = auth()->user()->current_company_id;
+
+                                                        if (! isset($companyAdjustments[$companyId])) {
+                                                            $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                                        }
+
+                                                        $taxAmountInCents = collect($salesTaxes)
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -330,8 +338,9 @@ class EstimateTemplateResource extends Resource
                                                                 }
                                                             });
 
-                                                        $discountAmountInCents = Adjustment::whereIn('id', $salesDiscounts)
-                                                            ->get()
+                                                        $discountAmountInCents = collect($salesDiscounts)
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
                                                                     return RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'));
@@ -842,7 +851,7 @@ class EstimateTemplateResource extends Resource
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required()
                                                     ->numeric()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
                                                 Forms\Components\TextInput::make('unit_price')
@@ -850,7 +859,7 @@ class EstimateTemplateResource extends Resource
                                                     ->money(useAffix: false)
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->required()
                                                     ->default(0),
                                                 Forms\Components\Group::make([
