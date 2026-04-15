@@ -66,9 +66,30 @@ readonly class DocumentDTO
             ? self::formatToMoney($document->discount_total, $currencyCode)
             : null;
 
-        $tax = $document->tax_total !== 0
-            ? self::formatToMoney($document->tax_total, $currencyCode)
+        $taxTotal = $document->tax_total;
+        if ($taxTotal === 0) {
+            $document->load(['salesTaxes']);
+            if ($document->salesTaxes->isNotEmpty()) {
+                $subtotalCents = $document->subtotal;
+                $documentTaxTotalCents = $document->salesTaxes->reduce(function (int $carry, \App\Models\Accounting\Adjustment $tax) use ($subtotalCents) {
+                    if ($tax->computation->isPercentage()) {
+                        return $carry + \App\Utilities\RateCalculator::calculatePercentage($subtotalCents, $tax->getRawOriginal('rate'));
+                    } else {
+                        return $carry + $tax->getRawOriginal('rate');
+                    }
+                }, 0);
+                $taxTotal = $documentTaxTotalCents;
+            }
+        }
+
+        $tax = $taxTotal !== 0
+            ? self::formatToMoney($taxTotal, $currencyCode)
             : null;
+
+        if ($taxTotal !== 0 && $document->tax_total === 0) {
+            // If we had to calculate it manually, we should also update the total of the DTO
+            $document->total = $document->subtotal + $taxTotal - $document->discount_total;
+        }
 
         $subtotal = ($discount || $tax)
             ? self::formatToMoney($document->subtotal, $currencyCode)

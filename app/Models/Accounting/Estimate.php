@@ -336,6 +336,7 @@ class Estimate extends Document
             })
             ->action(function (self $record, array $data, MountableAction $action, Component $livewire) {
                  $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+                 $templateCompany = Company::withoutGlobalScopes()->find($templateCompanyId);
 
                 if (! $templateCompanyId) {
                     Notification::make()
@@ -363,7 +364,18 @@ class Estimate extends Document
                             ->send();
                     }
                 } else {
-                    $record->update(['template_company_id' => $templateCompanyId]);
+                    $record->template_company_id = $templateCompanyId;
+
+                    // Automatically include default tax from template company
+                    $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
+                        ->where('company_id', $templateCompanyId)
+                        ->value('default_sales_tax_id');
+                    if ($defaultTaxId) {
+                        $taxKey = static::documentType()->getTaxKey();
+                        $record->{$taxKey}()->syncWithoutDetaching([$defaultTaxId]);
+                    }
+
+                    $record->save();
                     $record->approveDraft();
 
                     if (method_exists($livewire, 'refresh')) {
@@ -892,24 +904,42 @@ class Estimate extends Document
     {
         $downloadAction = $action::make($name)
             ->label('Download PDF')
-            ->icon('heroicon-m-arrow-down-tray');
+            ->icon('heroicon-m-arrow-down-tray')
+            ->form(function (self $record, Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
 
-        if (config('erp.async_pdf_generation')) {
-            $downloadAction->modalHeading('Generating PDF')
-                ->modalSubmitAction(false)
-                ->modalCancelAction(false)
-                ->modalContent(fn (self $record) => view('components.estimate-pdf-modal', ['record' => $record]))
-                ->action(fn () => null);
-        } else {
-            $downloadAction->action(function (self $record) {
+                return $templateCompanyId ? [] : [
+                    Forms\Components\Select::make('template_company_id')
+                        ->label('Issue Company')
+                        ->relationship('templateCompany', 'name', fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')))
+                        ->default(fn (self $record) => $record->template_company_id)
+                        ->required()
+                        ->searchable()
+                        ->preload(),
+                ];
+            })
+            ->modalHidden(function (self $record, Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
+
+                return $templateCompanyId !== null;
+            })
+            ->modalSubmitActionLabel('Download')
+            ->action(function (self $record, array $data, Component $livewire) {
+                $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+
+                // Save the selected template company
+                if ($record->template_company_id !== (int) $templateCompanyId) {
+                    $record->update(['template_company_id' => $templateCompanyId]);
+                    $record->refresh();
+                }
+
                 $pdfService = new \App\Services\EstimatePdfService();
                 $finalPdfOutput = $pdfService->generate($record);
-                
+
                 return response()->streamDownload(function () use ($finalPdfOutput) {
                     echo $finalPdfOutput;
                 }, "Estimate-{$record->documentNumber()}.pdf");
             });
-        }
 
         return $downloadAction;
     }

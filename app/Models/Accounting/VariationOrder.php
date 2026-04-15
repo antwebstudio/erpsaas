@@ -324,7 +324,19 @@ class VariationOrder extends Document
                     return;
                 }
 
-                $record->update(['template_company_id' => $templateCompanyId]);
+                $templateCompany = \App\Models\Company::withoutGlobalScopes()->find($templateCompanyId);
+                $record->template_company_id = $templateCompanyId;
+
+                // Automatically include default tax from template company
+                $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
+                    ->where('company_id', $templateCompanyId)
+                    ->value('default_sales_tax_id');
+                if ($defaultTaxId) {
+                    $taxKey = static::documentType()->getTaxKey();
+                    $record->{$taxKey}()->syncWithoutDetaching([$defaultTaxId]);
+                }
+
+                $record->save();
                 $record->approveDraft();
 
                 if (method_exists($livewire, 'refresh')) {

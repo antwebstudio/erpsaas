@@ -185,6 +185,18 @@ class EditEstimate extends EditRecord
                     // Update the state with the selected company ID
                     $this->data['template_company_id'] = $templateCompanyId;
 
+                    // Ensure the default tax is also added to the form state to prevent it from being cleared by saveRelationships
+                    $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
+                        ->where('company_id', $templateCompanyId)
+                        ->value('default_sales_tax_id');
+                    if ($defaultTaxId) {
+                        $taxKey = \App\Models\Accounting\Estimate::documentType()->getTaxKey();
+                        $this->data[$taxKey] ??= [];
+                        if (! in_array((string) $defaultTaxId, $this->data[$taxKey])) {
+                            $this->data[$taxKey][] = (string) $defaultTaxId;
+                        }
+                    }
+
                     // Start exactly like the native save to ensure data consistency
                     $this->authorizeAccess();
                     $this->beginDatabaseTransaction();
@@ -198,6 +210,16 @@ class EditEstimate extends EditRecord
 
                         // 2. Allow Filament/Page to mutate data before saving
                         $formData = $this->mutateFormDataBeforeSave($formData);
+
+                        // Set the template_company_id and salesTaxes in the form data so it's persisted during save
+                        $formData['template_company_id'] = $templateCompanyId;
+                        if ($defaultTaxId) {
+                            $taxKey = \App\Models\Accounting\Estimate::documentType()->getTaxKey();
+                            $formData[$taxKey] ??= [];
+                            if (! in_array((string) $defaultTaxId, $formData[$taxKey])) {
+                                $formData[$taxKey][] = (string) $defaultTaxId;
+                            }
+                        }
 
                         // 3. Update the Model using the page's handler (which also handles line items!)
                         $this->handleRecordUpdate($this->getRecord(), $formData);
@@ -217,13 +239,12 @@ class EditEstimate extends EditRecord
                     $this->rememberData();
                     
                     // Refresh the model in-place to get all latest DB attributes & relationships
-                    $this->getRecord()->refresh();
+                    $record = $this->getRecord();
+                    $record->refresh();
+                    $record->load(['salesTaxes', 'lineItems', 'templateCompany']);
 
                     // Repopulate the Livewire form UI to reflect calculated backend changes
                     $this->fillForm();
-
-                    /** @var Estimate $record */
-                    $record = $this->getRecord();
 
                     // Generate the PDF
                     $pdfService = new \App\Services\EstimatePdfService();

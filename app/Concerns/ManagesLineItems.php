@@ -232,11 +232,29 @@ trait ManagesLineItems
         $taxKey = $record::documentType()->getTaxKey();
         $taxIds = $data[$taxKey] ?? null;
 
+        // Automatically include default tax from template company if not already present
+        $templateCompanyId = $data['template_company_id'] ?? $record->template_company_id ?? null;
+        if ($templateCompanyId) {
+            $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
+                ->where('company_id', $templateCompanyId)
+                ->value('default_sales_tax_id');
+            if ($defaultTaxId) {
+                // If taxIds is null, we get current taxes from the relationship
+                $taxIds ??= $record->{$taxKey}()->withoutGlobalScopes()->pluck('adjustments.id')->toArray();
+                if (! in_array($defaultTaxId, $taxIds)) {
+                    $taxIds[] = (string) $defaultTaxId;
+                }
+            }
+        }
+
         if ($taxIds !== null) {
             $record->{$taxKey}()->withoutGlobalScopes()->sync($taxIds);
         }
 
-        $taxIds = $data[$taxKey] ?? $record->{$taxKey}()->withoutGlobalScopes()->pluck('adjustments.id')->toArray();
+        if ($taxIds === null) {
+            $taxIds = $record->{$taxKey}()->withoutGlobalScopes()->pluck('adjustments.id')->toArray();
+        }
+
         $documentTaxTotalCents = $this->calculateDocumentTaxTotal($taxIds, $subtotalCents);
 
         $taxTotalCents = $record->lineItems()->sum('tax_total') + $documentTaxTotalCents;

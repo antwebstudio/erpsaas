@@ -2,6 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Accounting\AdjustmentCategory;
+use App\Enums\Accounting\AdjustmentComputation;
+use App\Enums\Accounting\AdjustmentType;
+use App\Models\Accounting\Adjustment;
 use App\Models\Company;
 use App\Models\Setting\CompanyProfile;
 use App\Models\User;
@@ -81,7 +85,13 @@ class UserCompanySeeder extends Seeder
         $additionalCompanies = [
             ['name' => 'Muyi Carpenters Pte Ltd', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
             ['name' => 'Stylemyspace Design Studio', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
-            ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
+            ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'default_sales_tax' => [
+                        'name' => 'GST Tax',
+                        'description' => 'Goods and Services Tax - 9%',
+                        'rate' => 90000, // 9% (9 * 10000 scaling factor)
+                        'computation' => AdjustmentComputation::Percentage,
+                        'scope' => null,
+                    ]],
         ];
 
         foreach ($additionalCompanies as $companyData) {
@@ -100,6 +110,15 @@ class UserCompanySeeder extends Seeder
                 'email' => $contacts['email'],
             ]);
             $company->profile->address->update($contacts['address']);
+
+            // Create GST Tax 9% and set as default sales tax for Stylemyspace
+            if (isset($companyData['default_sales_tax'])) {
+                $adjustment = Adjustment::create($companyData['default_sales_tax']);
+
+                $company->profile->update([
+                    'default_sales_tax_id' => $adjustment->id,
+                ]);
+            }
         }
     }
 }
