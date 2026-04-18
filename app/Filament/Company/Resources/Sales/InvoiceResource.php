@@ -203,7 +203,7 @@ class InvoiceResource extends Resource
                             ->saveRelationshipsUsing(null)
                             ->dehydrated(true)
                             ->orderColumn('order')
-                            ->defaultItems(1)
+                            ->defaultItems(0)
                             ->label('Item Groups')
                             ->hiddenLabel()
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
@@ -319,7 +319,7 @@ class InvoiceResource extends Resource
                                             ->placeholder('Unit')
                                             ->hiddenLabel(),
                                         Forms\Components\TextInput::make('quantity')
-                                            ->required()
+                                            ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                             ->numeric()
                                             ->live(onBlur: true)
                                             ->maxValue(9999999999.99)
@@ -328,7 +328,7 @@ class InvoiceResource extends Resource
                                             ->hiddenLabel()
                                             ->money(useAffix: false)
                                             ->live(onBlur: true)
-                                            ->required()
+                                            ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                             ->default(0),
                                         Forms\Components\Group::make([
                                             CreateAdjustmentSelect::make('salesTaxes', true)

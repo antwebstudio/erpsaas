@@ -437,48 +437,59 @@ class EstimateResource extends Resource
                                         $removedCount = 0;
 
                                         // --- Handle Root Offerings (Removal and Addition) ---
-                                        // 1. Remove items that belong to this root category but are NO LONGER selected
                                         $newItems = [];
-                                        foreach ($currentItems as $item) {
+                                        foreach ($currentItems as $key => $item) {
                                             $offeringId = (string)($item['offering_id'] ?? '');
                                             if (in_array($offeringId, $rootCategoryOfferingIds)) {
+                                                // Keep if still selected
                                                 if (in_array($offeringId, $rootSelectedIds)) {
-                                                    $newItems[] = $item;
+                                                    $newItems[$key] = $item;
                                                 } else {
                                                     $removedCount++;
                                                 }
                                             } else {
-                                                // Preserve items not belonging to this category
-                                                $newItems[] = $item;
+                                                // Keep items from other categories
+                                                $newItems[$key] = $item;
                                             }
                                         }
                                         $currentItems = $newItems;
-                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
 
-                                        // 2. Add newly selected root offerings
-                                        foreach ($rootSelectedIds as $offeringId) {
-                                            if (!in_array($offeringId, $existingOfferingIds)) {
-                                                $offering = $parentCategory->offerings->firstWhere('id', $offeringId);
-                                                if ($offering) {
-                                                    $currentItems[] = [
-                                                        'id' => null,
-                                                        'offering_id' => $offering->id,
-                                                        'description' => $offering->name,
-                                                        'is_locked' => 1,
-                                                        'unit' => $offering->unit,
-                                                        'quantity' => 1,
-                                                        'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
-                                                        'salesDiscounts' => [],
-                                                        'salesTaxes' => [],
-                                                    ];
-                                                    $addedCount++;
+                                        // Add newly selected root offerings
+                                        foreach ($rootSelectedIds as $selectedId) {
+                                            if (in_array((string)$selectedId, $rootCategoryOfferingIds)) {
+                                                // Check if it already exists
+                                                $exists = false;
+                                                foreach ($currentItems as $item) {
+                                                    if ((string)($item['offering_id'] ?? '') === (string)$selectedId) {
+                                                        $exists = true;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (!$exists) {
+                                                    $offering = \App\Models\Common\Offering::find($selectedId);
+                                                    if ($offering) {
+                                                        $newKey = (string) \Illuminate\Support\Str::uuid();
+                                                        $currentItems[$newKey] = [
+                                                            'id' => null,
+                                                            'offering_id' => $offering->id,
+                                                            'description' => $offering->name,
+                                                            'quantity' => 1,
+                                                            'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
+                                                            'unit' => $offering->unit,
+                                                            'is_locked' => 1,
+                                                            'salesDiscounts' => [],
+                                                            'salesTaxes' => [],
+                                                        ];
+                                                        $addedCount++;
+                                                    }
                                                 }
                                             }
                                         }
 
                                         // Sort root items
                                         $parentOfferingSortOrders = $parentCategory->offerings->pluck('sort_order', 'id')->toArray();
-                                        usort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
+                                        uasort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
                                             $orderA = $parentOfferingSortOrders[$a['offering_id']] ?? 0;
                                             $orderB = $parentOfferingSortOrders[$b['offering_id']] ?? 0;
                                             
@@ -497,51 +508,67 @@ class EstimateResource extends Resource
                                         $processedChildCategoryIds = [];
 
                                         foreach ($childCategories as $childCategory) {
-                                            $categoryId = $childCategory->id;
-                                            $selectedIds = $groupedData[$categoryId] ?? [];
-                                            $processedChildCategoryIds[] = $categoryId;
-                                            
-                                            // Find existing child group
-                                            $existingChild = collect($currentChildren)->firstWhere('offering_category_id', $categoryId);
+                                            $selectedIds = $groupedData[$childCategory->id] ?? [];
+                                            $childCategoryOfferingIds = $childCategory->offerings()->pluck('offerings.id')->map(fn($id) => (string)$id)->toArray();
+                                            $processedChildCategoryIds[] = $childCategory->id;
+
+                                            // Find existing child group for this category
+                                            $existingChildKey = null;
+                                            $existingChild = null;
+                                            foreach ($currentChildren as $key => $child) {
+                                                if (($child['offering_category_id'] ?? null) === $childCategory->id) {
+                                                    $existingChildKey = $key;
+                                                    $existingChild = $child;
+                                                    break;
+                                                }
+                                            }
+
                                             $items = $existingChild['items'] ?? [];
-                                            
-                                            // IDs of offerings belonging to THIS child category
-                                            $childCategoryOfferingIds = $childCategory->offerings->pluck('id')->map('strval')->toArray();
 
                                             // 1. Remove items that belong to this child category but are NO LONGER selected
                                             $newChildItems = [];
-                                            foreach ($items as $item) {
+                                            foreach ($items as $itemKey => $item) {
                                                 $offeringId = (string)($item['offering_id'] ?? '');
                                                 if (in_array($offeringId, $childCategoryOfferingIds)) {
                                                     if (in_array($offeringId, $selectedIds)) {
-                                                        $newChildItems[] = $item;
+                                                        $newChildItems[$itemKey] = $item;
                                                     } else {
                                                         $removedCount++;
                                                     }
                                                 } else {
-                                                    $newChildItems[] = $item;
+                                                    $newChildItems[$itemKey] = $item;
                                                 }
                                             }
                                             $items = $newChildItems;
-                                            $existingChildOfferingIds = array_column($items, 'offering_id');
 
                                             // 2. Add newly selected offerings to this child group
-                                            foreach ($selectedIds as $offeringId) {
-                                                if (!in_array($offeringId, $existingChildOfferingIds)) {
-                                                    $offering = $childCategory->offerings->firstWhere('id', $offeringId);
-                                                    if ($offering) {
-                                                        $items[] = [
-                                                            'id' => null,
-                                                            'offering_id' => $offering->id,
-                                                            'description' => $offering->name,
-                                                            'is_locked' => 1,
-                                                            'unit' => $offering->unit,
-                                                            'quantity' => 1,
-                                                            'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
-                                                            'salesDiscounts' => [],
-                                                            'salesTaxes' => [],
-                                                        ];
-                                                        $addedCount++;
+                                            foreach ($selectedIds as $selectedId) {
+                                                if (in_array((string)$selectedId, $childCategoryOfferingIds)) {
+                                                    $exists = false;
+                                                    foreach ($items as $item) {
+                                                        if ((string)($item['offering_id'] ?? '') === (string)$selectedId) {
+                                                            $exists = true;
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if (!$exists) {
+                                                        $offering = \App\Models\Common\Offering::find($selectedId);
+                                                        if ($offering) {
+                                                            $newItemKey = (string) \Illuminate\Support\Str::uuid();
+                                                            $items[$newItemKey] = [
+                                                                'id' => null,
+                                                                'offering_id' => $offering->id,
+                                                                'description' => $offering->name,
+                                                                'quantity' => 1,
+                                                                'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
+                                                                'unit' => $offering->unit,
+                                                                'is_locked' => 1,
+                                                                'salesDiscounts' => [],
+                                                                'salesTaxes' => [],
+                                                            ];
+                                                            $addedCount++;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -551,23 +578,9 @@ class EstimateResource extends Resource
                                                 continue;
                                             }
 
-                                            // Update or build child group structure
-                                            if ($existingChild) {
-                                                $existingChild['items'] = $items;
-                                            } else {
-                                                $existingChild = [
-                                                    'id' => null,
-                                                    'offering_category_id' => $childCategory->id,
-                                                    'parent_id' => $itemState['id'] ?? null,
-                                                    'name' => $childCategory->name,
-                                                    'order' => count($newChildren) + 1,
-                                                    'items' => $items,
-                                                ];
-                                            }
-
                                             // Sort items in this child group
                                             $allOfferingSortOrders = $childCategory->offerings->pluck('sort_order', 'id')->toArray();
-                                            usort($existingChild['items'], function ($a, $b) use ($allOfferingSortOrders) {
+                                            uasort($items, function ($a, $b) use ($allOfferingSortOrders) {
                                                 $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
                                                 $orderB = $allOfferingSortOrders[$b['offering_id']] ?? 0;
                                                 
@@ -578,13 +591,28 @@ class EstimateResource extends Resource
                                                 return $orderA <=> $orderB;
                                             });
 
-                                            $newChildren[] = $existingChild;
+                                            // Update or build child group structure
+                                            if ($existingChildKey !== null) {
+                                                $existingChild['items'] = $items;
+                                                $newChildren[$existingChildKey] = $existingChild;
+                                            } else {
+                                                $newChildKey = (string) \Illuminate\Support\Str::uuid();
+                                                $newChildren[$newChildKey] = [
+                                                    'id' => null,
+                                                    'company_id' => $data['company_id'] ?? null,
+                                                    'offering_category_id' => $childCategory->id,
+                                                    'parent_id' => $itemState['id'] ?? null,
+                                                    'name' => $childCategory->name,
+                                                    'order' => count($newChildren) + 1,
+                                                    'items' => $items,
+                                                ];
+                                            }
                                         }
 
                                         // Preserve other child groups that weren't managed by this selection (e.g. manually added sub-groups)
-                                        foreach ($currentChildren as $child) {
+                                        foreach ($currentChildren as $key => $child) {
                                             if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
-                                                $newChildren[] = $child;
+                                                $newChildren[$key] = $child;
                                             }
                                         }
 
@@ -624,7 +652,7 @@ class EstimateResource extends Resource
                             ->dehydrated(true)
                             ->orderColumn('order')
                             ->extraAttributes(['class' => 'item-group-darker'])
-                            ->defaultItems(1)
+                            ->defaultItems(0)
                             ->label('Item Groups')
                             ->hiddenLabel()
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
@@ -693,7 +721,7 @@ class EstimateResource extends Resource
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
                                                         ->default('0')
-                                                        ->required(fn (Forms\Get $get) => $get('offering_id') != '0')
+                                                        ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                         ->live(onBlur: true)
                                                         ->inlineSuffix()
                                                         ->sellable()
@@ -785,7 +813,7 @@ class EstimateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('quantity')
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->numeric()
                                                     ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
@@ -796,7 +824,7 @@ class EstimateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live(onBlur: true)
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
@@ -969,7 +997,7 @@ class EstimateResource extends Resource
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
                                                         ->default('0')
-                                                        ->required(fn (Forms\Get $get) => $get('offering_id') != '0')
+                                                        ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                         ->live(onBlur: true)
                                                         ->inlineSuffix()
                                                         ->sellable()
@@ -1065,7 +1093,7 @@ class EstimateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('quantity')
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->numeric()
                                                     ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
@@ -1076,7 +1104,7 @@ class EstimateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live(onBlur: true)
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->default(0),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)

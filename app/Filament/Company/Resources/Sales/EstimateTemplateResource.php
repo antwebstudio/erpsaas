@@ -186,7 +186,7 @@ class EstimateTemplateResource extends Resource
                                                         ->label('Item')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
-                                                        ->required()
+                                                        ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                         ->live()
                                                         ->inlineSuffix()
                                                         ->sellable()
@@ -254,7 +254,7 @@ class EstimateTemplateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('quantity')
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->numeric()
                                                     ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
@@ -265,7 +265,7 @@ class EstimateTemplateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live(onBlur: true)
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->default(0),
                                                 Forms\Components\Group::make([
                                                     CreateAdjustmentSelect::make('salesTaxes')
@@ -781,7 +781,7 @@ class EstimateTemplateResource extends Resource
                                                         ->label('Item')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select item')
-                                                        ->required()
+                                                        ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                         ->live()
                                                         ->inlineSuffix()
                                                         ->sellable()
@@ -849,7 +849,7 @@ class EstimateTemplateResource extends Resource
                                                     ->dehydrated(true)
                                                     ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('quantity')
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->numeric()
                                                     ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
@@ -860,7 +860,7 @@ class EstimateTemplateResource extends Resource
                                                     ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                                     ->dehydrated(true)
                                                     ->live(onBlur: true)
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->default(0),
                                                 Forms\Components\Group::make([
                                                     CreateAdjustmentSelect::make('salesTaxes')

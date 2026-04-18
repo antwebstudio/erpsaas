@@ -81,40 +81,48 @@ class EditEstimate extends EditRecord
                         ->options(\App\Models\Common\OfferingCategory::query()
                             ->whereNull('parent_id')
                             ->pluck('name', 'id'))
-                        ->default(fn (Estimate $record) => $record->lineItemGroups()
-                            ->whereNotNull('offering_category_id')
-                            ->pluck('offering_category_id')
-                            ->toArray())
+                        ->default(function () {
+                            $selected = [];
+                            foreach ($this->data['lineItemGroups'] ?? [] as $group) {
+                                if (filled($group['offering_category_id'] ?? null)) {
+                                    $selected[] = (int) $group['offering_category_id'];
+                                }
+                            }
+                            return $selected;
+                        })
                         ->required(),
                 ])
                 ->action(function (array $data, Estimate $record) {
                     $selectedIds = array_map('intval', $data['categories']);
-                    
+
                     // Fetch categories in correct order (Nested Set order for parents)
                     $sortedCategories = \App\Models\Common\OfferingCategory::whereIn('id', $selectedIds)
                         ->defaultOrder()
                         ->get();
 
-                    // Current state of groups in the form
-                    $currentGroups = collect($this->data['lineItemGroups'] ?? []);
-                    
-                    // Map existing groups by category ID for easy lookup
-                    // We only care about groups that have an offering_category_id
-                    $existingGroupsByCat = $currentGroups->filter(fn($g) => filled($g['offering_category_id'] ?? null))
-                        ->keyBy(fn($g) => (int) $g['offering_category_id']);
-                    
+                    // Build a map of category ID → [key, group] preserving original array keys
+                    // (Filament Repeater uses these keys for extraItemActions — must be UUID strings)
+                    $existingGroupsByCat = [];
+                    foreach ($this->data['lineItemGroups'] ?? [] as $key => $group) {
+                        if (filled($group['offering_category_id'] ?? null)) {
+                            $existingGroupsByCat[(int) $group['offering_category_id']] = ['key' => $key, 'data' => $group];
+                        }
+                    }
+
                     $newGroupsList = [];
                     $orderCounter = 1;
 
                     foreach ($sortedCategories as $category) {
-                        if ($existingGroupsByCat->has($category->id)) {
-                            // Update existing group's order
-                            $group = $existingGroupsByCat->get($category->id);
+                        if (isset($existingGroupsByCat[$category->id])) {
+                            // Preserve original key so Filament can resolve extraItemActions
+                            $key = $existingGroupsByCat[$category->id]['key'];
+                            $group = $existingGroupsByCat[$category->id]['data'];
                             $group['order'] = $orderCounter++;
-                            $newGroupsList[] = $group;
+                            $newGroupsList[$key] = $group;
                         } else {
-                            // Create new group "stub" with correct order
-                            $newGroupsList[] = [
+                            // New group — generate a UUID key so Filament can resolve extraItemActions
+                            $newKey = (string) \Illuminate\Support\Str::uuid();
+                            $newGroupsList[$newKey] = [
                                 'id' => null,
                                 'company_id' => $record->company_id,
                                 'offering_category_id' => $category->id,
@@ -125,14 +133,13 @@ class EditEstimate extends EditRecord
                             ];
                         }
                     }
-                    
-                    // Maintain custom groups (without offering_category_id) at the end
-                    $customGroups = $currentGroups->filter(fn($g) => blank($g['offering_category_id'] ?? null))
-                        ->sortBy('order');
-                        
-                    foreach ($customGroups as $group) {
-                        $group['order'] = $orderCounter++;
-                        $newGroupsList[] = $group;
+
+                    // Maintain custom groups (without offering_category_id) at the end, preserving their keys
+                    foreach ($this->data['lineItemGroups'] ?? [] as $key => $group) {
+                        if (blank($group['offering_category_id'] ?? null)) {
+                            $group['order'] = $orderCounter++;
+                            $newGroupsList[$key] = $group;
+                        }
                     }
 
                     // Update form state

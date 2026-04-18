@@ -336,10 +336,9 @@ class LeadResource extends Resource
                     Tables\Actions\Action::make('create_variation_order')
                         ->label('Create Variation Order')
                         ->icon('heroicon-o-document-plus')
-                        ->url(fn (Lead $record) => VariationOrderResource::getUrl('create', [
-                            'tenant' => \Filament\Facades\Filament::getTenant(),
+                        ->url(fn (Lead $record) => \App\Filament\User\Pages\CreateVariationOrder::getUrl([
                             'client' => $record->id,
-                        ]))
+                        ], panel: 'user'))
                         ->openUrlInNewTab(false),
                     Tables\Actions\DeleteAction::make(),
                 ]),

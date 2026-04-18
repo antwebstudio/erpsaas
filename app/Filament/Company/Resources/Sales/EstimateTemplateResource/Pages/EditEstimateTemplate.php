@@ -42,10 +42,15 @@ class EditEstimateTemplate extends EditRecord
                         ->options(OfferingCategory::query()
                             ->whereNull('parent_id')
                             ->pluck('name', 'id'))
-                        ->default(fn (Estimate $record) => $record->lineItemGroups()
-                            ->whereNotNull('offering_category_id')
-                            ->pluck('offering_category_id')
-                            ->toArray())
+                        ->default(function () {
+                            $selected = [];
+                            foreach ($this->data['lineItemGroups'] ?? [] as $group) {
+                                if (filled($group['offering_category_id'] ?? null)) {
+                                    $selected[] = (int) $group['offering_category_id'];
+                                }
+                            }
+                            return $selected;
+                        })
                         ->required(),
                 ])
                 ->action(function (array $data, Estimate $record) {

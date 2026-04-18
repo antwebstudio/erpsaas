@@ -17,7 +17,7 @@ trait ManagesLineItems
     protected function handleLineItems(Model $record, Collection $lineItems): void
     {
         // Check if we are handling groups or flat items
-        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']));
+        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']) || array_key_exists('name', $item));
 
         if ($isGrouped) {
              $this->handleLineItemGroups($record, $lineItems);
@@ -25,6 +25,11 @@ trait ManagesLineItems
         }
 
         foreach ($lineItems as $index => $itemData) {
+            // Skip ghost/empty items left behind by Livewire state after deletion
+            if (! isset($itemData['quantity']) && ! filled($itemData['description'] ?? null)) {
+                continue;
+            }
+
             $lineItem = isset($itemData['id'])
                 ? $record->lineItems->find($itemData['id'])
                 : $record->lineItems()->make();
@@ -55,6 +60,37 @@ trait ManagesLineItems
     {
         $groupOrder = 0;
         foreach ($groups as $groupData) {
+            $hasName = filled($groupData['name'] ?? null);
+            $hasCategory = filled($groupData['offering_category_id'] ?? null);
+
+            // Count only real (non-ghost) items
+            $realItemCount = 0;
+            foreach ($groupData['items'] ?? [] as $itemData) {
+                if (isset($itemData['quantity']) || filled($itemData['description'] ?? null)) {
+                    $realItemCount++;
+                }
+            }
+            $hasItems = $realItemCount > 0;
+            $hasChildren = count($groupData['children'] ?? []) > 0;
+            
+            if (!$hasName && !$hasCategory && !$hasItems && !$hasChildren) {
+                continue;
+            }
+
+            // For subgroups (child groups), skip and delete if they have no real items
+            // and no children — they are empty subgroups that should not persist
+            if ($parentId !== null && !$hasItems && !$hasChildren) {
+                $id = $groupData['id'] ?? null;
+                if ($id) {
+                    $existingGroup = $record->lineItemGroups()->find($id);
+                    if ($existingGroup) {
+                        $existingGroup->items()->delete();
+                        $existingGroup->delete();
+                    }
+                }
+                continue;
+            }
+
             $groupOrder++;
             
             $id = $groupData['id'] ?? null;
@@ -78,6 +114,11 @@ trait ManagesLineItems
             
             $itemIndex = 0;
             foreach ($items as $itemData) {
+                // Skip ghost/empty items left behind by Livewire state after deletion
+                if (! isset($itemData['quantity']) && ! filled($itemData['description'] ?? null)) {
+                    continue;
+                }
+
                 $itemIndex++;
                 
                 $itemId = $itemData['id'] ?? null;
@@ -118,8 +159,14 @@ trait ManagesLineItems
 
     protected function deleteRemovedLineItems(Model $record, Collection $lineItems): void
     {
+        if ($lineItems->isEmpty()) {
+            $record->lineItems()->each(fn ($item) => $item->delete());
+            $record->lineItemGroups()->each(fn ($group) => $group->delete());
+            return;
+        }
+
         // Check for groups
-        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']));
+        $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']) || array_key_exists('name', $item));
 
         if ($isGrouped) {
              $this->deleteRemovedLineItemGroups($record, $lineItems);
@@ -146,10 +193,27 @@ trait ManagesLineItems
 
         $groupsToDelete = $existingGroupIds->diff($updatedGroupIds);
 
+        \Illuminate\Support\Facades\Log::info('ManagesLineItems: Deleting groups', [
+            'existing' => $existingGroupIds->toArray(),
+            'updated' => $updatedGroupIds,
+            'to_delete' => $groupsToDelete->toArray(),
+            'payload' => $groups->toArray(),
+        ]);
+
         if ($groupsToDelete->isNotEmpty()) {
             $record->lineItemGroups()
                 ->whereIn('id', $groupsToDelete)
-                ->each(fn ($group) => $group->delete());
+                ->each(function ($group) {
+                    // Delete items first (group_id FK uses nullOnDelete, so items
+                    // would become orphaned rather than cascade-deleted)
+                    $group->items()->delete();
+                    // Delete any child groups (parent_id FK uses nullOnDelete)
+                    $group->children()->each(function ($child) {
+                        $child->items()->delete();
+                        $child->delete();
+                    });
+                    $group->delete();
+                });
         }
 
         // Delete removed items from remaining groups
