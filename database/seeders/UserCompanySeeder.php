@@ -90,6 +90,8 @@ class UserCompanySeeder extends Seeder
                         'description' => 'Goods and Services Tax - 9%',
                         'rate' => 90000, // 9% (9 * 10000 scaling factor)
                         'computation' => AdjustmentComputation::Percentage,
+                        'category' => AdjustmentCategory::Tax,
+                        'type' => AdjustmentType::Sales,
                         'scope' => null,
                     ]],
         ];

@@ -840,7 +840,7 @@ class Estimate extends Document
             // Update header
             $estimate->update([
                 'client_id' => $clientId,
-                'header' => $template->header,
+                'header' => '',
                 'subheader' => $template->subheader,
                 'currency_code' => $currencyCode,
                 'discount_method' => $template->discount_method,

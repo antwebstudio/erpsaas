@@ -185,16 +185,18 @@ class EditEstimate extends EditRecord
                     // Update the state with the selected company ID
                     $this->data['template_company_id'] = $templateCompanyId;
 
-                    // Ensure the default tax is also added to the form state to prevent it from being cleared by saveRelationships
+                    // Sync the default tax from the selected issue company (add if present, clear if not)
                     $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
                         ->where('company_id', $templateCompanyId)
                         ->value('default_sales_tax_id');
+                    $taxKey = \App\Models\Accounting\Estimate::documentType()->getTaxKey();
                     if ($defaultTaxId) {
-                        $taxKey = \App\Models\Accounting\Estimate::documentType()->getTaxKey();
                         $this->data[$taxKey] ??= [];
                         if (! in_array((string) $defaultTaxId, $this->data[$taxKey])) {
                             $this->data[$taxKey][] = (string) $defaultTaxId;
                         }
+                    } else {
+                        $this->data[$taxKey] = [];
                     }
 
                     // Start exactly like the native save to ensure data consistency
@@ -214,11 +216,12 @@ class EditEstimate extends EditRecord
                         // Set the template_company_id and salesTaxes in the form data so it's persisted during save
                         $formData['template_company_id'] = $templateCompanyId;
                         if ($defaultTaxId) {
-                            $taxKey = \App\Models\Accounting\Estimate::documentType()->getTaxKey();
                             $formData[$taxKey] ??= [];
                             if (! in_array((string) $defaultTaxId, $formData[$taxKey])) {
                                 $formData[$taxKey][] = (string) $defaultTaxId;
                             }
+                        } else {
+                            $formData[$taxKey] = [];
                         }
 
                         // 3. Update the Model using the page's handler (which also handles line items!)
@@ -236,8 +239,15 @@ class EditEstimate extends EditRecord
                         throw $exception;
                     }
 
+                    // Directly sync taxes after transaction to guarantee DB accuracy.
+                    // form->getState() can trigger relationship hydration which reloads $this->data[$taxKey]
+                    // from the DB, undoing the cleared state — so we enforce the correct value here.
+                    $correctTaxIds = $defaultTaxId ? [(string) $defaultTaxId] : [];
+                    $record->$taxKey()->withoutGlobalScopes()->sync($correctTaxIds);
+                    $this->data[$taxKey] = $correctTaxIds;
+
                     $this->rememberData();
-                    
+
                     // Refresh the model in-place to get all latest DB attributes & relationships
                     $record = $this->getRecord();
                     $record->refresh();

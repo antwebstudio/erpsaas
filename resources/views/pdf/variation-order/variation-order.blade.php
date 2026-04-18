@@ -35,6 +35,16 @@
             page-break-inside: avoid;
             break-inside: avoid;
         }
+
+        tr.header-row {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        th {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
         
         .content-wrapper {
             width: 100%;
@@ -147,9 +157,9 @@
         
         <table class="main-table">
             <colgroup>
-                <col style="width: 10%;">
-                <col style="width: 60%;">
-                <col style="width: 15%;">
+                <col style="width: 6%;">
+                <col style="width: 66%;">
+                <col style="width: 13%;">
                 <col style="width: 15%;">
             </colgroup>
             <thead>
@@ -157,9 +167,9 @@
                 <tr><td colspan="4" style="height: 10mm;"></td></tr>
                 @include('pdf.variation-order.partials.intro')
                 <tr>
-                    <th class="items-th" style="width:10%;">Item</th>
-                    <th class="items-th" style="width:60%;">Work Description</th>
-                    <th class="items-th" style="width:15%;">Qty/Unit</th>
+                    <th class="items-th" style="width:6%;">#</th>
+                    <th class="items-th" style="width:66%;">Work Description</th>
+                    <th class="items-th" style="width:13%;">Qty/Unit</th>
                     <th class="items-th" style="width:15%;">Amount</th>
                 </tr>
             </thead>
@@ -167,20 +177,21 @@
                 @php $itemIndex = 1; @endphp
                 @foreach($document->lineItemGroups as $group)
                     @if($group->name)
-                        <tr>
-                            <td class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</td>
+                        <tbody style="page-break-inside: avoid; break-inside: avoid;"></tbody>
+                        <tr class="header-row">
+                            <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
                         </tr>
                     @endif
                     @foreach($group->items as $item)
                         <tr>
-                            <td class="items-td" style="width:10%;">{{ $itemIndex++ }}</td>
-                            <td class="items-td" style="width:60%;">
+                            <td class="items-td" style="width:6%;">{{ $itemIndex++ }}</td>
+                            <td class="items-td" style="width:66%;">
                                 @if(config('erp.hide_item_name', false) && !$item->isLocked)
                                     <strong>{{ $item->name }}</strong><br>
                                 @endif
                                 {!! nl2br(e($item->description)) !!}
                             </td>
-                            <td class="items-td" style="width:15%;">
+                            <td class="items-td" style="width:13%;">
                                 @if($item->unit && $item->quantity == 1)
                                     {{ $item->unit }}
                                 @else
@@ -189,6 +200,7 @@
                             </td>
                             <td class="items-td" style="width:15%;">{{ $item->subtotal }}</td>
                         </tr>
+                        @if($loop->first)</tbody>@endif
                     @endforeach
                 @endforeach
 
@@ -220,7 +232,7 @@
             
             <tfoot>
                 <tr>
-                    <td colspan="4" style="height: 100px;"></td>
+                    <td colspan="4" style="height: 120px;"></td>
                 </tr>
             </tfoot>
         </table>

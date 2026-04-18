@@ -12,7 +12,7 @@
                     Email: @stylemyspace.com.sg
                 </div> -->
 
-                <div style="font-size: 11px; margin-top: 10px; margin-bottom: 5px; color: #000;">CONTRACT / QUOTATION</div>
+                <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000;">CONTRACT / QUOTATION</div>
                 <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px;">
                     <tr>
                         <td style="width: 50%; padding: 1px 0;">Reference No:</td>

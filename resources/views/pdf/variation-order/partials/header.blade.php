@@ -13,7 +13,7 @@
             </td>
             <!-- Right Column: Quote info and Customer Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 30mm;">
-                <div style="font-size: 11px; margin-top: 10px; margin-bottom: 5px; color: #000;">VARIATION ORDER</div>
+                <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000;">VARIATION ORDER</div>
                 <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px;">
                     <tr>
                         <td style="width: 50%; padding: 1px 0;">VO No:</td>
