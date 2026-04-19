@@ -60,7 +60,7 @@ test('it converts estimate to contract and updates client details', function () 
     $service->convertToContract($estimate, $data);
 
     $estimate->refresh();
-    $client = Client::find($lead->id);
+    $client = Client::withoutGlobalScopes()->find($lead->id);
     $user->refresh();
 
     // 1. Verify estimate details updated

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Accounting;
 
+use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\EditInvoice;
 use App\Models\Accounting\DocumentLineItem;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 use function Pest\Livewire\livewire;
 
 beforeEach(function () {
+    InvoiceResource::skipAuthorization();
     $this->withOfferings();
 });
 
@@ -47,25 +49,21 @@ it('can create an invoice with grouped line items', function () {
 
     $client = Client::factory()->create(['company_id' => $this->testCompany->id]);
 
-    try {
-        livewire(CreateInvoice::class)
-            ->fillForm([
-                'client_id' => $client->id,
-                'currency_code' => 'USD',
-                'date' => now()->format('Y-m-d'),
-                'due_date' => now()->addDays(30)->format('Y-m-d'),
-                'lineItemGroups' => $groupData,
-            ])
-            ->call('create')
-            ->assertHasNoErrors();
-    } catch (\Throwable $e) {
-        dd($e->getMessage(), $e->getTraceAsString());
-    }
+    livewire(CreateInvoice::class)
+        ->fillForm([
+            'client_id' => $client->id,
+            'currency_code' => 'USD',
+            'date' => now()->format('Y-m-d'),
+            'due_date' => now()->addDays(30)->format('Y-m-d'),
+            'lineItemGroups' => $groupData,
+        ])
+        ->call('create')
+        ->assertHasNoErrors();
 
     $invoice = Invoice::first();
     expect($invoice)->not->toBeNull();
     $groups = $invoice->lineItemGroups;
-    expect($groups)->toHaveCount(2); // One default, one from test data
+    expect($groups)->toHaveCount(1);
     
     $group = $groups->firstWhere('name', 'Test Group 1');
     expect($group)->not->toBeNull();

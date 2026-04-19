@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 
 trait ManagesLineItems
 {
+    private array $preloadedGroups = [];
+    private array $preloadedItems = [];
     protected function handleLineItems(Model $record, Collection $lineItems): void
     {
         // Check if we are handling groups or flat items
@@ -58,6 +60,11 @@ trait ManagesLineItems
 
     protected function handleLineItemGroups(Model $record, Collection $groups, ?int $parentId = null): void
     {
+        if ($parentId === null) {
+            $this->preloadedGroups = $record->lineItemGroups()->withoutGlobalScopes()->get()->keyBy('id')->all();
+            $this->preloadedItems = $record->lineItems()->withoutGlobalScopes()->get()->keyBy('id')->all();
+        }
+
         $groupOrder = 0;
         foreach ($groups as $groupData) {
             $hasName = filled($groupData['name'] ?? null);
@@ -82,7 +89,7 @@ trait ManagesLineItems
             if ($parentId !== null && !$hasItems && !$hasChildren) {
                 $id = $groupData['id'] ?? null;
                 if ($id) {
-                    $existingGroup = $record->lineItemGroups()->find($id);
+                    $existingGroup = $this->preloadedGroups[$id] ?? null;
                     if ($existingGroup) {
                         $existingGroup->items()->delete();
                         $existingGroup->delete();
@@ -92,9 +99,9 @@ trait ManagesLineItems
             }
 
             $groupOrder++;
-            
+
             $id = $groupData['id'] ?? null;
-            $group = $id ? $record->lineItemGroups()->find($id) : null;
+            $group = $id ? ($this->preloadedGroups[$id] ?? null) : null;
 
             if (! $group) {
                 $group = $record->lineItemGroups()->make();
@@ -122,7 +129,7 @@ trait ManagesLineItems
                 $itemIndex++;
                 
                 $itemId = $itemData['id'] ?? null;
-                $lineItem = $itemId ? $record->lineItems()->find($itemId) : null;
+                $lineItem = $itemId ? ($this->preloadedItems[$itemId] ?? null) : null;
 
                  if (! $lineItem) {
                      $lineItem = $record->lineItems()->make();
@@ -265,7 +272,8 @@ trait ManagesLineItems
 
     protected function handleLineItemAdjustments(DocumentLineItem $lineItem, array $itemData, DocumentDiscountMethod $discountMethod): void
     {
-        $isBill = $lineItem->documentable instanceof Bill;
+        // Compare type string to avoid lazy-loading the documentable relation
+        $isBill = $lineItem->documentable_type === (new Bill())->getMorphClass();
 
         $taxType = $isBill ? 'purchaseTaxes' : 'salesTaxes';
         $discountType = $isBill ? 'purchaseDiscounts' : 'salesDiscounts';
@@ -276,7 +284,19 @@ trait ManagesLineItems
             ->unique();
 
         $lineItem->adjustments()->withoutGlobalScopes()->sync($adjustmentIds);
-        $lineItem->refresh();
+
+        // Invalidate the relation cache after sync so subsequent calculations use fresh data.
+        // For empty sets, pre-set empty collections to skip redundant SELECT queries in calculateTaxTotalAmount/calculateDiscountTotalAmount.
+        $relationsToReset = ['adjustments', 'taxes', 'discounts', 'salesTaxes', 'salesDiscounts', 'purchaseTaxes', 'purchaseDiscounts'];
+        if ($adjustmentIds->isEmpty()) {
+            foreach ($relationsToReset as $relation) {
+                $lineItem->setRelation($relation, collect());
+            }
+        } else {
+            foreach ($relationsToReset as $relation) {
+                $lineItem->unsetRelation($relation);
+            }
+        }
     }
 
     protected function updateLineItemTotals(DocumentLineItem $lineItem, DocumentDiscountMethod $discountMethod): void

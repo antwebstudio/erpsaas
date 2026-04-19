@@ -121,7 +121,7 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
 
     public function bankAccounts(): HasMany
     {
-        return $this->hasMany(BankAccount::class, 'company_id');
+        return $this->hasMany(BankAccount::class, 'company_id')->withoutGlobalScopes();
     }
 
     public function bills(): HasMany
@@ -167,7 +167,7 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
 
     public function default(): HasOne
     {
-        return $this->hasOne(CompanyDefault::class, 'company_id');
+        return $this->hasOne(CompanyDefault::class, 'company_id')->withoutGlobalScopes();
     }
 
     public function documentDefaults(): HasMany
@@ -238,12 +238,12 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
 
     public function locale(): HasOne
     {
-        return $this->hasOne(Localization::class, 'company_id');
+        return $this->hasOne(Localization::class, 'company_id')->withoutGlobalScopes();
     }
 
     public function profile(): HasOne
     {
-        return $this->hasOne(CompanyProfile::class, 'company_id');
+        return $this->hasOne(CompanyProfile::class, 'company_id')->withoutGlobalScopes();
     }
 
     public function transactions(): HasMany

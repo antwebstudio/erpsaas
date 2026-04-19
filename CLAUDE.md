@@ -15,7 +15,7 @@ composer run dev
 # Run tests
 composer run test
 # or directly:
-php artisan config:clear && ./vendor/bin/pest
+php84 artisan config:clear && ./vendor/bin/pest
 
 # Run a single test file
 ./vendor/bin/pest tests/Feature/SomeTest.php
@@ -23,17 +23,8 @@ php artisan config:clear && ./vendor/bin/pest
 # Build frontend assets
 npm run build
 
-# Seed the database
-php artisan db:seed
-
-# Sync Super Admin role permissions (custom seeder)
-php artisan db:seed --class=ShieldSeeder
-
 # Check Super Admin permissions across all companies
-php check_permissions.php
-
-# Generate Filament Shield permissions
-php artisan shield:generate --all
+php84 check_permissions.php
 
 # Lint PHP code
 ./vendor/bin/pint
@@ -89,8 +80,6 @@ Multiple drivers available: Snappy (wkhtmltopdf), `spatie/laravel-pdf`, Browsers
 
 ### Scheduled Jobs
 Defined in `routes/console.php`:
-- Every 5 min: `UpdateOverdueInvoices`
-- Every minute: `TriggerRecurringInvoiceGeneration`
 
 Queue, cache, and session all use the **database** driver.
 
@@ -107,3 +96,13 @@ Queue, cache, and session all use the **database** driver.
 - Test database: `erpsaas_test` (configure in `.env`)
 - Custom helpers in `tests/Helpers/` and `app/Testing/`
 - Default test user seeded: `admin@erpsaas.com` / `password`
+
+# Important Notes
+
+- Use php84 when need to run php in console
+- Try to avoid highly duplicated code, reuse the code
+- Act as a Senior Software Architect specializing in strict MVC (Model-View-Controller) design pattern
+- Filament Action should be treated as controller, so it should not contain any business logic
+- Keep agent knowledge whenever necessary
+- Check if the code work as expected after implemented it
+- Ask question whenever there is any additional information needed

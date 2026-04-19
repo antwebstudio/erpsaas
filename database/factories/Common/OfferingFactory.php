@@ -46,7 +46,7 @@ class OfferingFactory extends Factory
     public function withSalesAdjustments(): self
     {
         return $this->afterCreating(function (Offering $offering) {
-            $incomeAccount = Account::query()
+            $incomeAccount = Account::withoutGlobalScopes()
                 ->where('company_id', $offering->company_id)
                 ->where('category', AccountCategory::Revenue)
                 ->where('type', AccountType::OperatingRevenue)
@@ -58,7 +58,8 @@ class OfferingFactory extends Factory
                 'income_account_id' => $incomeAccount->id,
             ]);
 
-            $adjustments = $offering->company?->adjustments()
+            $adjustments = Adjustment::withoutGlobalScopes()
+                ->where('company_id', $offering->company_id)
                 ->where('type', AdjustmentType::Sales)
                 ->pluck('id');
 
@@ -73,7 +74,7 @@ class OfferingFactory extends Factory
     public function withPurchaseAdjustments(): self
     {
         return $this->afterCreating(function (Offering $offering) {
-            $expenseAccount = Account::query()
+            $expenseAccount = Account::withoutGlobalScopes()
                 ->where('company_id', $offering->company_id)
                 ->where('category', AccountCategory::Expense)
                 ->where('type', AccountType::OperatingExpense)
@@ -85,7 +86,8 @@ class OfferingFactory extends Factory
                 'expense_account_id' => $expenseAccount->id,
             ]);
 
-            $adjustments = $offering->company?->adjustments()
+            $adjustments = Adjustment::withoutGlobalScopes()
+                ->where('company_id', $offering->company_id)
                 ->where('type', AdjustmentType::Purchase)
                 ->pluck('id');
 

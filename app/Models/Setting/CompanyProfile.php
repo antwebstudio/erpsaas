@@ -57,7 +57,7 @@ class CompanyProfile extends Model
 
     public function address(): MorphOne
     {
-        return $this->morphOne(Address::class, 'addressable');
+        return $this->morphOne(Address::class, 'addressable')->withoutGlobalScopes();
     }
 
     public function defaultSalesTax(): BelongsTo
