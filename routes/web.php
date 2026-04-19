@@ -14,6 +14,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('documents/{documentType}/{id}/print', [DocumentPrintController::class, 'show'])
         ->middleware(AllowSameOriginFrame::class)
         ->name('documents.print');
+
+    Route::get('invoices/{invoiceId}/switch-and-edit', function ($invoiceId) {
+        $invoice = \App\Models\Accounting\Invoice::withoutGlobalScopes()->findOrFail($invoiceId);
+        $company = $invoice->company;
+        auth()->user()->switchCompany($company);
+
+        return redirect(\App\Filament\Company\Resources\Sales\InvoiceResource::getUrl('edit', ['record' => $invoice, 'tenant' => $company], panel: 'company'));
+    })->name('invoices.switch-and-edit');
 });
 
 Route::get('/download-quotation-pdf', function () {

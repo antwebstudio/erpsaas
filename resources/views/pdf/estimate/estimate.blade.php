@@ -1,3 +1,6 @@
+@php
+    $headerTopMargin = '10mm';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +167,7 @@
             </colgroup>
             <thead>
                 @include('pdf.estimate.partials.header')
-                <tr><td colspan="4" style="height: 10mm;"></td></tr>
+                <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.estimate.partials.intro')
                 <tr>
                     <th class="items-th" style="width:6%;">#</th>
@@ -247,7 +250,7 @@
             </colgroup>
             <thead>
                 @include('pdf.estimate.partials.header')
-                <tr><td colspan="4" style="height: 10mm;"></td></tr>
+                <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.estimate.partials.intro')
             </thead>
             <tbody>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\DocumentType;
 use App\Models\Accounting\AccountSubtype;
 use App\Models\Banking\BankAccount;
@@ -196,6 +197,7 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     public function defaultInvoice(): HasOne
     {
         return $this->hasOne(DocumentDefault::class, 'company_id')
+            ->withoutGlobalScopes()
             ->where('type', DocumentType::Invoice);
     }
 

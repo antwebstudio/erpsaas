@@ -464,6 +464,11 @@ class InvoiceResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->hiddenOn(InvoicesRelationManager::class),
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Company')
+                    ->sortable()
+                    ->searchable()
+                    ->visibleOn(InvoicesRelationManager::class),
                 Tables\Columns\TextColumn::make('total')
                     ->currencyWithConversion(static fn (Invoice $record) => $record->currency_code)
                     ->sortable()

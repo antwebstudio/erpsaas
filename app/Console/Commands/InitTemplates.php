@@ -27,6 +27,8 @@ class InitTemplates extends Command
         $this->line('');
         $this->setDefaultBackgroundImages();
         $this->line('');
+        $this->setDefaultLogos();
+        $this->line('');
         $this->setDefaultCoverPdfs();
         $this->line('');
         $this->setDefaultDocumentHtmlContent();
@@ -146,9 +148,42 @@ class InitTemplates extends Command
         }
     }
 
+    private function setDefaultLogos()
+    {
+        $this->info('Function 4: Setting Default Logos...');
+
+        $companyMap = [
+            2 => 'muyi-carpenter.png',
+            4 => 'stylemyspace.png',
+            3 => 'stylemyspace-design-studio.png',
+        ];
+
+        foreach ($companyMap as $id => $filename) {
+            $sourcePath = storage_path("template/logo/{$filename}");
+            if (!File::exists($sourcePath)) {
+                $this->skipped[] = "Logo image missing for company {$id}: {$filename}";
+                continue;
+            }
+
+            $storagePath = "settings/logo/{$id}_{filename}";
+            Storage::disk('public')->put($storagePath, File::get($sourcePath));
+
+            $company = Company::find($id);
+            if ($company) {
+                $company->profile()->updateOrCreate(
+                    ['company_id' => $id],
+                    ['logo' => $storagePath]
+                );
+                $this->info("Updated logo for company {$id}");
+            } else {
+                $this->skipped[] = "Company {$id} not found for logo update.";
+            }
+        }
+    }
+
     private function setDefaultCoverPdfs()
     {
-        $this->info('Function 4: Setting Default Cover PDFs...');
+        $this->info('Function 5: Setting Default Cover PDFs...');
 
         $companyMap = [
             2 => 'muyi-carpenter.png',
@@ -184,7 +219,7 @@ class InitTemplates extends Command
 
     private function setDefaultDocumentHtmlContent()
     {
-        $this->info('Function 5: Setting Default Terms & Materials Guide HTML...');
+        $this->info('Function 6: Setting Default Terms & Materials Guide HTML...');
 
         $path = storage_path('template/document');
         if (!File::isDirectory($path)) {

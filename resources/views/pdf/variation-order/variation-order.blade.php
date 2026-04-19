@@ -1,3 +1,6 @@
+@php
+    $headerTopMargin = '10mm';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +167,7 @@
             </colgroup>
             <thead>
                 @include('pdf.variation-order.partials.header')
-                <tr><td colspan="4" style="height: 10mm;"></td></tr>
+                <tr><td colspan="4" style="height: {{ $haederTopMargin }};"></td></tr>
                 @include('pdf.variation-order.partials.intro')
                 <tr>
                     <th class="items-th" style="width:6%;">#</th>
@@ -177,7 +180,7 @@
                 @php $itemIndex = 1; @endphp
                 @foreach($document->lineItemGroups as $group)
                     @if($group->name)
-                        <tbody style="page-break-inside: avoid; break-inside: avoid;"></tbody>
+                        <tbody style="page-break-inside: avoid; break-inside: avoid;">
                         <tr class="header-row">
                             <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
                         </tr>
@@ -248,7 +251,7 @@
             </colgroup>
             <thead>
                 @include('pdf.variation-order.partials.header')
-                <tr><td colspan="4" style="height: 10mm;"></td></tr>
+                <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.variation-order.partials.intro')
             </thead>
             <tbody>

@@ -3,20 +3,19 @@
         <tr>
             <!-- Left Column: Company Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 10mm;">
-                @if ($document->logo)
-                    <img src="{{ $document->logo }}" alt="Logo" style="max-height: 50px; margin-bottom: 10px;">
-                @endif
-                <div style="font-size: 11px; font-weight: normal;">{{ $document->company->name }}</div>
-                <div style="font-size: 8px; font-weight: normal;">
-                    {!! $document->company->getFormattedAddressHtml() !!}
-                </div>
+                <!-- Company logo or details can go here -->
             </td>
             <!-- Right Column: Quote info and Customer Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 30mm;">
+                <!-- <div style="text-align: right">
+                    M: 0000 0000<br/>
+                    Email: @stylemyspace.com.sg
+                </div> -->
+
                 <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000; font-weight: bold;">VARIATION ORDER</div>
                 <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px; font-weight: normal;">
                     <tr>
-                        <td style="width: 50%; padding: 1px 0;">VO No:</td>
+                        <td style="width: 50%; padding: 1px 0;">Reference No:</td>
                         <td style="padding: 1px 0;">{{ $document->number }}</td>
                     </tr>
                     <tr>
@@ -25,15 +24,15 @@
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">NRIC last 4 digit:</td>
-                        <td style="padding: 1px 0;">{{ $document->client->nric ?? '' }}</td>
+                        <td style="padding: 1px 0;">{{ $document->client->nric ?? '' }}</td> <!-- Placeholder as per template -->
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Contact No:</td>
-                        <td style="padding: 1px 0;">{{ $document->client->phone ?? '' }}</td>
+                        <td style="padding: 1px 0;">{{ $document->client->phone ?? '' }}</td> <!-- Placeholder -->
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Email:</td>
-                        <td style="padding: 1px 0;">{{ $document->client->email ?? '' }}</td>
+                        <td style="padding: 1px 0;">{{ $document->client->email ?? '' }}</td> <!-- Placeholder -->
                     </tr>
                     <tr>
                         <td style="padding: 1px 0; vertical-align: top;">Address:</td>
@@ -49,11 +48,11 @@
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Sale Person:</td>
-                        <td style="padding: 1px 0;">{{ $document->createdBy->name }}</td>
+                        <td style="padding: 1px 0;">{{ $document->createdBy?->name }}</td>
                     </tr>
                     <tr>
                         <td style="padding: 1px 0;">Sale Person Email:</td>
-                        <td style="padding: 1px 0;">{{ $document->createdBy->email }}</td>
+                        <td style="padding: 1px 0;">{{ $document->createdBy?->email }}</td>
                     </tr>
                 </table>
             </td>

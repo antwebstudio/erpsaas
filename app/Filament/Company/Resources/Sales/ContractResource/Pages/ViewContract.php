@@ -29,6 +29,16 @@ class ViewContract extends ViewRecord
 
     protected function getHeaderActions(): array
     {
+        $invoiceActions = collect(ContractResource::getPaymentTypes())
+            ->map(fn (string $label, string $name) => Actions\Action::make($name)
+                ->label($label)
+                ->icon('heroicon-o-document-plus')
+                ->action(function (Estimate $record) use ($label) {
+                    $invoice = ContractResource::createPaymentInvoice($record, $label);
+                    $this->redirect(route('invoices.switch-and-edit', $invoice));
+                })
+            )->values()->all();
+
         return [
             Actions\ActionGroup::make([
                 Actions\ActionGroup::make([
@@ -37,6 +47,14 @@ class ViewContract extends ViewRecord
                 ])->dropdown(false),
             ])
                 ->label('Actions')
+                ->button()
+                ->outlined()
+                ->dropdownPlacement('bottom-end')
+                ->icon('heroicon-m-chevron-down')
+                ->iconPosition(IconPosition::After),
+
+            Actions\ActionGroup::make($invoiceActions)
+                ->label('Generate Invoice')
                 ->button()
                 ->outlined()
                 ->dropdownPlacement('bottom-end')
