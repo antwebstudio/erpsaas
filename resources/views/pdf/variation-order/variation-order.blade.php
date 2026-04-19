@@ -169,8 +169,8 @@
                 <tr>
                     <th class="items-th" style="width:6%;">#</th>
                     <th class="items-th" style="width:66%;">Work Description</th>
-                    <th class="items-th" style="width:13%;">Qty/Unit</th>
-                    <th class="items-th" style="width:15%;">Amount</th>
+                    <th class="items-th" style="width:13%; text-align: center;">Qty/Unit</th>
+                    <th class="items-th" style="width:15%; text-align: center;">Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -191,14 +191,14 @@
                                 @endif
                                 {!! nl2br(e($item->description)) !!}
                             </td>
-                            <td class="items-td" style="width:13%;">
+                            <td class="items-td" style="width:13%; text-align: center;">
                                 @if($item->unit && $item->quantity == 1)
                                     {{ $item->unit }}
                                 @else
                                     {{ $item->quantity }} {{ $item->unit }}
                                 @endif
                             </td>
-                            <td class="items-td" style="width:15%;">{{ $item->subtotal }}</td>
+                            <td class="items-td" style="width:15%; {{ trim($item->subtotal) === 'FOC' ? 'text-align: center;' : '' }}">{{ $item->subtotal }}</td>
                         </tr>
                         @if($loop->first)</tbody>@endif
                     @endforeach

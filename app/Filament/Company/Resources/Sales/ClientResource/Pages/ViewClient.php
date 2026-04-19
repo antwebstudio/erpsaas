@@ -4,10 +4,10 @@ namespace App\Filament\Company\Resources\Sales\ClientResource\Pages;
 
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
-use App\Filament\Company\Resources\Sales\EstimateResource\Pages\CreateEstimate;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource\Pages\CreateRecurringInvoice;
-use App\Filament\Company\Resources\Sales\VariationOrderResource\Pages\CreateVariationOrder;
+use App\Filament\User\Pages\CreateQuotation;
+use App\Filament\User\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -51,18 +51,18 @@ class ViewClient extends ViewRecord
                         ->label('New invoice')
                         ->icon('heroicon-m-document-plus')
                         ->url(CreateInvoice::getUrl(['client' => $this->record->getKey()])),
-                    Action::make('newEstimate')
-                        ->label('New estimate')
+                    Action::make('createQuotation')
+                        ->label('Create quotation')
                         ->icon('heroicon-m-document-duplicate')
-                        ->url(CreateEstimate::getUrl(['client' => $this->record->getKey()])),
+                        ->url(CreateQuotation::getUrl(['client' => $this->record->getKey()], panel: 'user')),
                     Action::make('newRecurringInvoice')
                         ->label('New recurring invoice')
                         ->icon('heroicon-m-arrow-path')
                         ->url(CreateRecurringInvoice::getUrl(['client' => $this->record->getKey()])),
-                    Action::make('newVariationOrder')
-                        ->label('New variation order')
+                    Action::make('createVariationOrder')
+                        ->label('Create variation order')
                         ->icon('heroicon-m-document-text')
-                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()])),
+                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()], panel: 'user')),
                 ])->dropdown(false),
                 DeleteAction::make(),
             ])

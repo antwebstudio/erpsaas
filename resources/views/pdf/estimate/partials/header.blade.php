@@ -1,5 +1,5 @@
-<th colspan="4" style="height: 180px; vertical-align: top; padding-top: 8mm; padding-bottom: 5mm;">
-    <table style="width: 100%; border-collapse: collapse; border: none; font-family: 'DOTFUB+Open Sans Regular', sans-serif; font-size: 10px; color: #000;">
+<td colspan="4" style="height: 180px; vertical-align: top; padding-top: 8mm; padding-bottom: 5mm; font-weight: normal;">
+    <table style="width: 100%; border-collapse: collapse; border: none; font-family: 'DOTFUB+Open Sans Regular', sans-serif; font-size: 10px; color: #000; font-weight: normal;">
         <tr>
             <!-- Left Column: Company Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 10mm;">
@@ -12,8 +12,8 @@
                     Email: @stylemyspace.com.sg
                 </div> -->
 
-                <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000;">CONTRACT / QUOTATION</div>
-                <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px;">
+                <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000; font-weight: bold;">CONTRACT / QUOTATION</div>
+                <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px; font-weight: normal;">
                     <tr>
                         <td style="width: 50%; padding: 1px 0;">Reference No:</td>
                         <td style="padding: 1px 0;">{{ $document->number }}</td>
@@ -58,4 +58,4 @@
             </td>
         </tr>
     </table>
-</th>
+</td>

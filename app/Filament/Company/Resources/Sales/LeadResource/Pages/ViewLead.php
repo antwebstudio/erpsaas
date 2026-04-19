@@ -4,11 +4,9 @@ namespace App\Filament\Company\Resources\Sales\LeadResource\Pages;
 
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
-use App\Filament\Company\Resources\Sales\EstimateResource\Pages\CreateEstimate;
-use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\LeadResource;
-use App\Filament\Company\Resources\Sales\RecurringInvoiceResource\Pages\CreateRecurringInvoice;
-use App\Filament\Company\Resources\Sales\VariationOrderResource\Pages\CreateVariationOrder;
+use App\Filament\User\Pages\CreateQuotation;
+use App\Filament\User\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -54,10 +52,14 @@ class ViewLead extends ViewRecord
                 ->outlined(),
             ActionGroup::make([
                 ActionGroup::make([
-                    Action::make('newVariationOrder')
-                        ->label('New variation order')
+                    Action::make('createQuotation')
+                        ->label('Create quotation')
+                        ->icon('heroicon-m-document-duplicate')
+                        ->url(CreateQuotation::getUrl(['client' => $this->record->getKey()], panel: 'user')),
+                    Action::make('createVariationOrder')
+                        ->label('Create variation order')
                         ->icon('heroicon-m-document-text')
-                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()])),
+                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()], panel: 'user')),
                 ])->dropdown(false),
                 DeleteAction::make(),
             ])

@@ -98,10 +98,11 @@
                     <button @click="step = 0" x-show="!urlHasClient" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">← Back</button>
                     <div x-show="urlHasClient"></div>
                     <button @click="submitQuotation" 
-                            :disabled="!hasSelectedScopes"
-                            :class="!hasSelectedScopes ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-green-600 hover:bg-green-700 hover:-translate-y-1'"
-                            class="px-10 py-4 text-white font-bold uppercase text-lg shadow-lg rounded-xl transition-all">
-                        Create & Continue →
+                            :disabled="!hasSelectedScopes || isProcessing"
+                            :class="(!hasSelectedScopes || isProcessing) ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-green-600 hover:bg-green-700 hover:-translate-y-1'"
+                            class="px-10 py-4 text-white font-bold uppercase text-lg shadow-lg rounded-xl transition-all flex items-center gap-2">
+                        <span x-show="isProcessing" class="inline-block animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                        <span x-text="isProcessing ? 'Processing...' : 'Create & Continue →'"></span>
                     </button>
                 </div>
             </div>
@@ -114,6 +115,7 @@
         return {
             step: initialData.initial_step || 0,
             data: initialData,
+            isProcessing: false,
             
             get urlHasClient() {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -153,8 +155,12 @@
             },
 
             submitQuotation() {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
                 this.$wire.data = this.data;
-                this.$wire.create();
+                this.$wire.create().finally(() => {
+                    this.isProcessing = false;
+                });
             }
         }
     }
