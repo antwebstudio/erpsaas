@@ -16,6 +16,7 @@ readonly class LineItemDTO
         public ?string $unit,
         public bool $isLocked,
         public ?int $offeringId = null,
+        public bool $isNegative = false,
     ) {}
 
     public static function fromModel(DocumentLineItem $lineItem): self
@@ -29,6 +30,7 @@ readonly class LineItemDTO
             unit: $lineItem->unit,
             isLocked: $lineItem->is_locked ?? false,
             offeringId: $lineItem->offering_id,
+            isNegative: (int) $lineItem->getRawOriginal('unit_price') < 0,
         );
     }
 

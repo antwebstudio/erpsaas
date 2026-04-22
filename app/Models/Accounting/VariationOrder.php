@@ -451,28 +451,43 @@ class VariationOrder extends Document
 
     public static function getDownloadMergedPdfAction(string $action = \Filament\Actions\Action::class, string $name = 'downloadMergedPdf'): \Filament\Actions\MountableAction
     {
-        $downloadAction = $action::make($name)
+        return $action::make($name)
             ->label('Download PDF')
-            ->icon('heroicon-m-arrow-down-tray');
+            ->icon('heroicon-m-arrow-down-tray')
+            ->form(function (self $record, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
 
-        if (config('erp.async_pdf_generation')) {
-            $downloadAction->modalHeading('Generating PDF')
-                ->modalSubmitAction(false)
-                ->modalCancelAction(false)
-                ->modalContent(fn (self $record) => view('components.variation-order-pdf-modal', ['record' => $record]))
-                ->action(fn () => null);
-        } else {
-            $downloadAction->action(function (self $record) {
+                return $templateCompanyId ? [] : [
+                    Forms\Components\Select::make('template_company_id')
+                        ->label('Issue Company')
+                        ->relationship('templateCompany', 'name', fn (Builder $query) => $query->where('id', '!=', config('erp.erp_system_company_id')))
+                        ->default(fn (self $record) => $record->template_company_id)
+                        ->required()
+                        ->searchable()
+                        ->preload(),
+                ];
+            })
+            ->modalHidden(function (self $record, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
+
+                return $templateCompanyId !== null;
+            })
+            ->modalSubmitActionLabel('Download')
+            ->action(function (self $record, array $data, \Filament\Forms\Component $livewire) {
+                $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+
+                if ($record->template_company_id !== (int) $templateCompanyId) {
+                    $record->update(['template_company_id' => $templateCompanyId]);
+                    $record->refresh();
+                }
+
                 $pdfService = new \App\Services\VariationOrderPdfService();
                 $finalPdfOutput = $pdfService->generate($record);
-                
+
                 return response()->streamDownload(function () use ($finalPdfOutput) {
                     echo $finalPdfOutput;
                 }, "VariationOrder-{$record->documentNumber()}.pdf");
             });
-        }
-
-        return $downloadAction;
     }
 
     public function scopeIsTemplate(Builder $query): Builder

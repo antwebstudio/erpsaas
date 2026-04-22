@@ -1,5 +1,5 @@
 @php
-    $headerTopMargin = '10mm';
+    $headerTopMargin = '5mm';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -167,7 +167,7 @@
             </colgroup>
             <thead>
                 @include('pdf.variation-order.partials.header')
-                <tr><td colspan="4" style="height: {{ $haederTopMargin }};"></td></tr>
+                <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.variation-order.partials.intro')
                 <tr>
                     <th class="items-th" style="width:6%;">#</th>
@@ -176,37 +176,96 @@
                     <th class="items-th" style="width:15%; text-align: center;">Amount</th>
                 </tr>
             </thead>
-            <tbody>
-                @php $itemIndex = 1; @endphp
-                @foreach($document->lineItemGroups as $group)
-                    @if($group->name)
-                        <tbody style="page-break-inside: avoid; break-inside: avoid;">
-                        <tr class="header-row">
-                            <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
-                        </tr>
-                    @endif
-                    @foreach($group->items as $item)
-                        <tr>
-                            <td class="items-td" style="width:6%;">{{ $itemIndex++ }}</td>
-                            <td class="items-td" style="width:66%;">
-                                @if(config('erp.hide_item_name', false) && !$item->isLocked)
-                                    <strong>{{ $item->name }}</strong><br>
-                                @endif
-                                {!! nl2br(e($item->description)) !!}
-                            </td>
-                            <td class="items-td" style="width:13%; text-align: center;">
-                                @if($item->unit && $item->quantity == 1)
-                                    {{ $item->unit }}
-                                @else
-                                    {{ $item->quantity }} {{ $item->unit }}
-                                @endif
-                            </td>
-                            <td class="items-td" style="width:15%; {{ trim($item->subtotal) === 'FOC' ? 'text-align: center;' : '' }}">{{ $item->subtotal }}</td>
-                        </tr>
-                        @if($loop->first)</tbody>@endif
-                    @endforeach
-                @endforeach
+            @php
+                $removedGroups = $document->lineItemGroups->map(fn($g) => (object)[
+                    'name' => $g->name,
+                    'items' => collect($g->items)->filter(fn($i) => $i->isNegative)->values(),
+                ])->filter(fn($g) => $g->items->isNotEmpty());
 
+                $addedGroups = $document->lineItemGroups->map(fn($g) => (object)[
+                    'name' => $g->name,
+                    'items' => collect($g->items)->filter(fn($i) => !$i->isNegative)->values(),
+                ])->filter(fn($g) => $g->items->isNotEmpty());
+            @endphp
+
+            {{-- Removed Items Section --}}
+            @if($removedGroups->isNotEmpty())
+                <tbody>
+                    <tr>
+                        <th class="items-td" colspan="4" style="background-color: #96693C; color: white; font-weight: bold;">Removed Items</th>
+                    </tr>
+                </tbody>
+                @php $itemIndex = 1; @endphp
+                @foreach($removedGroups as $group)
+                    <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                        @if($group->name)
+                            <tr class="header-row">
+                                <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
+                            </tr>
+                        @endif
+                        @foreach($group->items as $item)
+                            <tr>
+                                <td class="items-td" style="width:6%;">{{ $itemIndex++ }}</td>
+                                <td class="items-td" style="width:66%;">
+                                    @if(config('erp.hide_item_name', false) && !$item->isLocked)
+                                        <strong>{{ $item->name }}</strong><br>
+                                    @endif
+                                    {!! nl2br(e($item->description)) !!}
+                                </td>
+                                <td class="items-td" style="width:13%; text-align: center;">
+                                    @if($item->unit && $item->quantity == 1)
+                                        {{ $item->unit }}
+                                    @else
+                                        {{ $item->quantity }} {{ $item->unit }}
+                                    @endif
+                                </td>
+                                <td class="items-td" style="width:15%; {{ trim($item->subtotal) === 'FOC' ? 'text-align: center;' : '' }}">{{ $item->subtotal }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                @endforeach
+            @endif
+
+            {{-- Added Items Section --}}
+            @if($addedGroups->isNotEmpty())
+                <tbody>
+                    <tr>
+                        <th class="items-td" colspan="4" style="background-color: #96693C; color: white; font-weight: bold;">Added Items</th>
+                    </tr>
+                </tbody>
+                @php $itemIndex = 1; @endphp
+                @foreach($addedGroups as $group)
+                    <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                        @if($group->name)
+                            <tr class="header-row">
+                                <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
+                            </tr>
+                        @endif
+                        @foreach($group->items as $item)
+                            <tr>
+                                <td class="items-td" style="width:6%;">{{ $itemIndex++ }}</td>
+                                <td class="items-td" style="width:66%;">
+                                    @if(config('erp.hide_item_name', false) && !$item->isLocked)
+                                        <strong>{{ $item->name }}</strong><br>
+                                    @endif
+                                    {!! nl2br(e($item->description)) !!}
+                                </td>
+                                <td class="items-td" style="width:13%; text-align: center;">
+                                    @if($item->unit && $item->quantity == 1)
+                                        {{ $item->unit }}
+                                    @else
+                                        {{ $item->quantity }} {{ $item->unit }}
+                                    @endif
+                                </td>
+                                <td class="items-td" style="width:15%; {{ trim($item->subtotal) === 'FOC' ? 'text-align: center;' : '' }}">{{ $item->subtotal }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                @endforeach
+            @endif
+
+            {{-- Tax and Total --}}
+            <tbody>
                 @if($document->subtotal || $document->discount || $document->tax)
                     @if($document->subtotal)
                         <tr>

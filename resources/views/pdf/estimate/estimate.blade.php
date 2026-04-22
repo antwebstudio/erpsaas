@@ -1,5 +1,5 @@
 @php
-    $headerTopMargin = '10mm';
+    $headerTopMargin = '5mm';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
