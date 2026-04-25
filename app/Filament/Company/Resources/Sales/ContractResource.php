@@ -6,6 +6,8 @@ use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
+use App\Models\Common\Offering;
+use App\Models\Common\OfferingCategory;
 use App\Filament\Company\Resources\Sales\ContractResource\Pages\ViewContract;
 use App\Filament\Company\Resources\Sales\EstimateResource\Pages\ViewEstimate;
 use App\Models\Accounting\Contract;
@@ -22,6 +24,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
+use App\Filament\Company\Resources\Sales\AllClientResource;
+use App\Filament\Company\Resources\Sales\ClientResource;
+use App\Filament\Company\Resources\Sales\LeadResource;
 
 class ContractResource extends Resource
 {
@@ -74,8 +79,51 @@ class ContractResource extends Resource
             ]);
     }
 
+    /**
+     * Get payment type offerings from the company's configured payment category.
+     *
+     * @return \Illuminate\Support\Collection<int, Offering>
+     */
+    public static function getPaymentOfferings(): \Illuminate\Support\Collection
+    {
+        $company = auth()->user()?->currentCompany;
+
+        if (! $company) {
+            return collect();
+        }
+
+        $categoryId = $company->profile?->payment_offering_category_id;
+
+        if (! $categoryId) {
+            return collect();
+        }
+
+        $category = OfferingCategory::withoutGlobalScopes()->find($categoryId);
+
+        if (! $category) {
+            return collect();
+        }
+
+        return $category->offerings()
+            ->orderBy('sort_order')
+            ->get();
+    }
+
+    /**
+     * Get payment types as key => label array.
+     * Uses offerings from the "Payment" category, with a hardcoded fallback.
+     */
     public static function getPaymentTypes(): array
     {
+        $offerings = static::getPaymentOfferings();
+
+        if ($offerings->isNotEmpty()) {
+            return $offerings->mapWithKeys(fn (Offering $o) => [
+                'invoice_offering_' . $o->id => $o->name,
+            ])->all();
+        }
+
+        // Fallback when offerings have not been seeded yet
         return [
             'invoiceDeposit'          => 'Deposit payment',
             'invoiceWorkCommencement' => 'Work commencement payment',
@@ -86,9 +134,11 @@ class ContractResource extends Resource
         ];
     }
 
-    public static function createPaymentInvoice(Estimate $record, string $description): Invoice
+    public static function createPaymentInvoice(Estimate $record, string $description, ?int $offeringId = null): Invoice
     {
         $company = $record->company;
+
+        $defaultInvoice = $company->defaultInvoice;
 
         $invoice = Invoice::create([
             'company_id'      => $company->id,
@@ -100,6 +150,8 @@ class ContractResource extends Resource
             'due_date'        => company_today(),
             'status'          => InvoiceStatus::Draft,
             'discount_method' => DocumentDiscountMethod::PerLineItem,
+            'header'          => $defaultInvoice->header ?? '',
+            'subheader'       => $defaultInvoice->subheader ?? '',
             'subtotal'        => 0,
             'tax_total'       => 0,
             'discount_total'  => 0,
@@ -116,16 +168,55 @@ class ContractResource extends Resource
             'order'             => 1,
         ]);
 
-        $invoice->lineItems()->create([
+        $lineItemData = [
             'company_id'  => $company->id,
             'group_id'    => $group->id,
-            'description' => $description,
+            'description' => $offeringId ? null : $description,
             'quantity'    => 1,
             'unit_price'  => 0,
             'line_number' => 1,
-        ]);
+        ];
+
+        if ($offeringId) {
+            $lineItemData['offering_id'] = $offeringId;
+        }
+
+        $invoice->lineItems()->create($lineItemData);
 
         return $invoice;
+    }
+    /**
+     * Build the "Generate Invoice" action list for payment types.
+     * Extracts offering_id from seeded offerings when available.
+     *
+     * @param  class-string  $actionClass  The Filament Action class to use (Tables\Actions\Action or Actions\Action)
+     */
+    public static function buildPaymentInvoiceActions(string $actionClass): array
+    {
+        $offerings = static::getPaymentOfferings();
+
+        if ($offerings->isNotEmpty()) {
+            return $offerings->map(
+                fn (Offering $offering) => $actionClass::make('invoice_offering_' . $offering->id)
+                    ->label($offering->name)
+                    ->icon('heroicon-o-document-plus')
+                    ->action(function (Estimate $record) use ($offering) {
+                        $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
+                        redirect(route('invoices.switch-and-edit', $invoice));
+                    })
+            )->values()->all();
+        }
+
+        // Fallback to hardcoded payment types
+        return collect(static::getPaymentTypes())->map(
+            fn (string $label, string $name) => $actionClass::make($name)
+                ->label($label)
+                ->icon('heroicon-o-document-plus')
+                ->action(function (Estimate $record) use ($label) {
+                    $invoice = static::createPaymentInvoice($record, $label);
+                    redirect(route('invoices.switch-and-edit', $invoice));
+                })
+        )->values()->all();
     }
 
     public static function table(Table $table): Table
@@ -152,13 +243,28 @@ class ContractResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('client.name')
+					->hidden()
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->url(static function (Contract $record) {
+                        if (! $record->client_id) {
+                            return null;
+                        }
+
+                        $client = $record->clientAndLead;
+
+                        if ($client && $client->type === 'client') {
+                            return AllClientResource::getUrl('view', ['record' => $record->client_id]);
+                        }
+
+                        return LeadResource::getUrl('view', ['record' => $record->client_id]);
+                    }),
                 TextColumn::make('total')
                     ->currencyWithConversion(static fn (Estimate $record) => $record->currency_code)
                     ->sortable()
                     ->alignEnd(),
             ])
+            ->recordUrl(static fn (Contract $record) => ViewContract::getUrl(['record' => $record]))
             ->filters([
                 Tables\Filters\SelectFilter::make('company')
                     ->relationship('company', 'name')
@@ -175,15 +281,7 @@ class ContractResource extends Resource
                 Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
                 static::getModel()::getPreviewAction(Tables\Actions\Action::class),
                 Tables\Actions\ActionGroup::make(
-                    collect(static::getPaymentTypes())->map(
-                        fn (string $label, string $name) => Tables\Actions\Action::make($name)
-                            ->label($label)
-                            ->icon('heroicon-o-document-plus')
-                            ->action(function (Estimate $record) use ($label) {
-                                $invoice = static::createPaymentInvoice($record, $label);
-                                redirect(route('invoices.switch-and-edit', $invoice));
-                            })
-                    )->values()->all()
+                    static::buildPaymentInvoiceActions(Tables\Actions\Action::class)
                 )
                     ->label('Generate Invoice')
                     ->button()

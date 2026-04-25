@@ -33,7 +33,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Mail\Sales\InvoiceMail;
+use Filament\Forms;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
@@ -620,6 +623,35 @@ class Invoice extends Document
 
                 $action->success();
             });
+    }
+
+    public static function getSendEmailAction(string $action = Action::class): MountableAction
+    {
+        return $action::make('sendEmail')
+            ->label('Send Email')
+            ->icon('heroicon-m-envelope')
+            ->visible(fn (self $record) => $record->wasApproved())
+            ->form([
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->default(fn (self $record) => $record->client?->primaryContact?->email),
+                Forms\Components\TextInput::make('subject')
+                    ->required()
+                    ->default(fn (self $record) => 'Invoice #' . $record->invoice_number),
+                Forms\Components\Textarea::make('message')
+                    ->required()
+                    ->rows(5)
+                    ->default(fn (self $record) => "Dear " . ($record->client?->name ?? 'Client') . ",\n\nPlease find the attached invoice " . $record->invoice_number . ".\n\nBest regards."),
+            ])
+            ->action(function (self $record, array $data, MountableAction $action) {
+                Mail::to($data['email'])->send(new InvoiceMail($record, $data['message'], $data['subject']));
+
+                $record->markAsSent();
+
+                $action->success();
+            })
+            ->successNotificationTitle('Invoice sent');
     }
 
     public function markAsSent(?Carbon $sentAt = null): void

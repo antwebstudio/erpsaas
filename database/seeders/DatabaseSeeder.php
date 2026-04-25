@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserCompanySeeder::class,
             VariationOrderDefaultSeeder::class,
             ContractDefaultSeeder::class,
+            PaymentOfferingSeeder::class,
             ShieldSeeder::class,
         ]);
     }

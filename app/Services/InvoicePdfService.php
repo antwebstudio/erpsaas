@@ -13,7 +13,7 @@ class InvoicePdfService
 
         $invoice->loadMissing([
             'client.billingAddress',
-            'lineItems',
+            'lineItems.offering',
             'salesTaxes',
             'company.profile.address',
             'estimate.templateCompany.profile.address',

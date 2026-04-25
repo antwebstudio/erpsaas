@@ -541,6 +541,7 @@ class InvoiceResource extends Resource
                         Invoice::getReplicateAction(Tables\Actions\ReplicateAction::class),
                         Invoice::getApproveDraftAction(Tables\Actions\Action::class),
                         Invoice::getMarkAsSentAction(Tables\Actions\Action::class),
+                        Invoice::getSendEmailAction(Tables\Actions\Action::class),
                         Tables\Actions\Action::make('recordPayment')
                             ->label('Record Payment')
                             ->icon('heroicon-m-credit-card')

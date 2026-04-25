@@ -293,7 +293,7 @@
     <thead>
         <tr>
             <th class="items-th" style="width: 8%;">Item</th>
-            <th class="items-th" style="width: 57%;">Description</th>
+            <th class="items-th" style="width: 57%;">Item Name / Description</th>
             <th class="items-th" style="width: 17%;">Unit Price</th>
             <th class="items-th" style="width: 18%;">Line Total</th>
         </tr>
@@ -303,7 +303,16 @@
         @forelse($invoice->lineItems as $item)
             <tr>
                 <td class="items-td items-td-center">{{ $itemIndex++ }}</td>
-                <td class="items-td">{{ $item->description }}</td>
+                <td class="items-td">
+                    @if($item->offering)
+                        <div style="font-weight: bold; margin-bottom: 2px;">{{ $item->offering->name }}</div>
+                        @if($item->description)
+                            {!! nl2br(e($item->description)) !!}
+                        @endif
+                    @else
+                        {!! nl2br(e($item->description)) !!}
+                    @endif
+                </td>
                 <td class="items-td items-td-right">
                     @if($item->unit_price == 0)
                         &mdash;

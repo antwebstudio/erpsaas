@@ -7,6 +7,7 @@ use App\Concerns\CompanyOwned;
 use App\Enums\Setting\EntityType;
 use App\Models\Accounting\Adjustment;
 use App\Models\Common\Address;
+use App\Models\Common\OfferingCategory;
 use Database\Factories\Setting\CompanyProfileFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -32,6 +33,7 @@ class CompanyProfile extends Model
         'tax_id',
         'entity_type',
         'default_sales_tax_id',
+        'payment_offering_category_id',
         'created_by',
         'updated_by',
     ];
@@ -63,6 +65,11 @@ class CompanyProfile extends Model
     public function defaultSalesTax(): BelongsTo
     {
         return $this->belongsTo(Adjustment::class, 'default_sales_tax_id');
+    }
+
+    public function paymentOfferingCategory(): BelongsTo
+    {
+        return $this->belongsTo(OfferingCategory::class, 'payment_offering_category_id');
     }
 
     protected static function newFactory(): Factory

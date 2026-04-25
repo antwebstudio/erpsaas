@@ -233,6 +233,16 @@ class CompanyProfile extends Page
                     ->preload()
                     ->nullable()
                     ->helperText('This tax will be auto-applied when this company is selected as a document template.'),
+                Select::make('payment_offering_category_id')
+                    ->label('Payment Offering Category')
+                    ->relationship(
+                        name: 'paymentOfferingCategory',
+                        titleAttribute: 'name',
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->helperText('The offering category used to generate payment invoices from contracts.'),
             ])->columns();
     }
 

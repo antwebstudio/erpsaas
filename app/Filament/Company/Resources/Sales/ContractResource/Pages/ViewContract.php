@@ -3,8 +3,10 @@
 namespace App\Filament\Company\Resources\Sales\ContractResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
+use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
+use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Infolists\Components\BannerEntry;
 use App\Filament\Infolists\Components\DocumentPreview;
 use App\Models\Accounting\Estimate;
@@ -29,15 +31,7 @@ class ViewContract extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        $invoiceActions = collect(ContractResource::getPaymentTypes())
-            ->map(fn (string $label, string $name) => Actions\Action::make($name)
-                ->label($label)
-                ->icon('heroicon-o-document-plus')
-                ->action(function (Estimate $record) use ($label) {
-                    $invoice = ContractResource::createPaymentInvoice($record, $label);
-                    $this->redirect(route('invoices.switch-and-edit', $invoice));
-                })
-            )->values()->all();
+        $invoiceActions = ContractResource::buildPaymentInvoiceActions(Actions\Action::class);
 
         return [
             Actions\ActionGroup::make([
@@ -80,8 +74,22 @@ class ViewContract extends ViewRecord
                                     ->label('Estimate Number'),
                                 TextEntry::make('status')
                                     ->badge(),
-                                TextEntry::make('client.name')
-                                    ->label('Client'),
+                                TextEntry::make('clientAndLead.name')
+                                    ->label('Client')
+                                    ->url(static function (Estimate $record) {
+                                        if (! $record->client_id) {
+                                            return null;
+                                        }
+
+                                        $client = $record->clientAndLead;
+
+                                        if ($client && $client->type === 'client') {
+                                            return AllClientResource::getUrl('view', ['record' => $record->client_id]);
+                                        }
+
+                                        return LeadResource::getUrl('view', ['record' => $record->client_id]);
+                                    })
+                                    ->link(),
                                 TextEntry::make('date')
                                     ->date(),
                                 TextEntry::make('accepted_at')
