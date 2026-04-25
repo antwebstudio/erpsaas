@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\VariationOrderResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
+use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
@@ -93,7 +94,7 @@ class ViewVariationOrder extends ViewRecord
                                     ->getStateUsing(fn (VariationOrder $record) => $record->templateCompany?->name ?? $record->company->name),
                                 TextEntry::make('client.name')
                                     ->label('Client')
-                                    ->url(static fn (VariationOrder $record) => $record->client_id ? ClientResource::getUrl('view', ['record' => $record->client_id]) : null)
+                                    ->url(static fn (VariationOrder $record) => $record->client_id ? AllClientResource::getUrl('view', ['record' => $record->client_id]) : null)
                                     ->link(),
                                 TextEntry::make('estimate.estimate_number')
                                     ->label('Linked Quotation')

@@ -43,10 +43,7 @@ class ViewLead extends ViewRecord
             Action::make('create_quotation')
                 ->label('Create Quotation')
                 ->icon('heroicon-o-document-text')
-                ->url(fn () => route('filament.user.pages.create-quotation', [
-                    'tenant' => \Filament\Facades\Filament::getTenant(),
-                    'client' => $this->record->id,
-                ])),
+                ->url(fn () => route('quotation-builder.switch-and-open', ['client' => $this->record->id])),
             EditAction::make()
                 ->label('Edit lead')
                 ->outlined(),
@@ -55,11 +52,11 @@ class ViewLead extends ViewRecord
                     Action::make('createQuotation')
                         ->label('Create quotation')
                         ->icon('heroicon-m-document-duplicate')
-                        ->url(CreateQuotation::getUrl(['client' => $this->record->getKey()], panel: 'user')),
+                        ->url(fn () => route('quotation-builder.switch-and-open', ['client' => $this->record->getKey()])),
                     Action::make('createVariationOrder')
                         ->label('Create variation order')
                         ->icon('heroicon-m-document-text')
-                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()], panel: 'user')),
+                        ->url(fn () => route('variation-order-builder.switch-and-open', ['client' => $this->record->getKey()])),
                 ])->dropdown(false),
                 DeleteAction::make(),
             ])

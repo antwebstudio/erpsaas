@@ -16,6 +16,7 @@ return [
     'allow_edit_sub_group_header' => env('ALLOW_EDIT_SUB_GROUP_HEADER', false),
     'hide_add_item_for_group' => env('HIDE_ADD_ITEM_FOR_GROUP', false),
     'hide_add_item_for_sub_group' => env('HIDE_ADD_ITEM_FOR_SUB_GROUP', false),
+    'hide_invoice_save_button' => env('HIDE_INVOICE_SAVE_BUTTON', false),
 ];
 
 

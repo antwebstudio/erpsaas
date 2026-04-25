@@ -40,10 +40,10 @@ class EditVariationOrder extends EditRecord
                 ->label('Back to Page Builder')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
-                ->url(fn () => \App\Filament\User\Pages\CreateVariationOrder::getUrl([
+                ->url(fn () => route('variation-order-builder.switch-and-open', [
                     'variation_order_id' => $this->getRecord()->id,
                     'client' => $this->getRecord()->client_id,
-                ], panel: 'user')),
+                ])),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')

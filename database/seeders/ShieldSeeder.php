@@ -187,6 +187,7 @@ class ShieldSeeder extends Seeder
                 'create_sales::estimate',
                 'update_sales::estimate',
                 'delete_sales::estimate',
+                'view_mine_sales::contract',
                 'view_mine_sales::variation::order',
                 'create_sales::variation::order',
                 'update_sales::variation::order',

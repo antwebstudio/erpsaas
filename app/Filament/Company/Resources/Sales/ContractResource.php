@@ -23,6 +23,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
@@ -63,12 +64,25 @@ class ContractResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 CurrentCompanyScope::class,
             ])
             ->where('status', EstimateStatus::Accepted)
             ->isNotTemplate();
+
+        $user = Auth::user();
+
+        if ($user && ! $user->can('view_any_sales::contract') && $user->can('view_mine_sales::contract')) {
+            $query->where(function (Builder $q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
+                      $q->where('created_by', $user->id);
+                  });
+            });
+        }
+
+        return $query;
     }
 
     public static function form(Form $form): Form

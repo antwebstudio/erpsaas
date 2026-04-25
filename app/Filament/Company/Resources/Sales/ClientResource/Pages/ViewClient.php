@@ -54,7 +54,7 @@ class ViewClient extends ViewRecord
                     Action::make('createQuotation')
                         ->label('Create quotation')
                         ->icon('heroicon-m-document-duplicate')
-                        ->url(CreateQuotation::getUrl(['client' => $this->record->getKey()], panel: 'user')),
+                        ->url(fn () => route('quotation-builder.switch-and-open', ['client' => $this->record->getKey()])),
                     Action::make('newRecurringInvoice')
                         ->label('New recurring invoice')
                         ->icon('heroicon-m-arrow-path')
@@ -62,7 +62,7 @@ class ViewClient extends ViewRecord
                     Action::make('createVariationOrder')
                         ->label('Create variation order')
                         ->icon('heroicon-m-document-text')
-                        ->url(CreateVariationOrder::getUrl(['client' => $this->record->getKey()], panel: 'user')),
+                        ->url(fn () => route('variation-order-builder.switch-and-open', ['client' => $this->record->getKey()])),
                 ])->dropdown(false),
                 DeleteAction::make(),
             ])

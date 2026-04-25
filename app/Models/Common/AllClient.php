@@ -16,9 +16,7 @@ class AllClient extends Client
 
     protected static function booted(): void
     {
-        static::addGlobalScope('type', function ($builder) {
-            $builder->where('type', 'client');
-        });
+        // Remove global scope to allow AllClientResource to show both clients and leads
     }
 
     public static function bootCompanyOwned(): void

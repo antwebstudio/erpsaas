@@ -328,17 +328,12 @@ class LeadResource extends Resource
                     Tables\Actions\Action::make('create_quotation')
                         ->label('Create Quotation')
                         ->icon('heroicon-o-document-text')
-                        ->url(fn (Lead $record) => route('filament.user.pages.create-quotation', [
-                            'tenant' => \Filament\Facades\Filament::getTenant(),
-                            'client' => $record->id,
-                        ]))
+                        ->url(fn (Lead $record) => route('quotation-builder.switch-and-open', ['client' => $record->id]))
                         ->openUrlInNewTab(false),
                     Tables\Actions\Action::make('create_variation_order')
                         ->label('Create Variation Order')
                         ->icon('heroicon-o-document-plus')
-                        ->url(fn (Lead $record) => \App\Filament\User\Pages\CreateVariationOrder::getUrl([
-                            'client' => $record->id,
-                        ], panel: 'user'))
+                        ->url(fn (Lead $record) => route('variation-order-builder.switch-and-open', ['client' => $record->id]))
                         ->openUrlInNewTab(false),
                     Tables\Actions\DeleteAction::make(),
                 ]),

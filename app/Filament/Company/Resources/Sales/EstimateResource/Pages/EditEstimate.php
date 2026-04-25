@@ -64,10 +64,10 @@ class EditEstimate extends EditRecord
                 ->label('Back to Page Builder')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
-                ->url(fn () => \App\Filament\User\Pages\CreateQuotation::getUrl([
+                ->url(fn () => route('quotation-builder.switch-and-open', [
                     'estimate_id' => $this->getRecord()->id,
                     'client' => $this->getRecord()->client_id,
-                ], panel: 'user')),
+                ])),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')

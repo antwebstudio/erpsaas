@@ -413,6 +413,10 @@ class Invoice extends Document
             $lineItemDescription = "{$baseDescription} › {$lineItem->offering->name}";
             $lineItemSubtotalInInvoiceCurrency = $lineItem->subtotal;
 
+            if ($lineItem->offering->income_account_id === null) {
+                throw new \RuntimeException("Offering '{$lineItem->offering->name}' does not have an income account assigned.");
+            }
+
             $journalEntryData[] = [
                 'type' => JournalEntryType::Credit,
                 'account_id' => $lineItem->offering->income_account_id,
@@ -588,6 +592,19 @@ class Invoice extends Document
             ->databaseTransaction()
             ->successNotificationTitle('Invoice approved')
             ->action(function (self $record, MountableAction $action, Component $livewire) {
+                if ($record->hasLineItemsWithMissingIncomeAccounts()) {
+                    Notification::make()
+                        ->warning()
+                        ->title('Cannot approve invoice')
+                        ->body('One or more line items have offerings without an income account assigned. Please configure the offering before approving.')
+                        ->persistent()
+                        ->send();
+
+                    $action->halt();
+
+                    return;
+                }
+
                 if ($record->hasInactiveAdjustments()) {
                     $isViewPage = $livewire instanceof InvoiceResource\Pages\ViewInvoice;
 

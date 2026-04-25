@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
+use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\LeadResource;
@@ -104,13 +105,7 @@ class ViewEstimate extends ViewRecord
                                             return null;
                                         }
 
-                                        $client = $record->clientAndLead;
-
-                                        if ($client && $client->type === 'client') {
-                                            return ClientResource::getUrl('view', ['record' => $record->client_id]);
-                                        }
-
-                                        return LeadResource::getUrl('view', ['record' => $record->client_id]);
+                                        return AllClientResource::getUrl('view', ['record' => $record->client_id]);
                                     })
                                     ->link(),
                                 TextEntry::make('expiration_date')

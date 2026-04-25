@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Models\Accounting\Estimate;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -27,7 +28,8 @@ class EstimatesRelationManager extends RelationManager
             ]))
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->url(EstimateResource\Pages\CreateEstimate::getUrl(['client' => $this->getOwnerRecord()->getKey()])),
-            ]);
+                    ->url(route('estimates.switch-and-create', ['client' => $this->getOwnerRecord()->getKey()])),
+            ])
+            ->recordUrl(fn (Estimate $record) => route('estimates.switch-and-view', $record));
     }
 }

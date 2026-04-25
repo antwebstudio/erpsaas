@@ -81,13 +81,7 @@ class ViewContract extends ViewRecord
                                             return null;
                                         }
 
-                                        $client = $record->clientAndLead;
-
-                                        if ($client && $client->type === 'client') {
-                                            return AllClientResource::getUrl('view', ['record' => $record->client_id]);
-                                        }
-
-                                        return LeadResource::getUrl('view', ['record' => $record->client_id]);
+                                        return AllClientResource::getUrl('view', ['record' => $record->client_id]);
                                     })
                                     ->link(),
                                 TextEntry::make('date')

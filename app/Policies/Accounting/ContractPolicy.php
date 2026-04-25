@@ -12,7 +12,7 @@ class ContractPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_sales::contract');
+        return $user->can('view_any_sales::contract') || $user->can('view_mine_sales::contract');
     }
 
     /**
@@ -20,7 +20,16 @@ class ContractPolicy
      */
     public function view(User $user, Contract $contract): bool
     {
-        return $user->can('view_sales::contract');
+        if ($user->can('view_sales::contract')) {
+            return true;
+        }
+
+        if ($user->can('view_mine_sales::contract')) {
+            return $contract->created_by === $user->id
+                || $contract->clientAndLead?->created_by === $user->id;
+        }
+
+        return false;
     }
 
     /**

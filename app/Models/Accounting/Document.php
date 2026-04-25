@@ -75,6 +75,13 @@ abstract class Document extends Model
         });
     }
 
+    public function hasLineItemsWithMissingIncomeAccounts(): bool
+    {
+        return $this->lineItems->contains(function (DocumentLineItem $lineItem) {
+            return $lineItem->offering !== null && $lineItem->offering->income_account_id === null;
+        });
+    }
+
     public static function getPrintDocumentAction(string $action = Action::class, string $name = 'printPdf'): MountableAction
     {
         return $action::make($name)

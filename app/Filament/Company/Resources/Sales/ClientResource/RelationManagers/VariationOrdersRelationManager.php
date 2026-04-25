@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
+use App\Models\Accounting\VariationOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -27,7 +28,8 @@ class VariationOrdersRelationManager extends RelationManager
             ]))
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->url(VariationOrderResource\Pages\CreateVariationOrder::getUrl(['client' => $this->getOwnerRecord()->getKey()])),
-            ]);
+                    ->url(route('variation-orders.switch-and-create', ['client' => $this->getOwnerRecord()->getKey()])),
+            ])
+            ->recordUrl(fn (VariationOrder $record) => route('variation-orders.switch-and-view', $record));
     }
 }
