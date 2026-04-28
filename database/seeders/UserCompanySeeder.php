@@ -115,6 +115,7 @@ class UserCompanySeeder extends Seeder
 
             // Create GST Tax 9% and set as default sales tax for Stylemyspace
             if (isset($companyData['default_sales_tax'])) {
+                $companyData['default_sales_tax']['company_id'] = $company->id;
                 $adjustment = Adjustment::create($companyData['default_sales_tax']);
 
                 $company->profile->update([

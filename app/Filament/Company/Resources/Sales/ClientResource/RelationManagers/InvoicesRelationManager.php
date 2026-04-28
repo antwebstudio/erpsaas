@@ -5,6 +5,7 @@ namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Models\Accounting\Invoice;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -14,6 +15,11 @@ class InvoicesRelationManager extends RelationManager
     protected static string $relationship = 'invoices';
 
     protected static bool $isLazy = false;
+
+    public static function canViewForRecord(Model $_ownerRecord, string $_pageClass): bool
+    {
+        return InvoiceResource::canViewAny();
+    }
 
     public function isReadOnly(): bool
     {

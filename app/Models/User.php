@@ -38,10 +38,24 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
 
     public function canForCompany($companyId, $permission)
     {
+        $registrar = app(\Spatie\Permission\PermissionRegistrar::class);
+        $baseKey = config('permission.cache.key', 'spatie.permission.cache');
+
         $sessionCompanyId = getPermissionsTeamId();
+        $sessionCacheKey = $registrar->cacheKey;
+
         setPermissionsTeamId($companyId);
+        $registrar->cacheKey = $baseKey . '.company_' . $companyId;
+        $registrar->clearPermissionsCollection();
+        $this->unsetRelation('roles')->unsetRelation('permissions');
+
         $can = $this->can($permission);
+
         setPermissionsTeamId($sessionCompanyId);
+        $registrar->cacheKey = $sessionCacheKey;
+        $registrar->clearPermissionsCollection();
+        $this->unsetRelation('roles')->unsetRelation('permissions');
+
         return $can;
     }
 

@@ -6,6 +6,7 @@ use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
+use App\Models\Accounting\Transaction;
 use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
 use App\Filament\Company\Resources\Sales\ContractResource\Pages\ViewContract;
@@ -14,9 +15,17 @@ use App\Models\Accounting\Contract;
 use App\Models\Accounting\DocumentLineItemGroup;
 use App\Models\Accounting\Estimate;
 use App\Models\Accounting\Invoice;
+use App\Models\Company;
+use App\Models\Setting\CompanyProfile;
 use App\Scopes\CurrentCompanyScope;
+use App\Utilities\Currency\CurrencyAccessor;
+use App\Utilities\Currency\CurrencyConverter;
+use Filament\Actions\MountableAction;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
@@ -62,6 +71,66 @@ class ContractResource extends Resource
         return false;
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return $user->can('view_any_sales::contract') || $user->can('view_mine_sales::contract');
+    }
+
+    public static function getViewPaymentsAction(string $actionClass): MountableAction
+    {
+        return $actionClass::make('viewPayments')
+            ->label('View Payments')
+            ->icon('heroicon-o-banknotes')
+            ->modalHeading('Payments')
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close')
+            ->infolist(function (Infolist $infolist, Estimate $record): Infolist {
+                $invoiceIds = Invoice::withoutGlobalScopes()
+                    ->where('estimate_id', $record->id)
+                    ->pluck('id');
+
+                $dateFormat = \App\Services\CompanySettingsService::getDefaultDateFormat();
+
+                $payments = Transaction::whereIn('transactionable_id', $invoiceIds)
+                    ->where('transactionable_type', Invoice::class)
+                    ->where('is_payment', true)
+                    ->with('transactionable')
+                    ->orderBy('posted_at')
+                    ->get()
+                    ->map(function (Transaction $t) use ($dateFormat): array {
+                        $currency = $t->transactionable?->currency_code ?? CurrencyAccessor::getDefaultCurrency();
+
+                        return [
+                            'invoice_number' => $t->transactionable?->invoice_number ?? '-',
+                            'posted_at'      => $t->posted_at?->format($dateFormat) ?? '-',
+                            'payment_method' => $t->payment_method?->getLabel() ?? '-',
+                            'amount'         => CurrencyConverter::formatCentsToMoney($t->amount, $currency),
+                            'description'    => $t->description ?? '-',
+                            'reference'      => $t->reference ?? '-',
+                        ];
+                    })
+                    ->toArray();
+
+                return $infolist
+                    ->state(['payments' => $payments])
+                    ->schema([
+                        RepeatableEntry::make('payments')
+                            ->label(\count($payments) === 0 ? 'No payments recorded yet.' : '')
+                            ->schema([
+                                TextEntry::make('invoice_number')->label('Invoice'),
+                                TextEntry::make('posted_at')->label('Date'),
+                                TextEntry::make('payment_method')->label('Method'),
+                                TextEntry::make('amount')->label('Amount'),
+                                TextEntry::make('description')->label('Description'),
+                                TextEntry::make('reference')->label('Reference'),
+                            ])
+                            ->columns(6),
+                    ]);
+            });
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()
@@ -98,9 +167,9 @@ class ContractResource extends Resource
      *
      * @return \Illuminate\Support\Collection<int, Offering>
      */
-    public static function getPaymentOfferings(): \Illuminate\Support\Collection
+    public static function getPaymentOfferings(?int $companyId = null): \Illuminate\Support\Collection
     {
-        $company = auth()->user()?->currentCompany;
+        $company = $companyId ? Company::find($companyId) : auth()->user()?->currentCompany;
 
         if (! $company) {
             return collect();
@@ -119,6 +188,9 @@ class ContractResource extends Resource
         }
 
         return $category->offerings()
+            ->withoutGlobalScopes([
+                CurrentCompanyScope::class,
+            ])
             ->orderBy('sort_order')
             ->get();
     }
@@ -205,32 +277,47 @@ class ContractResource extends Resource
      *
      * @param  class-string  $actionClass  The Filament Action class to use (Tables\Actions\Action or Actions\Action)
      */
-    public static function buildPaymentInvoiceActions(string $actionClass): array
+    public static function buildPaymentInvoiceActions(string $actionClass, ?int $companyId = null): array
     {
-        $offerings = static::getPaymentOfferings();
+        if ($companyId) {
+            $offerings = static::getPaymentOfferings($companyId);
 
-        if ($offerings->isNotEmpty()) {
-            return $offerings->map(
-                fn (Offering $offering) => $actionClass::make('invoice_offering_' . $offering->id)
-                    ->label($offering->name)
-                    ->icon('heroicon-o-document-plus')
-                    ->action(function (Estimate $record) use ($offering) {
-                        $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
-                        redirect(route('invoices.switch-and-edit', $invoice));
-                    })
-            )->values()->all();
+            if ($offerings->isNotEmpty()) {
+                return $offerings->map(
+                    fn (Offering $offering) => $actionClass::make('invoice_offering_' . $offering->id)
+                        ->label($offering->name)
+                        ->icon('heroicon-o-document-plus')
+                        ->action(function (Estimate $record) use ($offering) {
+                            $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
+                            redirect(route('invoices.switch-and-edit', $invoice));
+                        })
+                )->values()->all();
+            }
+
+            return [];
         }
 
-        // Fallback to hardcoded payment types
-        return collect(static::getPaymentTypes())->map(
-            fn (string $label, string $name) => $actionClass::make($name)
-                ->label($label)
+        $paymentCategoryIds = CompanyProfile::pluck('payment_offering_category_id')->filter()->unique()->toArray();
+
+        $offerings = Offering::withoutGlobalScopes()
+            ->whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $paymentCategoryIds))
+            ->with('categories')
+            ->get();
+
+        return $offerings->map(function (Offering $offering) use ($actionClass) {
+            return $actionClass::make('invoice_offering_' . $offering->id)
+                ->label($offering->name)
                 ->icon('heroicon-o-document-plus')
-                ->action(function (Estimate $record) use ($label) {
-                    $invoice = static::createPaymentInvoice($record, $label);
-                    redirect(route('invoices.switch-and-edit', $invoice));
+                ->visible(function (Estimate $record) use ($offering) {
+                    $categoryId = $record->company->profile?->payment_offering_category_id;
+
+                    return $categoryId && $offering->categories->contains('id', $categoryId);
                 })
-        )->values()->all();
+                ->action(function (Estimate $record) use ($offering) {
+                    $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
+                    redirect(route('invoices.switch-and-edit', $invoice));
+                });
+        })->values()->all();
     }
 
     public static function table(Table $table): Table
@@ -292,6 +379,7 @@ class ContractResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->url(static fn (Contract $record) => ViewContract::getUrl(['record' => $record])),
+                static::getViewPaymentsAction(Tables\Actions\Action::class),
                 Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
                 static::getModel()::getPreviewAction(Tables\Actions\Action::class),
                 Tables\Actions\ActionGroup::make(
@@ -300,6 +388,7 @@ class ContractResource extends Resource
                     ->label('Generate Invoice')
                     ->button()
                     ->outlined()
+                    ->visible(fn (Contract $record) => auth()->user()->canForCompany($record->company_id, 'create_sales::invoice'))
                     ->dropdownPlacement('bottom-end')
                     ->icon('heroicon-m-chevron-down')
                     ->iconPosition(IconPosition::After),

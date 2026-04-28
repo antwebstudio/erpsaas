@@ -27,9 +27,14 @@ class PaymentOfferingSeeder extends Seeder
      */
     public function run(): void
     {
-        Company::all()->each(function (Company $company) {
-            $this->seedForCompany($company);
-        });
+        $erpSystemCompanyId = config('erp.erp_system_company_id');
+
+        Company::query()
+            ->when($erpSystemCompanyId, fn ($query) => $query->where('id', '!=', $erpSystemCompanyId))
+            ->get()
+            ->each(function (Company $company) {
+                $this->seedForCompany($company);
+            });
     }
 
     private function seedForCompany(Company $company): void
