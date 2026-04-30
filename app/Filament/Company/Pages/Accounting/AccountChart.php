@@ -20,6 +20,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Support\Collection;
@@ -38,6 +39,35 @@ class AccountChart extends Page
 
     #[Url]
     public ?string $activeTab = AccountCategory::Asset->value;
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user ? $user->can('page_AccountChart') : false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            NavigationItem::make(static::getNavigationLabel())
+                ->group(static::getNavigationGroup())
+                ->parentItem(static::getNavigationParentItem())
+                ->icon(static::getNavigationIcon())
+                ->activeIcon(static::getActiveNavigationIcon())
+                ->isActiveWhen(fn (): bool => request()->routeIs(static::getRouteName()))
+                ->sort(static::getNavigationSort())
+                ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
+                ->badgeTooltip(static::getNavigationBadgeTooltip())
+                ->url(static::getNavigationUrl())
+                ->visible(static::canAccess()),
+        ];
+    }
 
     protected function configureAction(Action $action): void
     {

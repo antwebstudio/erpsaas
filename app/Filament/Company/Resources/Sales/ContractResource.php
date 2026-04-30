@@ -93,10 +93,11 @@ class ContractResource extends Resource
 
                 $dateFormat = \App\Services\CompanySettingsService::getDefaultDateFormat();
 
-                $payments = Transaction::whereIn('transactionable_id', $invoiceIds)
+                $payments = Transaction::withoutGlobalScopes()
+                    ->whereIn('transactionable_id', $invoiceIds)
                     ->where('transactionable_type', Invoice::class)
                     ->where('is_payment', true)
-                    ->with('transactionable')
+                    ->with(['transactionable' => fn ($q) => $q->withoutGlobalScopes()])
                     ->orderBy('posted_at')
                     ->get()
                     ->map(function (Transaction $t) use ($dateFormat): array {
@@ -287,6 +288,7 @@ class ContractResource extends Resource
                     fn (Offering $offering) => $actionClass::make('invoice_offering_' . $offering->id)
                         ->label($offering->name)
                         ->icon('heroicon-o-document-plus')
+                        ->visible(fn (Estimate $record) => auth()->user()->canForCompany($record->company_id, 'create_sales::invoice'))
                         ->action(function (Estimate $record) use ($offering) {
                             $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
                             redirect(route('invoices.switch-and-edit', $invoice));
@@ -311,7 +313,9 @@ class ContractResource extends Resource
                 ->visible(function (Estimate $record) use ($offering) {
                     $categoryId = $record->company->profile?->payment_offering_category_id;
 
-                    return $categoryId && $offering->categories->contains('id', $categoryId);
+                    return $categoryId && 
+                        $offering->categories->contains('id', $categoryId) && 
+                        auth()->user()->canForCompany($record->company_id, 'create_sales::invoice');
                 })
                 ->action(function (Estimate $record) use ($offering) {
                     $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
@@ -364,6 +368,15 @@ class ContractResource extends Resource
                     ->currencyWithConversion(static fn (Estimate $record) => $record->currency_code)
                     ->sortable()
                     ->alignEnd(),
+                Tables\Columns\IconColumn::make('archived_at')
+                    ->label('Archived')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-archive-box')
+                    ->falseIcon('')
+                    ->colors([
+                        'warning' => fn ($state) => $state !== null,
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordUrl(static fn (Contract $record) => ViewContract::getUrl(['record' => $record]))
             ->filters([
@@ -375,26 +388,86 @@ class ContractResource extends Resource
                     ->relationship('client', 'name')
                     ->searchable()
                     ->preload(),
+                Tables\Filters\TernaryFilter::make('archived_at')
+                    ->label('Archived')
+                    ->placeholder('Active Contracts')
+                    ->trueLabel('Archived Contracts')
+                    ->falseLabel('Active Contracts')
+                    ->queries(
+                        true: fn (Builder $query) => $query->archived(),
+                        false: fn (Builder $query) => $query->notArchived(),
+                        blank: fn (Builder $query) => $query->notArchived(),
+                    )
+                    ->default(false),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->url(static fn (Contract $record) => ViewContract::getUrl(['record' => $record])),
-                static::getViewPaymentsAction(Tables\Actions\Action::class),
-                Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
-                static::getModel()::getPreviewAction(Tables\Actions\Action::class),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->url(static fn (Contract $record) => ViewContract::getUrl(['record' => $record])),
+                    static::getViewPaymentsAction(Tables\Actions\Action::class),
+                    Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
+                    static::getModel()::getPreviewAction(Tables\Actions\Action::class),
+                    Tables\Actions\Action::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->hidden(fn (Contract $record) => $record->isArchived())
+                        ->requiresConfirmation()
+                        ->visible(fn (Contract $record) => auth()->user()->can('update', $record))
+                        ->action(function (Contract $record) {
+                            $record->archive();
+                            Notification::make()
+                                ->title('Contract archived')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->color('success')
+                        ->visible(fn (Contract $record) => $record->isArchived() && auth()->user()->can('update', $record))
+                        ->requiresConfirmation()
+                        ->action(function (Contract $record) {
+                            $record->unarchive();
+                            Notification::make()
+                                ->title('Contract unarchived')
+                                ->success()
+                                ->send();
+                        }),
+                ])
+                    ->label('More')
+                    ->button()
+                    ->outlined()
+                    ->dropdownPlacement('bottom-end')
+                    ->icon('heroicon-m-chevron-down')
+                    ->iconPosition(IconPosition::After),
+
                 Tables\Actions\ActionGroup::make(
                     static::buildPaymentInvoiceActions(Tables\Actions\Action::class)
                 )
                     ->label('Generate Invoice')
                     ->button()
                     ->outlined()
-                    ->visible(fn (Contract $record) => auth()->user()->canForCompany($record->company_id, 'create_sales::invoice'))
                     ->dropdownPlacement('bottom-end')
                     ->icon('heroicon-m-chevron-down')
                     ->iconPosition(IconPosition::After),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->action(fn (\Illuminate\Database\Eloquent\Collection $records) => $records->each->archive())
+                        ->after(fn () => Notification::make()->title('Contracts archived')->success()->send()),
+                    Tables\Actions\BulkAction::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(fn (\Illuminate\Database\Eloquent\Collection $records) => $records->each->unarchive())
+                        ->after(fn () => Notification::make()->title('Contracts unarchived')->success()->send()),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

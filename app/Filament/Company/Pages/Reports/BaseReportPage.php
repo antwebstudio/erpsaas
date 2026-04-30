@@ -62,6 +62,13 @@ abstract class BaseReportPage extends Page
         $this->fiscalYearEndDate = $this->company->locale->fiscalYearEndDate();
     }
 
+    public static function canAccess(): bool
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        return $user ? $user->can('page_Reports') : false;
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;

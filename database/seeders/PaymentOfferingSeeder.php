@@ -2,7 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Accounting\AccountCategory;
+use App\Enums\Accounting\AccountType;
 use App\Enums\Common\OfferingType;
+use App\Models\Accounting\Account;
 use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
 use App\Models\Company;
@@ -43,7 +46,7 @@ class PaymentOfferingSeeder extends Seeder
         session(['current_company_id' => $company->id]);
 
         // Create or find the "Payment" category (root-level)
-        $category = OfferingCategory::create(
+        $category = OfferingCategory::firstOrCreate(
             [
                 'name'       => 'Payment',
                 'company_id' => $company->id,
@@ -56,20 +59,44 @@ class PaymentOfferingSeeder extends Seeder
             ['payment_offering_category_id' => $category->id]
         );
 
+        // Create or find the "Deposit" account under "Customer Deposits and Advances" subtype
+        $depositSubtype = $company->accountSubtypes()
+            ->where('name', 'Customer Deposits and Advances')
+            ->first();
+
+        /** @var Account $depositAccount */
+        $depositAccount = $company->accounts()->firstOrCreate(
+            [
+                'name'       => 'Deposit',
+                'company_id' => $company->id,
+            ],
+            [
+                'subtype_id'    => $depositSubtype?->id,
+                'category'      => $depositSubtype?->category ?? AccountCategory::Liability,
+                'type'          => $depositSubtype?->type ?? AccountType::CurrentLiability,
+                'code'          => '2310',
+                'currency_code' => $company->default?->currency_code ?? 'SGD',
+                'description'   => 'Customer deposits and prepayments.',
+                'created_by'    => $company->owner->id,
+                'updated_by'    => $company->owner->id,
+            ]
+        );
+
         foreach (self::PAYMENT_OFFERINGS as $data) {
             /** @var Offering $offering */
-            $offering = Offering::firstOrCreate(
+            $offering = Offering::updateOrCreate(
                 [
                     'name'       => $data['name'],
                     'company_id' => $company->id,
                 ],
                 [
-                    'description' => $data['name'],
-                    'type'        => OfferingType::Service,
-                    'price'       => 0,
-                    'sellable'    => true,
-                    'purchasable' => false,
-                    'sort_order'  => $data['sort_order'],
+                    'description'       => $data['name'],
+                    'type'              => OfferingType::Service,
+                    'price'             => 0,
+                    'sellable'          => true,
+                    'purchasable'       => false,
+                    'sort_order'        => $data['sort_order'],
+                    'income_account_id' => ($data['name'] === 'Deposit payment') ? $depositAccount->id : null,
                 ]
             );
 

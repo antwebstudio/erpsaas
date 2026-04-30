@@ -75,6 +75,7 @@ class Estimate extends Document
         'footer',
         'template_company_id',
         'is_template',
+        'archived_at',
         'created_by',
         'updated_by',
         'created_at',
@@ -89,6 +90,7 @@ class Estimate extends Document
         'declined_at' => 'datetime',
         'last_sent_at' => 'datetime',
         'last_viewed_at' => 'datetime',
+        'archived_at' => 'datetime',
         'status' => EstimateStatus::class,
         'discount_method' => DocumentDiscountMethod::class,
         'discount_computation' => AdjustmentComputation::class,
@@ -534,12 +536,11 @@ class Estimate extends Document
                 'salesperson_email' => $record->createdBy?->email,
             ]))
             ->form(function (Estimate $record): array {
-                $schema = [];
-
-                $schema[] = Forms\Components\Placeholder::make('instructions')
-                    ->label('Instructions')
-                    ->content('The following information is required for the contract. Please fill in any missing details.');
-
+                $schema = [
+                    Forms\Components\Placeholder::make('instructions')
+                        ->label('Instructions')
+                        ->content('The following information is required for the contract. Please fill in any missing details.'),
+                ];
 
                 if (blank($record->estimate_number)) {
                     $schema[] = Forms\Components\TextInput::make('estimate_number')
@@ -632,7 +633,6 @@ class Estimate extends Document
     public function hasMissingRequiredContractData(): bool
     {
         return blank($this->estimate_number) ||
-            blank($this->reference_number) ||
             blank($this->date) ||
             blank($this->clientOrLead?->name) ||
             blank($this->clientOrLead?->nric) ||
@@ -947,5 +947,30 @@ class Estimate extends Document
     public function getClientOrLeadAttribute()
     {
         return $this->client ?? $this->lead;
+    }
+
+    public function archive(): void
+    {
+        $this->update(['archived_at' => now()]);
+    }
+
+    public function unarchive(): void
+    {
+        $this->update(['archived_at' => null]);
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    public function scopeArchived(Builder $query): Builder
+    {
+        return $query->whereNotNull('archived_at');
+    }
+
+    public function scopeNotArchived(Builder $query): Builder
+    {
+        return $query->whereNull('archived_at');
     }
 }

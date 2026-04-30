@@ -20,12 +20,25 @@ use Filament\Infolists\Infolist;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
 use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\Auth;
 
 class Reports extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
 
     protected static string $view = 'filament.company.pages.reports';
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user ? $user->can('page_Reports') : false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
 
     public static function getNavigationItems(): array
     {
@@ -42,7 +55,8 @@ class Reports extends Page
                 ->sort(static::getNavigationSort())
                 ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
                 ->badgeTooltip(static::getNavigationBadgeTooltip())
-                ->url(static::getNavigationUrl()),
+                ->url(static::getNavigationUrl())
+                ->visible(static::canAccess()),
         ];
     }
 

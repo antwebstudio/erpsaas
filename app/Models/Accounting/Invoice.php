@@ -307,8 +307,9 @@ class Invoice extends Document
 
         $numberPrefix = $defaultInvoiceSettings->number_prefix ?? '';
 
-        $latestDocument = static::query()
+        $latestDocument = static::withoutGlobalScopes()
             ->whereNotNull('invoice_number')
+            ->where('company_id', $company->id)
             ->latest('invoice_number')
             ->first();
 

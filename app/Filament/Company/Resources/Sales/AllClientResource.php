@@ -24,7 +24,7 @@ class AllClientResource extends ClientResource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return static::canViewAny() && !parent::shouldRegisterNavigation();
     }
 
     public static function table(Tables\Table $table): Tables\Table
@@ -43,7 +43,7 @@ class AllClientResource extends ClientResource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->where('type', 'client');
 
         if (Auth::user()->can('view_mine_sales::all::client') && !Auth::user()->can('view_any_sales::all::client')) {
             $query->where('created_by', Auth::id());

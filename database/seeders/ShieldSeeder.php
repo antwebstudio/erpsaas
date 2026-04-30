@@ -155,7 +155,10 @@ class ShieldSeeder extends Seeder
             if ($company->id == 1) {
                 $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions);
             } else {
-                $adminPermissions = array_merge($pagePermissions, $companyResourcePermissions);
+                // Admin sees AllClient (cross-company) instead of Client (company-scoped)
+                $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn($p) => ! str_contains($p, 'sales::client')));
+                $allClientPerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::all::client')));
+                $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms);
             }
 
             $adminRole->syncPermissions($adminPermissions);
@@ -167,7 +170,8 @@ class ShieldSeeder extends Seeder
                 'company_id' => $company->id,
             ]);
 
-            $salesPermissions = array_merge($pagePermissions, [
+            $salesPagePermissions = array_values(array_filter($pagePermissions, static fn ($p) => ! in_array($p, ['page_Reports', 'page_AccountChart'])));
+            $salesPermissions = array_merge($salesPagePermissions, [
                 'view_mine_sales::lead',
                 'view_sales::lead',
                 'create_sales::lead',
@@ -283,32 +287,35 @@ class ShieldSeeder extends Seeder
             $this->command->info("User {$companyAdminEmail} assigned the Admin role exclusively for company: {$company->name}");
         }
 
-        // Create 2 Sales users
+        // Create 2 Sales users — assigned to erp_system_company only
+        $erpSystemCompanyId = config('erp.erp_system_company_id');
+        $erpSystemCompany = $erpSystemCompanyId ? Company::find($erpSystemCompanyId) : $firstCompany;
+
         foreach (['sales1@erpsaas.com', 'sales2@erpsaas.com'] as $index => $salesEmail) {
             $salesUser = User::where('email', $salesEmail)->first();
-            
+
             if (!$salesUser) {
                 $salesUser = User::create([
                     'name' => 'Sales User ' . ($index + 1),
                     'email' => $salesEmail,
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
-                    'current_company_id' => 1,
+                    'current_company_id' => $erpSystemCompany?->id ?? 1,
                 ]);
                 $this->command->info("User {$salesEmail} created.");
             }
 
-            if ($firstCompany && !$salesUser->current_company_id) {
-                $salesUser->switchCompany($firstCompany);
+            if ($erpSystemCompany && !$salesUser->current_company_id) {
+                $salesUser->switchCompany($erpSystemCompany);
             }
 
-            foreach ($companies as $company) {
-                if (!$salesUser->belongsToCompany($company)) {
-                    $salesUser->companies()->attach($company, ['role' => 'user']);
+            if ($erpSystemCompany) {
+                if (!$salesUser->belongsToCompany($erpSystemCompany)) {
+                    $salesUser->companies()->attach($erpSystemCompany, ['role' => 'user']);
                 }
 
-                $salesUser->assignRolesForCompany($company->id, 'Sales');
-                $this->command->info("User {$salesEmail} assigned the Sales role in company: {$company->name}");
+                $salesUser->assignRolesForCompany($erpSystemCompany->id, 'Sales');
+                $this->command->info("User {$salesEmail} assigned the Sales role in company: {$erpSystemCompany->name}");
             }
         }
     }

@@ -36,7 +36,9 @@ class ClientResource extends Resource
             return false;
         }
 
-        return static::canViewAny();
+        $user = Auth::user();
+
+        return $user?->can('view_any_sales::client') || $user?->can('view_mine_sales::client');
     }
 
     public static function form(Form $form): Form

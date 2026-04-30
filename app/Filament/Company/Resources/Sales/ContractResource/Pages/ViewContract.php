@@ -34,10 +34,38 @@ class ViewContract extends ViewRecord
         $invoiceActions = ContractResource::buildPaymentInvoiceActions(Actions\Action::class, $this->record->company_id);
 
         return [
-            ContractResource::getViewPaymentsAction(Actions\Action::class),
-
             Actions\ActionGroup::make([
                 Actions\ActionGroup::make([
+                    ContractResource::getViewPaymentsAction(Actions\Action::class),
+
+                    Actions\Action::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->visible(fn () => ! $this->record->isArchived() && auth()->user()->can('update', $this->record))
+                        ->requiresConfirmation()
+                        ->action(function () {
+                            $this->record->archive();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Contract archived')
+                                ->success()
+                                ->send();
+                        }),
+
+                    Actions\Action::make('unarchive')
+                        ->label('Unarchive')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->color('success')
+                        ->visible(fn () => $this->record->isArchived() && auth()->user()->can('update', $this->record))
+                        ->requiresConfirmation()
+                        ->action(function () {
+                            $this->record->unarchive();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Contract unarchived')
+                                ->success()
+                                ->send();
+                        }),
+
                     Estimate::getPreviewAction(Actions\Action::class, 'preview_contract'),
                     Estimate::getDownloadMergedPdfAction(Actions\Action::class, 'download_contract'),
                 ])->dropdown(false),
