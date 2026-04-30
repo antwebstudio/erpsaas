@@ -297,11 +297,11 @@ class ContractResource extends Resource
             return [];
         }
 
-        $paymentCategoryIds = CompanyProfile::pluck('payment_offering_category_id')->filter()->unique()->toArray();
+        $paymentCategoryIds = CompanyProfile::withoutGlobalScopes()->pluck('payment_offering_category_id')->filter()->unique()->toArray();
 
         $offerings = Offering::withoutGlobalScopes()
-            ->whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $paymentCategoryIds))
-            ->with('categories')
+            ->whereHas('categories', fn ($q) => $q->withoutGlobalScopes()->whereIn('offering_categories.id', $paymentCategoryIds))
+            ->with(['categories' => fn ($q) => $q->withoutGlobalScopes()])
             ->get();
 
         return $offerings->map(function (Offering $offering) use ($actionClass) {

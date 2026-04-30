@@ -103,17 +103,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
 
     public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
-        $relation = $this->traitRoles();
-
-        if (app(\Spatie\Permission\PermissionRegistrar::class)->teams) {
-            $teamId = getPermissionsTeamId();
-            
-            if ($teamId !== null) {
-                $relation->withPivotValue(config('permission.column_names.team_foreign_key'), $teamId);
-            }
-        }
-
-        return $relation;
+        // Remove CurrentCompanyScope from the Role model query — Spatie's wherePivot on
+        // model_has_roles.company_id already scopes roles to the correct team/company.
+        // The global scope conflicts with canForCompany() cross-company checks.
+        return $this->traitRoles()
+            ->withoutGlobalScope(\App\Scopes\CurrentCompanyScope::class);
     }
 
     /**
