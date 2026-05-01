@@ -40,10 +40,10 @@ class ViewLead extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('create_quotation')
-                ->label('Create Quotation')
-                ->icon('heroicon-o-document-text')
-                ->url(fn () => route('quotation-builder.switch-and-open', ['client' => $this->record->id])),
+            // Action::make('create_quotation')
+            //     ->label('Create Quotation')
+            //     ->icon('heroicon-o-document-text')
+            //     ->url(fn () => route('quotation-builder.switch-and-open', ['client' => $this->record->id])),
             EditAction::make()
                 ->label('Edit lead')
                 ->outlined(),

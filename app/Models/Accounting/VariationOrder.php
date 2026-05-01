@@ -454,7 +454,7 @@ class VariationOrder extends Document
         return $action::make($name)
             ->label('Download PDF')
             ->icon('heroicon-m-arrow-down-tray')
-            ->form(function (self $record, \Filament\Forms\Component $livewire) {
+            ->form(function (self $record, \Livewire\Component $livewire) {
                 $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
 
                 return $templateCompanyId ? [] : [
@@ -467,13 +467,13 @@ class VariationOrder extends Document
                         ->preload(),
                 ];
             })
-            ->modalHidden(function (self $record, \Filament\Forms\Component $livewire) {
+            ->modalHidden(function (self $record, \Livewire\Component $livewire) {
                 $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
 
                 return $templateCompanyId !== null;
             })
             ->modalSubmitActionLabel('Download')
-            ->action(function (self $record, array $data, \Filament\Forms\Component $livewire) {
+            ->action(function (self $record, array $data, \Livewire\Component $livewire) {
                 $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
 
                 if ($record->template_company_id !== (int) $templateCompanyId) {

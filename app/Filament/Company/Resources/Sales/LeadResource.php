@@ -13,6 +13,8 @@ use App\Filament\Tables\Columns;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Models\Common\Lead;
+use App\Models\Common\LeadSource;
+use App\Models\User;
 use App\Utilities\Currency\CurrencyConverter;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -47,11 +49,18 @@ class LeadResource extends Resource
                                     ->label('Lead name')
                                     ->required()
                                     ->maxLength(255),
-                                // Forms\Components\TextInput::make('account_number')
-                                //     ->maxLength(255)
-                                //     ->columnStart(1),
-                                // Forms\Components\TextInput::make('website')
-                                //     ->maxLength(255),
+                                Forms\Components\Select::make('lead_source_id')
+                                    ->label('Lead Source')
+                                    ->relationship('leadSource', 'name')
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('name')
+                                            ->required()
+                                            ->maxLength(255),
+                                        Forms\Components\Textarea::make('description')
+                                            ->maxLength(65535),
+                                    ]),
                                 Forms\Components\Textarea::make('notes')
                                     ->columnSpanFull(),
                             ]),
@@ -269,6 +278,11 @@ class LeadResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->description(static fn (Client $client) => $client->primaryContact?->full_name),
+                Tables\Columns\TextColumn::make('leadSource.name')
+                    ->label('Lead Source')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('primaryContact.email')
                     ->label('Email')
                     ->searchable()
@@ -325,6 +339,29 @@ class LeadResource extends Resource
                         Tables\Actions\EditAction::make(),
                         Tables\Actions\ViewAction::make(),
                     ])->dropdown(false),
+                    Tables\Actions\Action::make('assign_lead')
+                        ->label('Assign Lead')
+                        ->icon('heroicon-o-user-circle')
+                        ->visible(fn () => Auth::user()->can('assign_lead_sales::lead'))
+                        ->form(fn (Lead $record) => [
+                            Forms\Components\Placeholder::make('current_owner')
+                                ->label('Current Owner')
+                                ->content($record->createdBy?->name ?? 'Unknown'),
+                            Forms\Components\Select::make('new_owner_id')
+                                ->label('Assign To')
+                                ->required()
+                                ->options(function () {
+                                    $company = auth()->user()->currentCompany;
+                                    return $company->allUsers()->pluck('name', 'id');
+                                })
+                                ->searchable(),
+                        ])
+                        ->modalHeading('Assign Lead')
+                        ->modalDescription(fn (Lead $record) => 'Reassigning this lead will change its owner. Current owner: ' . ($record->createdBy?->name ?? 'Unknown'))
+                        ->modalSubmitActionLabel('Assign')
+                        ->action(function (Lead $record, array $data): void {
+                            $record->update(['created_by' => $data['new_owner_id']]);
+                        }),
                     Tables\Actions\Action::make('create_quotation')
                         ->label('Create Quotation')
                         ->icon('heroicon-o-document-text')

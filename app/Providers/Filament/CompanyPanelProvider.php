@@ -42,6 +42,7 @@ use App\Filament\Company\Resources\Purchases\VendorResource;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\AllClientResource;
 use App\Filament\Company\Resources\Sales\LeadResource;
+use App\Filament\Company\Resources\Sales\LeadSourceResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
 use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
@@ -161,6 +162,7 @@ class CompanyPanelProvider extends PanelProvider
                             ->icon('heroicon-o-currency-dollar')
                             ->items([
                                 ...LeadResource::getNavigationItems(),
+                                ...LeadSourceResource::getNavigationItems(),
                                 ...ClientResource::getNavigationItems(),
                                 ...AllClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),

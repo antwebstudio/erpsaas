@@ -28,6 +28,7 @@ class Client extends Model
     protected $fillable = [
         'company_id',
         'type',
+        'lead_source_id',
         'name',
         'nric',
         'currency_code',
@@ -260,6 +261,11 @@ class Client extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'currency_code', 'code');
+    }
+
+    public function leadSource(): BelongsTo
+    {
+        return $this->belongsTo(LeadSource::class);
     }
 
     public function addresses(): MorphMany

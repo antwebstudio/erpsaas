@@ -42,6 +42,7 @@ class ShieldSeeder extends Seeder
             'Currency' => 'currency',
             'Department' => 'core::department',
             'Invoice' => 'sales::invoice',
+            'LeadSource' => 'sales::lead::source',
             'Offering' => 'common::offering',
             'RecurringInvoice' => 'sales::recurring::invoice',
             'Role' => 'role',
@@ -123,6 +124,15 @@ class ShieldSeeder extends Seeder
             $permissions[] = $permission;
         }
 
+        // Custom permissions (not auto-generated from resource prefixes)
+        $customPermissions = [
+            'assign_lead_sales::lead',
+        ];
+
+        foreach ($customPermissions as $permissionName) {
+            $permissions[] = $permissionName;
+        }
+
         // Create permissions
         foreach ($permissions as $permissionName) {
             Permission::firstOrCreate([
@@ -153,12 +163,12 @@ class ShieldSeeder extends Seeder
             ]);
 
             if ($company->id == 1) {
-                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions);
+                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $customPermissions);
             } else {
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
                 $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn($p) => ! str_contains($p, 'sales::client')));
                 $allClientPerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::all::client')));
-                $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms);
+                $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms, $customPermissions);
             }
 
             $adminRole->syncPermissions($adminPermissions);
@@ -193,9 +203,19 @@ class ShieldSeeder extends Seeder
                 'delete_sales::estimate',
                 'view_mine_sales::contract',
                 'view_mine_sales::variation::order',
+                'view_sales::variation::order',
+                'view_any_sales::variation::order',
                 'create_sales::variation::order',
                 'update_sales::variation::order',
+                'update_any_sales::variation::order',
                 'delete_sales::variation::order',
+                'delete_any_sales::variation::order',
+                'restore_sales::variation::order',
+                'restore_any_sales::variation::order',
+                'replicate_sales::variation::order',
+                'reorder_sales::variation::order',
+                'force_delete_sales::variation::order',
+                'force_delete_any_sales::variation::order',
             ]);
 
             $salesRole->syncPermissions($salesPermissions);

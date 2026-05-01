@@ -69,4 +69,9 @@ class LeadPolicy
     {
         return $user->can('force_delete_sales::lead');
     }
+
+    public function assignLead(User $user): bool
+    {
+        return $user->can('assign_lead_sales::lead');
+    }
 }

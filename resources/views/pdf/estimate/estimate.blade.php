@@ -170,8 +170,8 @@
                 <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.estimate.partials.intro')
                 <tr>
-                    <th class="items-th" style="width:6%;">#</th>
-                    <th class="items-th" style="width:66%;">Work Description</th>
+                    <th class="items-th" style="width:6%; text-align: center;">#</th>
+                    <th class="items-th" style="width:66%; text-align: center;">Work Description</th>
                     <th class="items-th" style="width:13%; text-align: center;">Qty/Unit</th>
                     <th class="items-th" style="width:15%; text-align: center;">Amount</th>
                 </tr>
@@ -182,7 +182,7 @@
                     @if($group->name)
                         <tbody style="page-break-inside: avoid; break-inside: avoid;">
                         <tr class="header-row">
-                            <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold;">{{ $group->name }}</th>
+                            <th class="items-td" colspan="4" style="background-color: {{ collect($group->items)->isEmpty() ? '#d4b896' : '#f7f1eb' }}; font-weight: bold;">{{ $group->name }}</th>
                         </tr>
                     @endif
                     @foreach($group->items as $item)
