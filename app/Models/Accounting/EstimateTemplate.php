@@ -8,6 +8,11 @@ class EstimateTemplate extends Estimate
 {
     protected $table = 'estimates';
 
+    public function getMorphClass(): string
+    {
+        return (new Estimate())->getMorphClass();
+    }
+
     protected static function booted(): void
     {
         static::addGlobalScope('is_template', function (Builder $builder) {

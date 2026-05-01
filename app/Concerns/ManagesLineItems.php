@@ -11,19 +11,37 @@ use App\Utilities\Currency\CurrencyConverter;
 use App\Utilities\RateCalculator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 trait ManagesLineItems
 {
     private array $preloadedGroups = [];
     private array $preloadedItems = [];
+
+    /** Existing items (have IDs) collected for a single batch upsert. */
+    private array $pendingExistingItems = [];
+
+    /** New items (no IDs) to be individually inserted to get auto-increment IDs. */
+    private array $pendingNewItems = [];
+
+    /** Adjustment IDs keyed by line item ID, flushed in bulk after all items are saved. */
+    private array $pendingAdjustments = [];
+
     protected function handleLineItems(Model $record, Collection $lineItems): void
     {
-        // Check if we are handling groups or flat items
         $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']) || array_key_exists('name', $item));
 
+        $this->pendingAdjustments = [];
+
         if ($isGrouped) {
-             $this->handleLineItemGroups($record, $lineItems);
-             return;
+            $this->pendingExistingItems = [];
+            $this->pendingNewItems = [];
+            $this->handleLineItemGroups($record, $lineItems);
+            $this->flushPendingItems();
+            $this->flushPendingAdjustments();
+            $this->flushPendingTotals($record->discount_method ?? DocumentDiscountMethod::PerLineItem);
+            return;
         }
 
         foreach ($lineItems as $index => $itemData) {
@@ -53,9 +71,11 @@ trait ManagesLineItems
             $lineItem->save();
 
             $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
-            $this->handleLineItemAdjustments($lineItem, $itemData, $discountMethod);
-            $this->updateLineItemTotals($lineItem, $discountMethod);
+            $this->collectItemAdjustments($lineItem->id, $itemData, $discountMethod, $record);
         }
+
+        $this->flushPendingAdjustments();
+        $this->flushPendingTotals($record->discount_method ?? DocumentDiscountMethod::PerLineItem);
     }
 
     protected function handleLineItemGroups(Model $record, Collection $groups, ?int $parentId = null): void
@@ -65,12 +85,14 @@ trait ManagesLineItems
             $this->preloadedItems = $record->lineItems()->withoutGlobalScopes()->get()->keyBy('id')->all();
         }
 
+        $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
+        $isBill = $record->getMorphClass() === (new Bill())->getMorphClass();
+
         $groupOrder = 0;
         foreach ($groups as $groupData) {
             $hasName = filled($groupData['name'] ?? null);
             $hasCategory = filled($groupData['offering_category_id'] ?? null);
 
-            // Count only real (non-ghost) items
             $realItemCount = 0;
             foreach ($groupData['items'] ?? [] as $itemData) {
                 if (isset($itemData['quantity']) || filled($itemData['description'] ?? null)) {
@@ -79,13 +101,11 @@ trait ManagesLineItems
             }
             $hasItems = $realItemCount > 0;
             $hasChildren = count($groupData['children'] ?? []) > 0;
-            
+
             if (!$hasName && !$hasCategory && !$hasItems && !$hasChildren) {
                 continue;
             }
 
-            // For subgroups (child groups), skip and delete if they have no real items
-            // and no children — they are empty subgroups that should not persist
             if ($parentId !== null && !$hasItems && !$hasChildren) {
                 $id = $groupData['id'] ?? null;
                 if ($id) {
@@ -116,51 +136,96 @@ trait ManagesLineItems
 
             $group->save();
 
-            // Handle items within group
-            $items = collect($groupData['items'] ?? []);
-            
             $itemIndex = 0;
-            foreach ($items as $itemData) {
-                // Skip ghost/empty items left behind by Livewire state after deletion
+            foreach ($groupData['items'] ?? [] as $itemData) {
                 if (! isset($itemData['quantity']) && ! filled($itemData['description'] ?? null)) {
                     continue;
                 }
 
                 $itemIndex++;
-                
+
+                $taxType = $isBill ? 'purchaseTaxes' : 'salesTaxes';
+                $discountType = $isBill ? 'purchaseDiscounts' : 'salesDiscounts';
+                $adjustmentIds = collect($itemData[$taxType] ?? [])
+                    ->merge($discountMethod->isPerLineItem() ? ($itemData[$discountType] ?? []) : [])
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
                 $itemId = $itemData['id'] ?? null;
-                $lineItem = $itemId ? ($this->preloadedItems[$itemId] ?? null) : null;
 
-                 if (! $lineItem) {
-                     $lineItem = $record->lineItems()->make();
-                 }
-
-                 $lineItem->fill([
-                     'group_id' => $group->id,
-                     'offering_id' => $itemData['offering_id'],
-                     'description' => $itemData['description'] ?? null,
-                     'quantity' => $itemData['quantity'],
-                     'unit_price' => $itemData['unit_price'],
-                     'unit' => $itemData['unit'] ?? null,
-                     'is_locked' => $itemData['is_locked'] ?? 0,
-                     'line_number' => $itemIndex,
-                 ]);
-                 
-                 if (! $lineItem->exists) {
-                    $lineItem->documentable()->associate($record);
-                 }
-
-                 $lineItem->save();
-
-                 $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
-                 $this->handleLineItemAdjustments($lineItem, $itemData, $discountMethod);
-                 $this->updateLineItemTotals($lineItem, $discountMethod);
+                if ($itemId) {
+                    $this->pendingExistingItems[] = [
+                        'id' => $itemId,
+                        // Required NOT NULL columns without DB defaults — needed by the
+                        // INSERT side of upsert's INSERT...ON DUPLICATE KEY UPDATE.
+                        'company_id' => $record->company_id,
+                        'documentable_id' => $record->id,
+                        'documentable_type' => $record->getMorphClass(),
+                        'group_id' => $group->id,
+                        'offering_id' => $itemData['offering_id'] ?? null,
+                        'description' => $itemData['description'] ?? null,
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $this->resolveUnitPrice($itemData['unit_price'] ?? 0),
+                        'unit' => $itemData['unit'] ?? null,
+                        'is_locked' => $itemData['is_locked'] ?? 0,
+                        'line_number' => $itemIndex,
+                    ];
+                    $this->pendingAdjustments[$itemId] = $adjustmentIds;
+                } else {
+                    $this->pendingNewItems[] = [
+                        'record' => $record,
+                        'group_id' => $group->id,
+                        'item_data' => $itemData,
+                        'line_number' => $itemIndex,
+                        'adjustment_ids' => $adjustmentIds,
+                    ];
+                }
             }
 
-            // Handle nested children groups
             if (isset($groupData['children'])) {
                 $this->handleLineItemGroups($record, collect($groupData['children']), $group->id);
             }
+        }
+    }
+
+    /**
+     * Persist all collected items: one upsert for existing, individual inserts for new.
+     */
+    protected function flushPendingItems(): void
+    {
+        $now = now();
+        $userId = Auth::id();
+
+        if ($this->pendingExistingItems) {
+            $toUpsert = array_map(fn ($item) => array_merge($item, [
+                'updated_by' => $userId,
+                'updated_at' => $now,
+            ]), $this->pendingExistingItems);
+
+            DocumentLineItem::upsert(
+                $toUpsert,
+                ['id'],
+                ['group_id', 'offering_id', 'description', 'quantity', 'unit_price', 'unit', 'is_locked', 'line_number', 'updated_by', 'updated_at']
+            );
+        }
+
+        foreach ($this->pendingNewItems as $pending) {
+            $lineItem = $pending['record']->lineItems()->make();
+            $lineItem->fill([
+                'group_id' => $pending['group_id'],
+                'offering_id' => $pending['item_data']['offering_id'] ?? null,
+                'description' => $pending['item_data']['description'] ?? null,
+                'quantity' => $pending['item_data']['quantity'],
+                'unit_price' => $this->resolveUnitPrice($pending['item_data']['unit_price'] ?? 0),
+                'unit' => $pending['item_data']['unit'] ?? null,
+                'is_locked' => $pending['item_data']['is_locked'] ?? 0,
+                'line_number' => $pending['line_number'],
+            ]);
+            $lineItem->documentable()->associate($pending['record']);
+            $lineItem->save();
+            $this->pendingAdjustments[$lineItem->id] = $pending['adjustment_ids'];
         }
     }
 
@@ -172,7 +237,6 @@ trait ManagesLineItems
             return;
         }
 
-        // Check for groups
         $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']) || array_key_exists('name', $item));
 
         if ($isGrouped) {
@@ -193,28 +257,15 @@ trait ManagesLineItems
 
     protected function deleteRemovedLineItemGroups(Model $record, Collection $groups): void
     {
-        // Delete removed groups
         $existingGroupIds = $record->lineItemGroups()->pluck('id');
-        
         $updatedGroupIds = $this->getAllUpdatedGroupIds($groups);
-
         $groupsToDelete = $existingGroupIds->diff($updatedGroupIds);
-
-        \Illuminate\Support\Facades\Log::info('ManagesLineItems: Deleting groups', [
-            'existing' => $existingGroupIds->toArray(),
-            'updated' => $updatedGroupIds,
-            'to_delete' => $groupsToDelete->toArray(),
-            'payload' => $groups->toArray(),
-        ]);
 
         if ($groupsToDelete->isNotEmpty()) {
             $record->lineItemGroups()
                 ->whereIn('id', $groupsToDelete)
                 ->each(function ($group) {
-                    // Delete items first (group_id FK uses nullOnDelete, so items
-                    // would become orphaned rather than cascade-deleted)
                     $group->items()->delete();
-                    // Delete any child groups (parent_id FK uses nullOnDelete)
                     $group->children()->each(function ($child) {
                         $child->items()->delete();
                         $child->delete();
@@ -223,11 +274,8 @@ trait ManagesLineItems
                 });
         }
 
-        // Delete removed items from remaining groups
         $allUpdatedItemIds = $this->getAllUpdatedItemIds($groups);
-            
-        $existingItemIds = $record->lineItems()->pluck('id'); // Get ALL items for doc
-
+        $existingItemIds = $record->lineItems()->pluck('id');
         $itemsToDelete = $existingItemIds->diff($allUpdatedItemIds);
 
         if ($itemsToDelete->isNotEmpty()) {
@@ -270,43 +318,93 @@ trait ManagesLineItems
         return array_filter($ids);
     }
 
-    protected function handleLineItemAdjustments(DocumentLineItem $lineItem, array $itemData, DocumentDiscountMethod $discountMethod): void
+    /**
+     * Collect adjustment IDs for an item (used by the non-grouped path).
+     */
+    protected function collectItemAdjustments(int $itemId, array $itemData, DocumentDiscountMethod $discountMethod, Model $record): void
     {
-        // Compare type string to avoid lazy-loading the documentable relation
-        $isBill = $lineItem->documentable_type === (new Bill())->getMorphClass();
-
+        $isBill = $record->getMorphClass() === (new Bill())->getMorphClass();
         $taxType = $isBill ? 'purchaseTaxes' : 'salesTaxes';
         $discountType = $isBill ? 'purchaseDiscounts' : 'salesDiscounts';
 
         $adjustmentIds = collect($itemData[$taxType] ?? [])
             ->merge($discountMethod->isPerLineItem() ? ($itemData[$discountType] ?? []) : [])
             ->filter()
-            ->unique();
+            ->unique()
+            ->values()
+            ->all();
 
-        $lineItem->adjustments()->withoutGlobalScopes()->sync($adjustmentIds);
+        $this->pendingAdjustments[$itemId] = $adjustmentIds;
+    }
 
-        // Invalidate the relation cache after sync so subsequent calculations use fresh data.
-        // For empty sets, pre-set empty collections to skip redundant SELECT queries in calculateTaxTotalAmount/calculateDiscountTotalAmount.
-        $relationsToReset = ['adjustments', 'taxes', 'discounts', 'salesTaxes', 'salesDiscounts', 'purchaseTaxes', 'purchaseDiscounts'];
-        if ($adjustmentIds->isEmpty()) {
-            foreach ($relationsToReset as $relation) {
-                $lineItem->setRelation($relation, collect());
+    /**
+     * Sync all collected item adjustments in two queries instead of 3N queries.
+     */
+    protected function flushPendingAdjustments(): void
+    {
+        if (empty($this->pendingAdjustments)) {
+            return;
+        }
+
+        $morphType = (new DocumentLineItem())->getMorphClass();
+        $itemIds = array_keys($this->pendingAdjustments);
+
+        DB::table('adjustmentables')
+            ->whereIn('adjustmentable_id', $itemIds)
+            ->where('adjustmentable_type', $morphType)
+            ->delete();
+
+        $toInsert = [];
+        foreach ($this->pendingAdjustments as $itemId => $adjustmentIds) {
+            foreach ($adjustmentIds as $adjustmentId) {
+                $toInsert[] = [
+                    'adjustmentable_id' => $itemId,
+                    'adjustmentable_type' => $morphType,
+                    'adjustment_id' => (int) $adjustmentId,
+                ];
             }
-        } else {
-            foreach ($relationsToReset as $relation) {
-                $lineItem->unsetRelation($relation);
-            }
+        }
+
+        if ($toInsert) {
+            DB::table('adjustmentables')->insert($toInsert);
         }
     }
 
-    protected function updateLineItemTotals(DocumentLineItem $lineItem, DocumentDiscountMethod $discountMethod): void
+    /**
+     * Compute and persist tax_total / discount_total for all pending items in two queries.
+     */
+    protected function flushPendingTotals(DocumentDiscountMethod $discountMethod): void
     {
-        $lineItem->updateQuietly([
-            'tax_total' => $lineItem->calculateTaxTotalAmount(),
-            'discount_total' => $discountMethod->isPerLineItem()
-                ? $lineItem->calculateDiscountTotalAmount()
-                : 0,
-        ]);
+        if (empty($this->pendingAdjustments)) {
+            return;
+        }
+
+        $itemIds = array_keys($this->pendingAdjustments);
+
+        $items = DocumentLineItem::whereIn('id', $itemIds)
+            ->with(['taxes', 'discounts'])
+            ->get();
+
+        $now = now();
+        $toUpdate = [];
+        foreach ($items as $item) {
+            $toUpdate[] = [
+                'id' => $item->id,
+                // Required NOT NULL columns without DB defaults.
+                'company_id' => $item->company_id,
+                'documentable_id' => $item->documentable_id,
+                'documentable_type' => $item->documentable_type,
+                'tax_total' => $item->calculateTaxTotalAmount(),
+                'discount_total' => $discountMethod->isPerLineItem()
+                    ? $item->calculateDiscountTotalAmount()
+                    : 0,
+                'updated_at' => $now,
+            ];
+        }
+
+        if ($toUpdate) {
+            DocumentLineItem::upsert($toUpdate, ['id'], ['tax_total', 'discount_total', 'updated_at']);
+        }
     }
 
     protected function updateDocumentTotals(Model $record, array $data): array
@@ -316,14 +414,12 @@ trait ManagesLineItems
         $taxKey = $record::documentType()->getTaxKey();
         $taxIds = $data[$taxKey] ?? null;
 
-        // Automatically include default tax from template company if not already present
         $templateCompanyId = $data['template_company_id'] ?? $record->template_company_id ?? null;
         if ($templateCompanyId) {
             $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
                 ->where('company_id', $templateCompanyId)
                 ->value('default_sales_tax_id');
             if ($defaultTaxId) {
-                // If taxIds is null, we get current taxes from the relationship
                 $taxIds ??= $record->{$taxKey}()->withoutGlobalScopes()->pluck('adjustments.id')->toArray();
                 if (! in_array($defaultTaxId, $taxIds)) {
                     $taxIds[] = (string) $defaultTaxId;
@@ -397,5 +493,20 @@ trait ManagesLineItems
         }
 
         return CurrencyConverter::convertToCents($discountRate, $currencyCode);
+    }
+
+    /**
+     * The money field's dehydrateStateUsing converts display values to cents (int).
+     * However, items added programmatically (e.g. via direct $this->data manipulation)
+     * go through afterStateHydrated which re-interprets the display string as cents,
+     * leaving the value as a non-integer display string that still needs conversion.
+     */
+    protected function resolveUnitPrice(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return CurrencyConverter::convertToCents($value);
     }
 }

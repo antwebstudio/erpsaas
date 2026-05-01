@@ -930,8 +930,18 @@ class Estimate extends Document
                 // Save the selected template company
                 if ($record->template_company_id !== (int) $templateCompanyId) {
                     $record->update(['template_company_id' => $templateCompanyId]);
-                    $record->refresh();
                 }
+
+                // Sync the default sales tax from the issue company
+                $defaultTaxId = \App\Models\Setting\CompanyProfile::withoutGlobalScopes()
+                    ->where('company_id', $templateCompanyId)
+                    ->value('default_sales_tax_id');
+                $taxKey = static::documentType()->getTaxKey();
+                $correctTaxIds = $defaultTaxId ? [(string) $defaultTaxId] : [];
+                $record->$taxKey()->withoutGlobalScopes()->sync($correctTaxIds);
+
+                $record->refresh();
+                $record->load(['salesTaxes', 'lineItems', 'templateCompany']);
 
                 $pdfService = new \App\Services\EstimatePdfService();
                 $finalPdfOutput = $pdfService->generate($record);

@@ -5,6 +5,7 @@ return [
     'show_expiry_date' => env('SHOW_EXPIRY_DATE', true),
     'async_pdf_generation' => env('ASYNC_PDF_GENERATION', true),
     'hide_estimate_in_navigation' => env('HIDE_ESTIMATE_IN_NAVIGATION', false),
+    'hide_estimate_template_in_navigation' => env('HIDE_ESTIMATE_TEMPLATE_IN_NAVIGATION', false),
     'hide_contract_in_navigation' => env('HIDE_CONTRACT_IN_NAVIGATION', false),
     'require_lead_email_and_contact' => env('REQUIRE_LEAD_EMAIL_AND_CONTACT', false),
     'hide_item_name' => env('HIDE_ITEM_NAME', false),

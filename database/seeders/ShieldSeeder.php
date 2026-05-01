@@ -168,7 +168,8 @@ class ShieldSeeder extends Seeder
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
                 $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn($p) => ! str_contains($p, 'sales::client')));
                 $allClientPerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::all::client')));
-                $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms, $customPermissions);
+                $estimateTemplatePerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::estimate::template')));
+                $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms, $estimateTemplatePerms, $customPermissions);
             }
 
             $adminRole->syncPermissions($adminPermissions);

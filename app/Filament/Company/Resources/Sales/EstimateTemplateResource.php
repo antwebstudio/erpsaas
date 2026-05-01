@@ -48,7 +48,7 @@ class EstimateTemplateResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        if (config('erp.hide_estimate_in_navigation', false)) {
+        if (config('erp.hide_estimate_template_in_navigation', false)) {
             return false;
         }
 
@@ -111,6 +111,319 @@ class EstimateTemplateResource extends Resource
                     ->schema([
                         Forms\Components\Repeater::make('lineItemGroups')
                             ->extraAttributes(['class' => 'item-group-darker'])
+                            ->extraItemActions([
+                                Forms\Components\Actions\Action::make('add_job_scope')
+                                    ->label('Select Job Scope')
+                                    ->button()
+                                    ->color('primary')
+                                    ->icon('heroicon-m-plus')
+                                    ->visible(function (Forms\Components\Repeater $component, array $arguments) {
+                                        if (!isset($arguments['item'])) return false;
+                                        $itemState = $component->getState()[$arguments['item']] ?? [];
+                                        return filled($itemState['offering_category_id'] ?? null);
+                                    })
+                                    ->fillForm(function (Forms\Components\Repeater $component, array $arguments) {
+                                        $itemState = $component->getState()[$arguments['item']] ?? [];
+                                        $categoryId = $itemState['offering_category_id'] ?? null;
+                                        $category = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($categoryId);
+
+                                        $existingItems = $itemState['items'] ?? [];
+                                        $existingOfferingIds = array_column($existingItems, 'offering_id');
+
+                                        $existingChildren = $itemState['children'] ?? [];
+                                        foreach ($existingChildren as $child) {
+                                            $childOfferingIds = array_column($child['items'] ?? [], 'offering_id');
+                                            $existingOfferingIds = array_merge($existingOfferingIds, $childOfferingIds);
+                                        }
+
+                                        $existingOfferingIds = array_unique(array_map('strval', array_filter($existingOfferingIds)));
+
+                                        $preSelectedGrouped = [];
+                                        $preSelectedRoot = [];
+                                        if ($category) {
+                                            $preSelectedRoot = $category->offerings->pluck('id')
+                                                ->map('strval')
+                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                ->values()
+                                                ->toArray();
+
+                                            foreach ($category->children as $child) {
+                                                $ids = $child->offerings->pluck('id')
+                                                    ->map('strval')
+                                                    ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                    ->values()
+                                                    ->toArray();
+                                                if (!empty($ids)) {
+                                                    $preSelectedGrouped[$child->id] = $ids;
+                                                }
+                                            }
+                                        }
+
+                                        return [
+                                            'job_scopes_grouped' => $preSelectedGrouped,
+                                            'job_scopes_root' => $preSelectedRoot,
+                                        ];
+                                    })
+                                    ->form(function (Forms\Components\Repeater $component, array $arguments) {
+                                        $itemState = $component->getState()[$arguments['item']] ?? [];
+                                        $categoryId = $itemState['offering_category_id'] ?? null;
+                                        $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
+
+                                        $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
+                                        $rootOfferings = $category ? $category->offerings()
+                                            ->orderBy('sort_order')
+                                            ->orderBy('name')
+                                            ->get()
+                                            ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                            ->values()
+                                            ->toArray() : [];
+
+                                        $schema = [];
+
+                                        $schema[] = Forms\Components\TextInput::make('search_job_scopes')
+                                            ->label('Search')
+                                            ->placeholder('Search job scopes...')
+                                            ->prefixIcon('heroicon-m-magnifying-glass')
+                                            ->live(debounce: 300);
+
+                                        if ($jobScopeDescriptions->isEmpty() && empty($rootOfferings)) {
+                                            $schema[] = Forms\Components\Placeholder::make('no_options')
+                                                ->content('No Job Scopes available for this category.');
+                                            return $schema;
+                                        }
+
+                                        if (!empty($rootOfferings)) {
+                                            $schema[] = Forms\Components\Section::make('General')
+                                                ->schema([
+                                                    Forms\Components\CheckboxList::make("job_scopes_root")
+                                                        ->hiddenLabel()
+                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
+                                                        ->searchable(false)
+                                                        ->bulkToggleable()
+                                                        ->options(function (Forms\Get $get) use ($rootOfferings) {
+                                                            $term = $get('search_job_scopes');
+                                                            $filtered = collect($rootOfferings);
+                                                            if (filled($term)) {
+                                                                $filtered = $filtered->filter(fn($item) => \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term)));
+                                                            }
+                                                            return $filtered->pluck('name', 'id')->toArray();
+                                                        }),
+                                                ])
+                                                ->collapsible()
+                                                ->compact()
+                                                ->visible(function (Forms\Get $get) use ($rootOfferings) {
+                                                    $term = $get('search_job_scopes');
+                                                    if (blank($term)) return true;
+                                                    return collect($rootOfferings)->contains(fn($item) => \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term)));
+                                                });
+                                        }
+
+                                        foreach ($jobScopeDescriptions as $description) {
+                                            $descriptionName = $description->name;
+                                            $descriptionId = $description->id;
+                                            $allOfferings = $description->offerings()
+                                                ->orderBy('sort_order')
+                                                ->orderBy('name')
+                                                ->get()
+                                                ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                                ->values()
+                                                ->toArray();
+
+                                            if (empty($allOfferings)) continue;
+
+                                            $schema[] = Forms\Components\Section::make($descriptionName)
+                                                ->schema([
+                                                    Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
+                                                        ->hiddenLabel()
+                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
+                                                        ->searchable(false)
+                                                        ->bulkToggleable()
+                                                        ->options(function (Forms\Get $get) use ($allOfferings) {
+                                                            $term = $get('search_job_scopes');
+                                                            $filtered = collect($allOfferings);
+                                                            if (filled($term)) {
+                                                                $filtered = $filtered->filter(fn($item) => \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term)));
+                                                            }
+                                                            return $filtered->pluck('name', 'id')->toArray();
+                                                        }),
+                                                ])
+                                                ->collapsible()
+                                                ->compact()
+                                                ->visible(function (Forms\Get $get) use ($allOfferings) {
+                                                    $term = $get('search_job_scopes');
+                                                    if (blank($term)) return true;
+                                                    return collect($allOfferings)->contains(fn($item) => \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term)));
+                                                });
+                                        }
+
+                                        return $schema;
+                                    })
+                                    ->action(function (array $data, array $arguments, Forms\Components\Repeater $component) {
+                                        $itemState = $component->getState()[$arguments['item']] ?? [];
+                                        $groupedData = $data['job_scopes_grouped'] ?? [];
+                                        $rootSelectedIds = $data['job_scopes_root'] ?? [];
+
+                                        $parentCategoryId = $itemState['offering_category_id'] ?? null;
+                                        $parentCategory = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($parentCategoryId);
+                                        if (!$parentCategory) return;
+
+                                        $childCategories = $parentCategory->children()->defaultOrder()->get();
+                                        $currentChildren = $itemState['children'] ?? [];
+                                        $currentItems = $itemState['items'] ?? [];
+                                        $rootCategoryOfferingIds = $parentCategory->offerings->pluck('id')->map('strval')->toArray();
+
+                                        $addedCount = 0;
+                                        $removedCount = 0;
+
+                                        // Handle root offerings
+                                        $newItems = [];
+                                        foreach ($currentItems as $key => $item) {
+                                            $offeringId = (string)($item['offering_id'] ?? '');
+                                            if (in_array($offeringId, $rootCategoryOfferingIds)) {
+                                                if (in_array($offeringId, $rootSelectedIds)) {
+                                                    $newItems[$key] = $item;
+                                                } else {
+                                                    $removedCount++;
+                                                }
+                                            } else {
+                                                $newItems[$key] = $item;
+                                            }
+                                        }
+                                        $currentItems = $newItems;
+
+                                        foreach ($rootSelectedIds as $selectedId) {
+                                            $exists = collect($currentItems)->contains(fn($item) => (string)($item['offering_id'] ?? '') === (string)$selectedId);
+                                            if (!$exists) {
+                                                $offering = \App\Models\Common\Offering::find($selectedId);
+                                                if ($offering) {
+                                                    $currentItems[(string) \Illuminate\Support\Str::uuid()] = [
+                                                        'id' => null,
+                                                        'offering_id' => $offering->id,
+                                                        'description' => $offering->name,
+                                                        'quantity' => 1,
+                                                        'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
+                                                        'unit' => $offering->unit,
+                                                        'is_locked' => 1,
+                                                        'salesDiscounts' => [],
+                                                        'salesTaxes' => [],
+                                                    ];
+                                                    $addedCount++;
+                                                }
+                                            }
+                                        }
+
+                                        $parentOfferingSortOrders = $parentCategory->offerings->pluck('sort_order', 'id')->toArray();
+                                        uasort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
+                                            $orderA = $parentOfferingSortOrders[$a['offering_id']] ?? 0;
+                                            $orderB = $parentOfferingSortOrders[$b['offering_id']] ?? 0;
+                                            return $orderA !== $orderB ? $orderA <=> $orderB : strcmp($a['description'] ?? '', $b['description'] ?? '');
+                                        });
+
+                                        $allState = $component->getState();
+                                        $allState[$arguments['item']]['items'] = $currentItems;
+                                        $component->state($allState);
+
+                                        // Handle child category groups
+                                        $newChildren = [];
+                                        $processedChildCategoryIds = [];
+
+                                        foreach ($childCategories as $childCategory) {
+                                            $selectedIds = $groupedData[$childCategory->id] ?? [];
+                                            $childCategoryOfferingIds = $childCategory->offerings->pluck('id')->map('strval')->toArray();
+                                            $processedChildCategoryIds[] = $childCategory->id;
+
+                                            $existingChildKey = null;
+                                            $existingChild = null;
+                                            foreach ($currentChildren as $key => $child) {
+                                                if (($child['offering_category_id'] ?? null) === $childCategory->id) {
+                                                    $existingChildKey = $key;
+                                                    $existingChild = $child;
+                                                    break;
+                                                }
+                                            }
+
+                                            $items = $existingChild['items'] ?? [];
+
+                                            $newChildItems = [];
+                                            foreach ($items as $itemKey => $item) {
+                                                $offeringId = (string)($item['offering_id'] ?? '');
+                                                if (in_array($offeringId, $childCategoryOfferingIds)) {
+                                                    if (in_array($offeringId, $selectedIds)) {
+                                                        $newChildItems[$itemKey] = $item;
+                                                    } else {
+                                                        $removedCount++;
+                                                    }
+                                                } else {
+                                                    $newChildItems[$itemKey] = $item;
+                                                }
+                                            }
+                                            $items = $newChildItems;
+
+                                            foreach ($selectedIds as $selectedId) {
+                                                $exists = collect($items)->contains(fn($item) => (string)($item['offering_id'] ?? '') === (string)$selectedId);
+                                                if (!$exists) {
+                                                    $offering = \App\Models\Common\Offering::find($selectedId);
+                                                    if ($offering) {
+                                                        $items[(string) \Illuminate\Support\Str::uuid()] = [
+                                                            'id' => null,
+                                                            'offering_id' => $offering->id,
+                                                            'description' => $offering->name,
+                                                            'quantity' => 1,
+                                                            'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
+                                                            'unit' => $offering->unit,
+                                                            'is_locked' => 1,
+                                                            'salesDiscounts' => [],
+                                                            'salesTaxes' => [],
+                                                        ];
+                                                        $addedCount++;
+                                                    }
+                                                }
+                                            }
+
+                                            if (empty($items)) continue;
+
+                                            $allOfferingSortOrders = $childCategory->offerings->pluck('sort_order', 'id')->toArray();
+                                            uasort($items, function ($a, $b) use ($allOfferingSortOrders) {
+                                                $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
+                                                $orderB = $allOfferingSortOrders[$b['offering_id']] ?? 0;
+                                                return $orderA !== $orderB ? $orderA <=> $orderB : strcmp($a['description'] ?? '', $b['description'] ?? '');
+                                            });
+
+                                            if ($existingChildKey !== null) {
+                                                $existingChild['items'] = $items;
+                                                $newChildren[$existingChildKey] = $existingChild;
+                                            } else {
+                                                $newChildren[(string) \Illuminate\Support\Str::uuid()] = [
+                                                    'id' => null,
+                                                    'offering_category_id' => $childCategory->id,
+                                                    'parent_id' => $itemState['id'] ?? null,
+                                                    'name' => $childCategory->name,
+                                                    'order' => count($newChildren) + 1,
+                                                    'items' => $items,
+                                                ];
+                                            }
+                                        }
+
+                                        foreach ($currentChildren as $key => $child) {
+                                            if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
+                                                $newChildren[$key] = $child;
+                                            }
+                                        }
+
+                                        $allState = $component->getState();
+                                        $allState[$arguments['item']]['children'] = $newChildren;
+                                        $component->state($allState);
+
+                                        if ($addedCount > 0 || $removedCount > 0) {
+                                            $message = $addedCount . ' added';
+                                            if ($removedCount > 0) $message .= ', ' . $removedCount . ' removed';
+                                            Notification::make()
+                                                ->title('Job Scope items updated: ' . $message)
+                                                ->success()
+                                                ->send();
+                                        }
+                                    }),
+                            ])
                             ->relationship('lineItemGroups', function ($query) {
                                 return $query->whereNull('parent_id');
                             })
@@ -268,7 +581,7 @@ class EstimateTemplateResource extends Resource
                                                     ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateAdjustmentSelect::make('salesTaxes')
+                                                    CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select taxes')
@@ -282,8 +595,14 @@ class EstimateTemplateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->searchable(),
-                                                    CreateAdjustmentSelect::make('salesDiscounts')
+                                                    CreateAdjustmentSelect::make('salesDiscounts', true)
                                                         ->label('Discounts')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select discounts')
@@ -296,6 +615,12 @@ class EstimateTemplateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->hidden(function (Forms\Get $get) {
                                                             $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
 
@@ -353,356 +678,6 @@ class EstimateTemplateResource extends Resource
                                                         $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
 
                                                         return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
-                                                    }),
-                                            ])
-                                            ->extraActions([
-                                                Forms\Components\Actions\Action::make('add_job_scope')
-                                                    ->label('Select Job Scope')
-                                                    ->button()
-                                                    ->color('primary')
-                                                    ->icon('heroicon-m-plus')
-                                                    ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
-                                                    ->fillForm(function (Forms\Get $get) {
-                                                        $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($categoryId);
-                                                        
-                                                        // Gather all existing offering IDs in this group (main items + sub-group items)
-                                                        $existingItems = $get('items') ?? [];
-                                                        $existingOfferingIds = array_column($existingItems, 'offering_id');
-                                                        
-                                                        $existingChildren = $get('children') ?? [];
-                                                        foreach ($existingChildren as $child) {
-                                                            $childItems = $child['items'] ?? [];
-                                                            $childOfferingIds = array_column($childItems, 'offering_id');
-                                                            $existingOfferingIds = array_merge($existingOfferingIds, $childOfferingIds);
-                                                        }
-                                                        
-                                                        $existingOfferingIds = array_unique(array_map('strval', array_filter($existingOfferingIds)));
-                                                        
-                                                        $preSelectedGrouped = [];
-                                                        $preSelectedRoot = [];
-                                                        if ($category) {
-                                                            $preSelectedRoot = $category->offerings->pluck('id')
-                                                                ->map('strval')
-                                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
-                                                                ->values()
-                                                                ->toArray();
-
-                                                            foreach ($category->children as $child) {
-                                                                $ids = $child->offerings->pluck('id')
-                                                                    ->map('strval')
-                                                                    ->filter(fn($id) => in_array($id, $existingOfferingIds))
-                                                                    ->values()
-                                                                    ->toArray();
-                                                                if (!empty($ids)) {
-                                                                    $preSelectedGrouped[$child->id] = $ids;
-                                                                }
-                                                            }
-                                                        }
-                                                        
-                                                        return [
-                                                            'job_scopes_grouped' => $preSelectedGrouped,
-                                                            'job_scopes_root' => $preSelectedRoot,
-                                                        ];
-                                                    })
-                                                    ->form(function (Forms\Get $get) {
-                                                        $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-                                                        
-                                                        // Get all children categories (Job Scope Descriptions)
-                                                        // And their offerings (Job Scope Options)
-                                                        $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
-                                                        $rootOfferings = $category ? $category->offerings()
-                                                            ->orderBy('sort_order')
-                                                            ->orderBy('name')
-                                                            ->get()
-                                                            ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
-                                                            ->values()
-                                                            ->toArray() : [];
-
-                                                        $schema = [];
-                                                        
-                                                        // Add Search Input
-                                                        $schema[] = Forms\Components\TextInput::make('search_job_scopes')
-                                                            ->label('Search')
-                                                            ->placeholder('Search job scopes...')
-                                                            ->prefixIcon('heroicon-m-magnifying-glass')
-                                                            ->live(debounce: 300);
-
-                                                        if ($jobScopeDescriptions->isEmpty() && empty($rootOfferings)) {
-                                                            $schema[] = Forms\Components\Placeholder::make('no_options')
-                                                                ->content('No Job Scopes available for this category.');
-                                                            return $schema;
-                                                        }
-
-                                                        if (!empty($rootOfferings)) {
-                                                            $schema[] = Forms\Components\Section::make('General')
-                                                                ->schema([
-                                                                    Forms\Components\CheckboxList::make("job_scopes_root")
-                                                                        ->hiddenLabel()
-                                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
-                                                                        ->searchable(false)
-                                                                        ->bulkToggleable()
-                                                                        ->options(function (Forms\Get $get) use ($rootOfferings) {
-                                                                            $term = $get('search_job_scopes');
-                                                                            
-                                                                            $filtered = collect($rootOfferings);
-                                                                            if (filled($term)) {
-                                                                                $filtered = $filtered->filter(function ($item) use ($term) {
-                                                                                    return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                                                });
-                                                                            }
-                                                                            
-                                                                            return $filtered->pluck('name', 'id')->toArray();
-                                                                        }),
-                                                                ])
-                                                                ->collapsible()
-                                                                ->compact()
-                                                                ->visible(function (Forms\Get $get) use ($rootOfferings) {
-                                                                    $term = $get('search_job_scopes');
-                                                                    if (blank($term)) {
-                                                                        return true;
-                                                                    }
-                                                                    // Check if any offering matches
-                                                                    return collect($rootOfferings)->contains(function ($item) use ($term) {
-                                                                        return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                                    });
-                                                                });
-                                                        }
-
-                                                        foreach ($jobScopeDescriptions as $description) {
-                                                            // Pass strict variables to closures
-                                                            $descriptionName = $description->name;
-                                                            $descriptionId = $description->id;
-                                                            $allOfferings = $description->offerings()
-                                                                ->orderBy('sort_order')
-                                                                ->orderBy('name')
-                                                                ->get()
-                                                                ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
-                                                                ->values()
-                                                                ->toArray();
-
-                                                            if (empty($allOfferings)) {
-                                                                continue;
-                                                            }
-
-                                                            $schema[] = Forms\Components\Section::make($descriptionName)
-                                                                ->schema([
-                                                                    Forms\Components\CheckboxList::make("job_scopes_grouped.{$descriptionId}")
-                                                                        ->hiddenLabel()
-                                                                        ->extraAttributes(['class' => 'job-scope-checkbox-list'])
-                                                                        ->searchable(false)
-                                                                        ->bulkToggleable()
-                                                                        ->options(function (Forms\Get $get) use ($allOfferings) {
-                                                                            $term = $get('search_job_scopes');
-                                                                            
-                                                                            $filtered = collect($allOfferings);
-                                                                            if (filled($term)) {
-                                                                                $filtered = $filtered->filter(function ($item) use ($term) {
-                                                                                    return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                                                });
-                                                                            }
-                                                                            
-                                                                            return $filtered->pluck('name', 'id')->toArray();
-                                                                        }),
-                                                                ])
-                                                                ->collapsible()
-                                                                ->compact()
-                                                                ->visible(function (Forms\Get $get) use ($allOfferings) {
-                                                                    $term = $get('search_job_scopes');
-                                                                    if (blank($term)) {
-                                                                        return true;
-                                                                    }
-                                                                    // Check if any offering matches
-                                                                    return collect($allOfferings)->contains(function ($item) use ($term) {
-                                                                        return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
-                                                                    });
-                                                                });
-                                                        }
-
-                                                        return $schema;
-                                                    })
-                                                    ->action(function (array $data, Forms\Set $set, Forms\Get $get, $component) {
-                                                        $groupedData = $data['job_scopes_grouped'] ?? [];
-                                                        $rootSelectedIds = $data['job_scopes_root'] ?? [];
-
-                                                        $parentCategoryId = $get('offering_category_id');
-                                                        $parentCategory = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($parentCategoryId);
-                                                        if (!$parentCategory) return;
-
-                                                        $childCategories = $parentCategory->children()->defaultOrder()->get();
-                                                        $currentChildren = $get('children') ?? [];
-                                                        $currentItems = $get('items') ?? [];
-                                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
-                                                        
-                                                        // Get IDs of offerings that belong to the root category
-                                                        $rootCategoryOfferingIds = $parentCategory->offerings->pluck('id')->map('strval')->toArray();
-                                                        
-                                                        $addedCount = 0;
-                                                        $removedCount = 0;
-
-                                                        // --- Handle Root Offerings (Removal and Addition) ---
-                                                        // 1. Remove items that belong to this root category but are NO LONGER selected
-                                                        $newItems = [];
-                                                        foreach ($currentItems as $item) {
-                                                            $offeringId = (string)($item['offering_id'] ?? '');
-                                                            if (in_array($offeringId, $rootCategoryOfferingIds)) {
-                                                                if (in_array($offeringId, $rootSelectedIds)) {
-                                                                    $newItems[] = $item;
-                                                                } else {
-                                                                    $removedCount++;
-                                                                }
-                                                            } else {
-                                                                // Preserve items not belonging to this category
-                                                                $newItems[] = $item;
-                                                            }
-                                                        }
-                                                        $currentItems = $newItems;
-                                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
-
-                                                        // 2. Add newly selected root offerings
-                                                        foreach ($rootSelectedIds as $offeringId) {
-                                                            if (!in_array($offeringId, $existingOfferingIds)) {
-                                                                $offering = $parentCategory->offerings->firstWhere('id', $offeringId);
-                                                                if ($offering) {
-                                                                    $currentItems[] = [
-                                                                        'id' => null,
-                                                                        'offering_id' => $offering->id,
-                                                                        'description' => $offering->name,
-                                                                        'is_locked' => 1,
-                                                                        'unit' => $offering->unit,
-                                                                        'quantity' => 1,
-                                                                        'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
-                                                                        'salesDiscounts' => [],
-                                                                        'salesTaxes' => [],
-                                                                    ];
-                                                                    $addedCount++;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Sort root items
-                                                        $parentOfferingSortOrders = $parentCategory->offerings->pluck('sort_order', 'id')->toArray();
-                                                        usort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
-                                                            $orderA = $parentOfferingSortOrders[$a['offering_id']] ?? 0;
-                                                            $orderB = $parentOfferingSortOrders[$b['offering_id']] ?? 0;
-                                                            
-                                                            if ($orderA === $orderB) {
-                                                                return strcmp($a['description'] ?? '', $b['description'] ?? '');
-                                                            }
-                                                            
-                                                            return $orderA <=> $orderB;
-                                                        });
-                                                        $set('items', $currentItems);
-                                                        
-                                                        // --- Handle Child Category Groups (Removal and Addition) ---
-                                                        $newChildren = [];
-                                                        $processedChildCategoryIds = [];
-
-                                                        foreach ($childCategories as $childCategory) {
-                                                            $categoryId = $childCategory->id;
-                                                            $selectedIds = $groupedData[$categoryId] ?? [];
-                                                            $processedChildCategoryIds[] = $categoryId;
-                                                            
-                                                            // Find existing child group
-                                                            $existingChild = collect($currentChildren)->firstWhere('offering_category_id', $categoryId);
-                                                            $items = $existingChild['items'] ?? [];
-                                                            
-                                                            // IDs of offerings belonging to THIS child category
-                                                            $childCategoryOfferingIds = $childCategory->offerings->pluck('id')->map('strval')->toArray();
-
-                                                            // 1. Remove items that belong to this child category but are NO LONGER selected
-                                                            $newChildItems = [];
-                                                            foreach ($items as $item) {
-                                                                $offeringId = (string)($item['offering_id'] ?? '');
-                                                                if (in_array($offeringId, $childCategoryOfferingIds)) {
-                                                                    if (in_array($offeringId, $selectedIds)) {
-                                                                        $newChildItems[] = $item;
-                                                                    } else {
-                                                                        $removedCount++;
-                                                                    }
-                                                                } else {
-                                                                    $newChildItems[] = $item;
-                                                                }
-                                                            }
-                                                            $items = $newChildItems;
-                                                            $existingChildOfferingIds = array_column($items, 'offering_id');
-
-                                                            // 2. Add newly selected offerings to this child group
-                                                            foreach ($selectedIds as $offeringId) {
-                                                                if (!in_array($offeringId, $existingChildOfferingIds)) {
-                                                                    $offering = $childCategory->offerings->firstWhere('id', $offeringId);
-                                                                    if ($offering) {
-                                                                        $items[] = [
-                                                                            'id' => null,
-                                                                            'offering_id' => $offering->id,
-                                                                            'description' => $offering->name,
-                                                                            'is_locked' => 1,
-                                                                            'unit' => $offering->unit,
-                                                                            'quantity' => 1,
-                                                                            'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
-                                                                            'salesDiscounts' => [],
-                                                                            'salesTaxes' => [],
-                                                                        ];
-                                                                        $addedCount++;
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // If no items left and it's not a custom group, we don't need to keep/create it
-                                                            if (empty($items)) {
-                                                                continue;
-                                                            }
-
-                                                            // Update or build child group structure
-                                                            if ($existingChild) {
-                                                                $existingChild['items'] = $items;
-                                                            } else {
-                                                                $existingChild = [
-                                                                    'id' => null,
-                                                                    'offering_category_id' => $childCategory->id,
-                                                                    'parent_id' => $get('id'),
-                                                                    'name' => $childCategory->name,
-                                                                    'order' => count($newChildren) + 1,
-                                                                    'items' => $items,
-                                                                ];
-                                                            }
-
-                                                            // Sort items in this child group
-                                                            $allOfferingSortOrders = $childCategory->offerings->pluck('sort_order', 'id')->toArray();
-                                                            usort($existingChild['items'], function ($a, $b) use ($allOfferingSortOrders) {
-                                                                $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
-                                                                $orderB = $allOfferingSortOrders[$b['offering_id']] ?? 0;
-                                                                
-                                                                if ($orderA === $orderB) {
-                                                                    return strcmp($a['description'] ?? '', $b['description'] ?? '');
-                                                                }
-                                                                
-                                                                return $orderA <=> $orderB;
-                                                            });
-
-                                                            $newChildren[] = $existingChild;
-                                                        }
-
-                                                        // Preserve other child groups that weren't managed by this selection (e.g. manually added sub-groups)
-                                                        foreach ($currentChildren as $child) {
-                                                            if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
-                                                                $newChildren[] = $child;
-                                                            }
-                                                        }
-
-                                                        $set('children', $newChildren);
-                                                        
-                                                        if ($addedCount > 0 || $removedCount > 0) {
-                                                            $message = $addedCount . ' added';
-                                                            if ($removedCount > 0) {
-                                                                $message .= ', ' . $removedCount . ' removed';
-                                                            }
-                                                            Notification::make()
-                                                                ->title('Job Scope items updated: ' . $message)
-                                                                ->success()
-                                                                ->send();
-                                                        }
                                                     }),
                                             ]),
                                 // Nested child groups
@@ -863,7 +838,7 @@ class EstimateTemplateResource extends Resource
                                                     ->required(fn (Forms\Get $get) => filled($get('offering_id')))
                                                     ->default(0),
                                                 Forms\Components\Group::make([
-                                                    CreateAdjustmentSelect::make('salesTaxes')
+                                                    CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select taxes')
@@ -877,8 +852,14 @@ class EstimateTemplateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->searchable(),
-                                                    CreateAdjustmentSelect::make('salesDiscounts')
+                                                    CreateAdjustmentSelect::make('salesDiscounts', true)
                                                         ->label('Discounts')
                                                         ->hiddenLabel()
                                                         ->placeholder('Select discounts')
@@ -891,6 +872,12 @@ class EstimateTemplateResource extends Resource
                                                         ->multiple()
                                                         ->live()
                                                         ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                            if ($record) {
+                                                                $relation = $component->getAdjustmentsRelationship();
+                                                                $component->state($record->{$relation}->pluck('id')->toArray());
+                                                            }
+                                                        })
                                                         ->hidden(function (Forms\Get $get) {
                                                             $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
 
@@ -941,112 +928,6 @@ class EstimateTemplateResource extends Resource
                                                         return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
                                                     }),
                                             ])
-                                            ->extraActions([
-                                                Forms\Components\Actions\Action::make('add_job_scope')
-                                                    ->label('Select Job Scope')
-                                                    ->button()
-                                                    ->color('primary')
-                                                    ->icon('heroicon-m-plus')
-                                                    // ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
-                                                    ->fillForm(function (Forms\Get $get) {
-                                                        $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with(['offerings'])->find($categoryId);
-
-                                                        $existingItems = $get('items') ?? [];
-                                                        $existingOfferingIds = array_column($existingItems, 'offering_id');
-
-                                                        $preSelected = [];
-                                                        if ($category) {
-                                                            $preSelected = $category->offerings->pluck('id')
-                                                                ->map('strval')
-                                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
-                                                                ->values()
-                                                                ->toArray();
-                                                        }
-
-                                                        return [
-                                                            'job_scopes' => $preSelected,
-                                                        ];
-                                                    })
-                                                    ->form(function (Forms\Get $get) {
-                                                        $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-
-                                                        $offerings = $category ? $category->offerings()
-                                                            ->orderBy('sort_order')
-                                                            ->orderBy('name')
-                                                            ->get() : collect();
-
-                                                        if ($offerings->isEmpty()) {
-                                                            return [
-                                                                Forms\Components\Placeholder::make('no_options')
-                                                                    ->content('No Job Scopes available for this category.'),
-                                                            ];
-                                                        }
-
-                                                        return [
-                                                            Forms\Components\CheckboxList::make('job_scopes')
-                                                                ->hiddenLabel()
-                                                                ->extraAttributes(['class' => 'job-scope-checkbox-list'])
-                                                                ->options($offerings->pluck('name', 'id'))
-                                                                ->bulkToggleable()
-                                                                ->searchable(),
-                                                        ];
-                                                    })
-                                                    ->action(function (array $data, Forms\Set $set, Forms\Get $get) {
-                                                        $selectedOfferingIds = $data['job_scopes'] ?? [];
-                                                        $categoryId = $get('offering_category_id');
-                                                        $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-                                                        if (!$category) return;
-
-                                                        $currentItems = $get('items') ?? [];
-                                                        $existingOfferingIds = array_column($currentItems, 'offering_id');
-                                                        $addedCount = 0;
-
-                                                        foreach ($selectedOfferingIds as $offeringId) {
-                                                            if (!in_array($offeringId, $existingOfferingIds)) {
-                                                                $offering = $category->offerings->firstWhere('id', $offeringId);
-                                                                if ($offering) {
-                                                                    $currentItems[] = [
-                                                                        'id' => null,
-                                                                        'offering_id' => $offering->id,
-                                                                        'description' => $offering->name,
-                                                                        'is_locked' => 1,
-                                                                        'unit' => $offering->unit,
-                                                                        'quantity' => 1,
-                                                                        'unit_price' => CurrencyConverter::convertCentsToFormatSimple($offering->price, 'USD'),
-                                                                        'salesDiscounts' => [],
-                                                                        'salesTaxes' => [],
-                                                                    ];
-                                                                    $addedCount++;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Sort current items by offering sort_order
-                                                        $allOfferingSortOrders = $category->offerings->pluck('sort_order', 'id')->toArray();
-                                                        
-                                                        usort($currentItems, function ($a, $b) use ($allOfferingSortOrders) {
-                                                            $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
-                                                            $orderB = $allOfferingSortOrders[$b['offering_id']] ?? 0;
-                                                            
-                                                            if ($orderA === $orderB) {
-                                                                return strcmp($a['description'] ?? '', $b['description'] ?? '');
-                                                            }
-                                                            
-                                                            return $orderA <=> $orderB;
-                                                        });
-
-                                                        $set('items', $currentItems);
-
-                                                        if ($addedCount > 0) {
-                                                            Notification::make()
-                                                                ->title($addedCount . ' offerings added to this group')
-                                                                ->success()
-                                                                ->send();
-                                                        }
-                                                    }),
-                                            ]),
                                     ])
                                     ->columnSpanFull(),
                                 
