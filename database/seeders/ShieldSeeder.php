@@ -163,7 +163,8 @@ class ShieldSeeder extends Seeder
             ]);
 
             if ($company->id == 1) {
-                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $customPermissions);
+                $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn($p) => str_contains($p, 'document::default')));
+                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $documentDefaultPerms, $customPermissions);
             } else {
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
                 $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn($p) => ! str_contains($p, 'sales::client')));

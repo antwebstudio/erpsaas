@@ -143,6 +143,8 @@ class CompanyPanelProvider extends PanelProvider
                 'primary' => Color::Indigo,
             ])
             ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
+                $isErpCompany = filament()->getTenant()?->id == config('erp.erp_system_company_id');
+
                 return $builder
                     ->items([
                         ...WelcomePage::getNavigationItems(),
@@ -161,8 +163,8 @@ class CompanyPanelProvider extends PanelProvider
                             ->label('Sales')
                             ->icon('heroicon-o-currency-dollar')
                             ->items([
-                                ...LeadResource::getNavigationItems(),
-                                ...LeadSourceResource::getNavigationItems(),
+                                ...($isErpCompany ? LeadResource::getNavigationItems() : []),
+                                ...($isErpCompany ? LeadSourceResource::getNavigationItems() : []),
                                 ...ClientResource::getNavigationItems(),
                                 ...AllClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),

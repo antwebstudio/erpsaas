@@ -99,10 +99,16 @@ class ViewEstimate extends ViewRecord
                                     ->label('Issuing Company')
                                     ->getStateUsing(fn (Estimate $record) => $record->templateCompany?->name ?? $record->company->name),
                                 TextEntry::make('clientAndLead.name')
-                                    ->label('Lead')
+                                    ->label(static function (Estimate $record) {
+                                        return $record->clientAndLead?->type === 'lead' ? 'Lead' : 'Client';
+                                    })
                                     ->url(static function (Estimate $record) {
                                         if (! $record->client_id) {
                                             return null;
+                                        }
+
+                                        if ($record->clientAndLead?->type === 'lead') {
+                                            return LeadResource::getUrl('view', ['record' => $record->client_id]);
                                         }
 
                                         return AllClientResource::getUrl('view', ['record' => $record->client_id]);

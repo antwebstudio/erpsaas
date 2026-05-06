@@ -137,6 +137,34 @@ class DocumentDefaultResource extends Resource
                             ->removeUploadedFileButtonPosition('right'),
                         Forms\Components\ColorPicker::make('accent_color')
                             ->localizeLabel(),
+                        Forms\Components\ColorPicker::make('color_text')
+                            ->label('Text Color')
+                            ->helperText('Main body text colour')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_secondary')
+                            ->label('Secondary Background')
+                            ->helperText('Table header and total row background')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_secondary_text')
+                            ->label('Secondary Text')
+                            ->helperText('Font colour on secondary background rows')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_section_bg')
+                            ->label('Section Header Background')
+                            ->helperText('Background for "Removed / Added Items" section headers')
+                            ->hidden(static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder),
+                        Forms\Components\ColorPicker::make('color_section_bg_text')
+                            ->label('Section Header Text')
+                            ->helperText('Font colour on section header rows')
+                            ->hidden(static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder),
+                        Forms\Components\ColorPicker::make('color_group_bg')
+                            ->label('Group Header Background')
+                            ->helperText('Background for parent category group headers')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_group_bg_text')
+                            ->label('Group Header Text')
+                            ->helperText('Font colour on group header rows')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
                         Forms\Components\Select::make('font')
                             ->softRequired()
                             ->localizeLabel()

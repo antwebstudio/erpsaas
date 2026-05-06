@@ -16,7 +16,7 @@
             padding: 0 15mm 15mm 15mm;
             font-family: 'Open Sans', 'Aileron', Arial, sans-serif;
             font-size: 13px;
-            color: #293834;
+            color: {{ $document->colorText }};
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
@@ -62,7 +62,7 @@
         .header-title {
             font-size: 18px;
             font-weight: bold;
-            color: #96693C;
+            color: {{ $document->accentColor }};
             text-align: center;
             margin-bottom: 20px;
             text-transform: uppercase;
@@ -82,23 +82,23 @@
             width: 48%;
         }
         .info-col div { margin-bottom: 5px; }
-        
+
         .items-th, .items-td {
             text-align: left;
             vertical-align: top;
-            border: 1px solid #96693C;
+            border: 1px solid {{ $document->accentColor }};
             padding: 8px;
         }
         .items-th {
-            background-color: #f7f1eb;
-            color: #96693C;
+            background-color: {{ $document->colorSecondary }};
+            color: {{ $document->colorSecondaryText }};
             font-weight: bold;
             border-bottom: none;
         }
         .items-td {
             font-size: 12px;
         }
-        
+
         .signatures {
             display: flex;
             justify-content: space-between;
@@ -107,7 +107,7 @@
         .signature-box { width: 45%; }
         .signature-line {
             margin-top: 40px;
-            border-top: 1px solid #96693C;
+            border-top: 1px solid {{ $document->accentColor }};
             padding-top: 5px;
         }
         .footer-info {
@@ -115,11 +115,11 @@
             font-size: 11px;
             line-height: 1.4;
         }
-        
+
         .section-title {
             font-size: 13px;
             font-weight: bold;
-            color: #96693C;
+            color: {{ $document->accentColor }};
             margin-top: 10px;
             margin-bottom: 5px;
         }
@@ -144,7 +144,7 @@
             margin-bottom: 10px;
             font-weight: bold;
             font-size: 12px;
-            border-top: 1px solid #293834;
+            border-top: 1px solid {{ $document->colorText }};
             width: 250px;
             margin-right: 0;
             margin-left: auto;
@@ -184,7 +184,7 @@
             @if($hasAnyRemoved)
                 <tbody>
                     <tr>
-                        <th class="items-td" colspan="4" style="background-color: #e0b182; font-weight: bold;">Removed Items</th>
+                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSectionBg }}; color: {{ $document->colorSectionBgText }}; font-weight: bold;">Removed Items</th>
                     </tr>
                 </tbody>
                 @php $itemIndex = 1; $currentParent = null; $parentShown = false; @endphp
@@ -200,13 +200,13 @@
                         <tbody style="page-break-inside: avoid; break-inside: avoid;">
                             @if($currentParent && !$parentShown)
                                 <tr class="header-row">
-                                    <th class="items-td" colspan="4" style="background-color: #d4b896; font-weight: bold;">{{ $currentParent }}</th>
+                                    <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $currentParent }}</th>
                                 </tr>
                                 @php $parentShown = true; @endphp
                             @endif
                             @if($group->name)
                                 <tr class="header-row">
-                                    <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
+                                    <th class="items-td" colspan="4" style="background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
                                 </tr>
                             @endif
                             @foreach($removedItems as $item)
@@ -240,7 +240,7 @@
             @if($hasAnyAdded)
                 <tbody>
                     <tr>
-                        <th class="items-td" colspan="4" style="background-color: #e0b182; font-weight: bold;">Added Items</th>
+                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSectionBg }}; font-weight: bold;">Added Items</th>
                     </tr>
                 </tbody>
                 @php $itemIndex = 1; $currentParent = null; $parentShown = false; @endphp
@@ -256,13 +256,13 @@
                         <tbody style="page-break-inside: avoid; break-inside: avoid;">
                             @if($currentParent && !$parentShown)
                                 <tr class="header-row">
-                                    <th class="items-td" colspan="4" style="background-color: #d4b896; font-weight: bold;">{{ $currentParent }}</th>
+                                    <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $currentParent }}</th>
                                 </tr>
                                 @php $parentShown = true; @endphp
                             @endif
                             @if($group->name)
                                 <tr class="header-row">
-                                    <th class="items-td" colspan="4" style="background-color: #f7f1eb; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
+                                    <th class="items-td" colspan="4" style="background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
                                 </tr>
                             @endif
                             @foreach($addedItems as $item)
@@ -312,8 +312,8 @@
                     @endif
                 @endif
                 <tr>
-                    <td colspan="3" class="items-td" style="text-align: right; font-weight: bold; background-color: #f7f1eb;">Total</td>
-                    <td class="items-td" style="font-weight: bold; background-color: #f7f1eb;">{{ $document->total }}</td>
+                    <td colspan="3" class="items-td" style="text-align: right; font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">Total</td>
+                    <td class="items-td" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">{{ $document->total }}</td>
                 </tr>
             </tbody>
             

@@ -46,6 +46,13 @@ readonly class DocumentDTO
         public ?string $backgroundImage = null,
         public ?string $materialsGuide = null,
         public ?string $termsAndConditions = null,
+        public string $colorSecondary = '#f7f1eb',
+        public string $colorSecondaryText = '#96693c',
+        public string $colorSectionBg = '#e0b182',
+        public string $colorSectionBgText = '#293834',
+        public string $colorGroupBg = '#d4b896',
+        public string $colorGroupBgText = '#293834',
+        public string $colorText = '#293834',
     ) {}
 
     public static function fromModel(Document $document): self
@@ -134,6 +141,13 @@ readonly class DocumentDTO
             backgroundImage: $settings?->background_image_url,
             materialsGuide: $settings?->materials_guide,
             termsAndConditions: $settings?->terms_and_conditions,
+            colorSecondary: $settings?->color_secondary ?? '#f7f1eb',
+            colorSecondaryText: $settings?->color_secondary_text ?? '#96693c',
+            colorSectionBg: $settings?->color_section_bg ?? '#e0b182',
+            colorSectionBgText: $settings?->color_section_bg_text ?? '#293834',
+            colorGroupBg: $settings?->color_group_bg ?? '#d4b896',
+            colorGroupBgText: $settings?->color_group_bg_text ?? '#293834',
+            colorText: $settings?->color_text ?? '#293834',
             lineItemGroups: $document->lineItemGroups()->withoutGlobalScopes()->whereNull('parent_id')->get()->isNotEmpty() 
                 ? $document->lineItemGroups()
                     ->withoutGlobalScopes()
