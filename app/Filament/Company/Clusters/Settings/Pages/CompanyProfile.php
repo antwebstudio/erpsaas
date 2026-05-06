@@ -37,6 +37,18 @@ use function Filament\authorize;
  */
 class CompanyProfile extends Page
 {
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user ? $user->can('page_CompanyProfile') : false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
     use InteractsWithFormActions;
 
     protected static ?string $title = 'Company Profile';

@@ -93,6 +93,7 @@
             background-color: #f7f1eb;
             color: #96693C;
             font-weight: bold;
+            border-bottom: none;
         }
         .items-td {
             font-size: 12px;
@@ -187,7 +188,7 @@
                     @endif
                     @foreach($group->items as $item)
                         <tr>
-                            <td class="items-td" style="width:6%;">{{ $itemIndex++ }}</td>
+                            <td class="items-td" style="width:6%;text-align: center;">{{ $itemIndex++ }}</td>
                             <td class="items-td" style="width:66%;">
                                 @if(config('erp.hide_item_name', false) && !$item->isLocked)
                                     <strong>{{ $item->name }}</strong><br>

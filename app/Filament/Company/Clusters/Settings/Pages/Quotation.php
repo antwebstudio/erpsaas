@@ -21,6 +21,7 @@ use Filament\Support\Exceptions\Halt;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
 
 use function Filament\authorize;
@@ -31,6 +32,19 @@ use function Filament\authorize;
 class Quotation extends Page
 {
     use InteractsWithFormActions;
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user ? $user->can('page_Quotation') : false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
 
     protected static ?string $title = 'Quotation';
 

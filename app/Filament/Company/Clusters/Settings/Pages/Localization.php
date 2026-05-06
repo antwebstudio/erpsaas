@@ -29,6 +29,7 @@ use Guava\FilamentClusters\Forms\Cluster;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Locked;
 
 use function Filament\authorize;
@@ -39,6 +40,19 @@ use function Filament\authorize;
 class Localization extends Page
 {
     use InteractsWithFormActions;
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user ? $user->can('page_Localization') : false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
 
     protected static ?string $title = 'Localization';
 
