@@ -93,10 +93,10 @@
             background-color: {{ $document->colorSecondary }};
             color: {{ $document->colorSecondaryText }};
             font-weight: bold;
-            border-bottom: none;
         }
         .items-td {
             font-size: 12px;
+            border-top: none;
         }
 
         .signatures {
@@ -167,7 +167,7 @@
                 <col style="width: 15%;">
             </colgroup>
             <thead>
-                @include('pdf.estimate.partials.header')
+                <tr>@include('pdf.estimate.partials.header')</tr>
                 <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.estimate.partials.intro')
                 <tr>
@@ -177,20 +177,19 @@
                     <th class="items-th" style="width:15%; text-align: center;">Amount</th>
                 </tr>
             </thead>
-            <tbody>
-                @php $itemIndex = 1; @endphp
-                @foreach($document->lineItemGroups as $group)
+            @php $itemIndex = 1; @endphp
+            @foreach($document->lineItemGroups as $group)
+                <tbody style="page-break-inside: avoid; break-inside: avoid;">
                     @if($group->name)
-                        <tbody style="page-break-inside: avoid; break-inside: avoid;">
                         <tr class="header-row">
-                            <th class="items-td" colspan="4" style="background-color: {{ collect($group->items)->isEmpty() ? $document->colorGroupBg : $document->colorSecondary }}; color: {{ collect($group->items)->isEmpty() ? $document->colorGroupBgText : $document->colorSecondaryText }}; font-weight: bold;">{{ $group->name }}</th>
+                            <th class="items-td" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSecondary }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSecondaryText }}; font-weight: bold;">{{ $group->name }}</th>
                         </tr>
                     @endif
                     @foreach($group->items as $item)
                         <tr>
                             <td class="items-td" style="width:6%;text-align: center;">{{ $itemIndex++ }}</td>
                             <td class="items-td" style="width:66%;">
-                                @if(config('erp.hide_item_name', false) && !$item->isLocked)
+                                @if(!config('erp.hide_item_name', false) && empty(trim($item->description)))
                                     <strong>{{ $item->name }}</strong><br>
                                 @endif
                                 {!! nl2br(e($item->description)) !!}
@@ -202,35 +201,37 @@
                                     {{ $item->quantity }} {{ $item->unit }}
                                 @endif
                             </td>
-                            <td class="items-td" style="width:15%; {{ trim($item->subtotal) === 'FOC' ? 'text-align: center;' : '' }}">{{ $item->subtotal }}</td>
+                            <td class="items-td" style="width:15%; text-align: {{ trim($item->subtotal) === 'FOC' ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
                         </tr>
-                        @if($loop->first)</tbody>@endif
                     @endforeach
-                @endforeach
+                </tbody>
+            @endforeach
+
+            <tbody>
 
                 @if($document->subtotal || $document->discount || $document->tax)
                     @if($document->subtotal)
                         <tr>
                             <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Subtotal</td>
-                            <td class="items-td">{{ $document->subtotal }}</td>
+                            <td class="items-td" style="text-align: right;">{{ $document->subtotal }}</td>
                         </tr>
                     @endif
                     @if($document->discount)
                         <tr>
                             <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Discount</td>
-                            <td class="items-td">{{ $document->discount }}</td>
+                            <td class="items-td" style="text-align: right;">{{ $document->discount }}</td>
                         </tr>
                     @endif
                     @if($document->tax)
                         <tr>
                             <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Tax</td>
-                            <td class="items-td">{{ $document->tax }}</td>
+                            <td class="items-td" style="text-align: right;">{{ $document->tax }}</td>
                         </tr>
                     @endif
                 @endif
                 <tr>
                     <td colspan="3" class="items-td" style="text-align: right; font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">Total</td>
-                    <td class="items-td" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">{{ $document->total }}</td>
+                    <td class="items-td" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; text-align: right;">{{ $document->total }}</td>
                 </tr>
             </tbody>
             
@@ -250,7 +251,7 @@
                 <col style="width: 15%;">
             </colgroup>
             <thead>
-                @include('pdf.estimate.partials.header')
+                <tr>@include('pdf.estimate.partials.header')</tr>
                 <tr><td colspan="4" style="height: {{ $headerTopMargin }};"></td></tr>
                 @include('pdf.estimate.partials.intro')
             </thead>

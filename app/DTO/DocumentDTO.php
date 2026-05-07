@@ -156,9 +156,9 @@ readonly class DocumentDTO
                     ->orderBy('order')
                     ->get()
                     ->flatMap(function ($group) {
-                        $groups = [LineItemGroupDTO::fromModel($group)];
+                        $groups = [LineItemGroupDTO::fromModel($group, true)];
                         foreach ($group->children as $child) {
-                            $groups[] = LineItemGroupDTO::fromModel($child);
+                            $groups[] = LineItemGroupDTO::fromModel($child, false);
                         }
                         return $groups;
                     })
