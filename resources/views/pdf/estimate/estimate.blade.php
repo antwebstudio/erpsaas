@@ -9,7 +9,7 @@
         * { box-sizing: border-box; }
         @page {
             size: A4;
-            margin: 0;
+            margin: 0 0 32mm 0;
         }
         body {
             margin: 0;
@@ -137,7 +137,7 @@
         .term-desc { flex: 1; font-size: 8px; }
         
         thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
+        tfoot { display: table-row-group; }
 
         .acknowledge-text {
             margin-top: 20px;
@@ -179,7 +179,7 @@
             </thead>
             @php $itemIndex = 1; @endphp
             @foreach($document->lineItemGroups as $group)
-                <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                <tbody>
                     @if($group->name)
                         <tr class="header-row">
                             <th class="items-td" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSecondary }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSecondaryText }}; font-weight: bold;">{{ $group->name }}</th>

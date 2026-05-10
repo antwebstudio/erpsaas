@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\VariationOrderResource\Pages;
 
 use App\Concerns\HandlePageRedirect;
+use App\Concerns\HasAutosave;
 use App\Concerns\ManagesLineItems;
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Models\Accounting\VariationOrder;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 class EditVariationOrder extends EditRecord
 {
     use HandlePageRedirect;
+    use HasAutosave;
     use ManagesLineItems;
 
     protected static string $resource = VariationOrderResource::class;
@@ -26,6 +28,8 @@ class EditVariationOrder extends EditRecord
         config(['app.disable_custom_select_relationships' => true]);
 
         parent::mount($record);
+
+        $this->initAutosave();
     }
 
     public function hydrate(): void
@@ -135,6 +139,7 @@ class EditVariationOrder extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
+            $this->getAutosaveToggleFormAction(),
             Actions\Action::make('generateVariationOrder')
                 ->label('Generate Variation Order')
                 ->color('success')

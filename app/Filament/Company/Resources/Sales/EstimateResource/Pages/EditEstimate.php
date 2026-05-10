@@ -3,6 +3,7 @@
 namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
 
 use App\Concerns\HandlePageRedirect;
+use App\Concerns\HasAutosave;
 use App\Concerns\ManagesLineItems;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Models\Accounting\Estimate;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 class EditEstimate extends EditRecord
 {
     use HandlePageRedirect;
+    use HasAutosave;
     use ManagesLineItems;
 
     protected static string $resource = EstimateResource::class;
@@ -25,6 +27,8 @@ class EditEstimate extends EditRecord
         config(['app.disable_custom_select_relationships' => true]);
 
         parent::mount($record);
+
+        $this->initAutosave();
     }
 
     public function hydrate(): void
@@ -160,6 +164,7 @@ class EditEstimate extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
+            $this->getAutosaveToggleFormAction(),
             Actions\Action::make('generateQuotation')
                 ->label('Generate Quotation')
                 ->color('success')

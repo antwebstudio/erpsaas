@@ -655,12 +655,12 @@ class VariationOrderResource extends Resource
 
                                                 $headers = [
                                                     Header::make($settings?->resolveColumnLabel('item_name', 'Items') ?? 'Items')
-                                                        ->width('50%'),
-                                                    Header::make('Unit')
-                                                        ->width('7%')
-                                                        ->markAsRequired(false),
+                                                        ->width('45%'),
                                                     Header::make($settings?->resolveColumnLabel('unit_name', 'Quantity') ?? 'Quantity')
                                                         ->width('8%'),
+                                                    Header::make('Unit')
+                                                        ->width('12%')
+                                                        ->markAsRequired(false),
                                                     Header::make($settings?->resolveColumnLabel('price_name', 'Price') ?? 'Price')
                                                         ->width('10%'),
                                                 ];
@@ -691,17 +691,17 @@ class VariationOrderResource extends Resource
                                                         ->dehydrated(true)
                                                         ->hiddenLabel(),
                                                 ])->columnSpan(1),
-                                                Forms\Components\TextInput::make('unit')
-                                                    ->placeholder('Unit')
-                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                                    ->dehydrated(true)
-                                                    ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('quantity')
                                                     ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->numeric()
                                                     ->live(onBlur: true)
                                                     ->maxValue(9999999999.99)
                                                     ->default(1),
+                                                Forms\Components\TextInput::make('unit')
+                                                    ->placeholder('Unit')
+                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                    ->dehydrated(true)
+                                                    ->hiddenLabel(),
                                                 Forms\Components\TextInput::make('unit_price')
                                                     ->hiddenLabel()
                                                     ->money(useAffix: false)
@@ -835,12 +835,12 @@ class VariationOrderResource extends Resource
 
                                         $headers = [
                                             Header::make($settings?->resolveColumnLabel('item_name', 'Items') ?? 'Items')
-                                                ->width('50%'),
-                                            Header::make('Unit')
-                                                ->width('7%')
-                                                ->markAsRequired(false),
+                                                ->width('45%'),
                                             Header::make($settings?->resolveColumnLabel('unit_name', 'Quantity') ?? 'Quantity')
                                                 ->width('8%'),
+                                            Header::make('Unit')
+                                                ->width('12%')
+                                                ->markAsRequired(false),
                                             Header::make($settings?->resolveColumnLabel('price_name', 'Price') ?? 'Price')
                                                 ->width('10%'),
                                         ];
@@ -871,17 +871,17 @@ class VariationOrderResource extends Resource
                                                 ->dehydrated(true)
                                                 ->hiddenLabel(),
                                         ])->columnSpan(1),
-                                        Forms\Components\TextInput::make('unit')
-                                            ->placeholder('Unit')
-                                            ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                            ->dehydrated(true)
-                                            ->hiddenLabel(),
                                         Forms\Components\TextInput::make('quantity')
                                             ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                             ->numeric()
                                             ->live(onBlur: true)
                                             ->maxValue(9999999999.99)
                                             ->default(1),
+                                        Forms\Components\TextInput::make('unit')
+                                            ->placeholder('Unit')
+                                            ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                            ->dehydrated(true)
+                                            ->hiddenLabel(),
                                         Forms\Components\TextInput::make('unit_price')
                                             ->hiddenLabel()
                                             ->money(useAffix: false)

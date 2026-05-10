@@ -18,6 +18,8 @@ return [
     'hide_add_item_for_group' => env('HIDE_ADD_ITEM_FOR_GROUP', false),
     'hide_add_item_for_sub_group' => env('HIDE_ADD_ITEM_FOR_SUB_GROUP', false),
     'hide_invoice_save_button' => env('HIDE_INVOICE_SAVE_BUTTON', false),
+    'autosave_default' => env('AUTOSAVE_DEFAULT', false),
+    'autosave_interval' => env('AUTOSAVE_INTERVAL', 30),
 ];
 
 

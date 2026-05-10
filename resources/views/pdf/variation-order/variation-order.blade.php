@@ -9,7 +9,7 @@
         * { box-sizing: border-box; }
         @page {
             size: A4;
-            margin: 0;
+            margin: 0 0 32mm 0;
         }
         body {
             margin: 0;
@@ -137,7 +137,7 @@
         .term-desc { flex: 1; font-size: 8px; }
         
         thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
+        tfoot { display: table-row-group; }
 
         .acknowledge-text {
             margin-top: 20px;
@@ -196,7 +196,7 @@
                     @if($group->isMain)
                         @php $currentParent = $group->name; $parentShown = false; @endphp
                         @if($removedItems->isNotEmpty())
-                            <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                            <tbody>
                                 <tr class="header-row">
                                     <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $group->name }}</th>
                                 </tr>
@@ -225,7 +225,7 @@
                     @else
                         {{-- Subgroup --}}
                         @if($removedItems->isNotEmpty())
-                            <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                            <tbody>
                                 @if($currentParent && !$parentShown)
                                     <tr class="header-row">
                                         <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $currentParent }}</th>
@@ -281,7 +281,7 @@
                     @if($group->isMain)
                         @php $currentParent = $group->name; $parentShown = false; @endphp
                         @if($addedItems->isNotEmpty())
-                            <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                            <tbody>
                                 <tr class="header-row">
                                     <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $group->name }}</th>
                                 </tr>
@@ -310,7 +310,7 @@
                     @else
                         {{-- Subgroup --}}
                         @if($addedItems->isNotEmpty())
-                            <tbody style="page-break-inside: avoid; break-inside: avoid;">
+                            <tbody>
                                 @if($currentParent && !$parentShown)
                                     <tr class="header-row">
                                         <th class="items-td" colspan="4" style="background-color: {{ $document->colorGroupBg }}; color: {{ $document->colorGroupBgText }}; font-weight: bold;">{{ $currentParent }}</th>
