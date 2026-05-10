@@ -165,6 +165,14 @@ class DocumentDefaultResource extends Resource
                             ->label('Group Header Text')
                             ->helperText('Font colour on group header rows')
                             ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_subgroup_bg')
+                            ->label('Subgroup Header Background')
+                            ->helperText('Background for child group header rows')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        Forms\Components\ColorPicker::make('color_subgroup_text')
+                            ->label('Subgroup Header Text')
+                            ->helperText('Font colour on child group header rows')
+                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
                         Forms\Components\Select::make('font')
                             ->softRequired()
                             ->localizeLabel()

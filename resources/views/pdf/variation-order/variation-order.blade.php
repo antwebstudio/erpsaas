@@ -234,7 +234,7 @@
                                 @endif
                                 @if($group->name)
                                     <tr class="header-row">
-                                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
+                                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSubgroupBg }}; color: {{ $document->colorSubgroupText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
                                     </tr>
                                 @endif
                                 @foreach($removedItems as $item)
@@ -319,7 +319,7 @@
                                 @endif
                                 @if($group->name)
                                     <tr class="header-row">
-                                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
+                                        <th class="items-td" colspan="4" style="background-color: {{ $document->colorSubgroupBg }}; color: {{ $document->colorSubgroupText }}; font-weight: bold; padding-left: 16px;">{{ $group->name }}</th>
                                     </tr>
                                 @endif
                                 @foreach($addedItems as $item)

@@ -182,7 +182,7 @@
                 <tbody>
                     @if($group->name)
                         <tr class="header-row">
-                            <th class="items-td" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSecondary }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSecondaryText }}; font-weight: bold;">{{ $group->name }}</th>
+                            <th class="items-td" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSubgroupBg }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSubgroupText }}; font-weight: bold;">{{ $group->name }}</th>
                         </tr>
                     @endif
                     @foreach($group->items as $item)

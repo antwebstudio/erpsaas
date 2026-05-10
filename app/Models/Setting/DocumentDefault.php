@@ -50,6 +50,8 @@ class DocumentDefault extends Model
         'color_section_bg_text',
         'color_group_bg',
         'color_group_bg_text',
+        'color_subgroup_bg',
+        'color_subgroup_text',
         'color_text',
         'font',
         'template',

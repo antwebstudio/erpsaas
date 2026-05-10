@@ -20,6 +20,8 @@ class DocumentDefaultColorSeeder extends Seeder
                 'color_section_bg_text' => '#293834',
                 'color_group_bg'       => '#d4b896',
                 'color_group_bg_text'  => '#293834',
+                'color_subgroup_bg'    => '#f7f1eb',
+                'color_subgroup_text'  => '#96693c',
             ],
             DocumentType::VariationOrder->value => [
                 'accent_color'         => '#96693c',
@@ -30,6 +32,8 @@ class DocumentDefaultColorSeeder extends Seeder
                 'color_section_bg_text' => '#293834',
                 'color_group_bg'       => '#d4b896',
                 'color_group_bg_text'  => '#293834',
+                'color_subgroup_bg'    => '#f7f1eb',
+                'color_subgroup_text'  => '#96693c',
             ],
         ];
 
