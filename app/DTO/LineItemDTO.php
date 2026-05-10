@@ -21,12 +21,14 @@ readonly class LineItemDTO
 
     public static function fromModel(DocumentLineItem $lineItem): self
     {
+        $currencyCode = $lineItem->documentable?->currency_code;
+
         return new self(
             name: $lineItem->offering->name ?? '',
             description: $lineItem->description ?? '',
             quantity: $lineItem->quantity,
-            unitPrice: self::formatToMoney($lineItem->unit_price, $lineItem->documentable?->currency_code, true),
-            subtotal: self::formatToMoney($lineItem->subtotal, $lineItem->documentable?->currency_code, true),
+            unitPrice: $lineItem->kiv ? 'KIV' : self::formatToMoney($lineItem->unit_price, $currencyCode, true),
+            subtotal: $lineItem->kiv ? 'KIV' : self::formatToMoney($lineItem->subtotal, $currencyCode, true),
             unit: $lineItem->unit,
             isLocked: $lineItem->is_locked ?? false,
             offeringId: $lineItem->offering_id,

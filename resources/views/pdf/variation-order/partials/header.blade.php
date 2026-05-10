@@ -12,10 +12,11 @@
                     Email: @stylemyspace.com.sg
                 </div> -->
 
+                <div style="padding-left: 0.5cm;">
                 <div style="font-size: 11px; margin-top: 20px; margin-bottom: 5px; color: #000; font-weight: bold;">VARIATION ORDER</div>
                 <table style="width: 100%; border-collapse: collapse; border: none; font-size: 8px; font-weight: normal;">
                     <tr>
-                        <td style="width: 50%; padding: 1px 0;">Reference No:</td>
+                        <td style="width: 2.2cm; padding: 1px 0;">Reference No:</td>
                         <td style="padding: 1px 0;">{{ $document->number }}</td>
                     </tr>
                     <tr>
@@ -55,6 +56,7 @@
                         <td style="padding: 1px 0;">{{ $document->createdBy?->email }}</td>
                     </tr>
                 </table>
+                </div>
             </td>
         </tr>
     </table>

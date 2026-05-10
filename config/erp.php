@@ -20,6 +20,8 @@ return [
     'hide_invoice_save_button' => env('HIDE_INVOICE_SAVE_BUTTON', false),
     'autosave_default' => env('AUTOSAVE_DEFAULT', false),
     'autosave_interval' => env('AUTOSAVE_INTERVAL', 30),
+    'show_estimate_kiv' => env('SHOW_ESTIMATE_KIV', true),
+    'show_variation_order_kiv' => env('SHOW_VARIATION_ORDER_KIV', true),
 ];
 
 

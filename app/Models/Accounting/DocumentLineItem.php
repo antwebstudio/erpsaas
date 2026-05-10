@@ -43,6 +43,7 @@ class DocumentLineItem extends Model
         'updated_by',
         'unit',
         'is_locked',
+        'kiv',
     ];
 
     public function documentable(): MorphTo

@@ -61,6 +61,7 @@ trait ManagesLineItems
                 'unit_price' => $itemData['unit_price'],
                 'unit' => $itemData['unit'] ?? null,
                 'is_locked' => $itemData['is_locked'] ?? 0,
+                'kiv' => $itemData['kiv'] ?? false,
                 'line_number' => $index + 1,
             ]);
 
@@ -170,6 +171,7 @@ trait ManagesLineItems
                         'unit_price' => $this->resolveUnitPrice($itemData['unit_price'] ?? 0),
                         'unit' => $itemData['unit'] ?? null,
                         'is_locked' => $itemData['is_locked'] ?? 0,
+                        'kiv' => $itemData['kiv'] ?? false,
                         'line_number' => $itemIndex,
                     ];
                     $this->pendingAdjustments[$itemId] = $adjustmentIds;
@@ -207,7 +209,7 @@ trait ManagesLineItems
             DocumentLineItem::upsert(
                 $toUpsert,
                 ['id'],
-                ['group_id', 'offering_id', 'description', 'quantity', 'unit_price', 'unit', 'is_locked', 'line_number', 'updated_by', 'updated_at']
+                ['group_id', 'offering_id', 'description', 'quantity', 'unit_price', 'unit', 'is_locked', 'kiv', 'line_number', 'updated_by', 'updated_at']
             );
         }
 
@@ -221,6 +223,7 @@ trait ManagesLineItems
                 'unit_price' => $this->resolveUnitPrice($pending['item_data']['unit_price'] ?? 0),
                 'unit' => $pending['item_data']['unit'] ?? null,
                 'is_locked' => $pending['item_data']['is_locked'] ?? 0,
+                'kiv' => $pending['item_data']['kiv'] ?? false,
                 'line_number' => $pending['line_number'],
             ]);
             $lineItem->documentable()->associate($pending['record']);

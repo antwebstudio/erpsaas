@@ -697,6 +697,10 @@ class EstimateResource extends Resource
                                                         ->width('10%'),
                                                 ];
 
+                                                if (config('erp.show_estimate_kiv', false)) {
+                                                    $headers[] = Header::make('KIV')->width('5%');
+                                                }
+
                                                 if (! config('erp.hide_tax_and_adjustment_fields', false)) {
                                                     if ($hasDiscounts) {
                                                         $headers[] = Header::make('Adjustments')->width('15%');
@@ -826,6 +830,11 @@ class EstimateResource extends Resource
                                                     ->live(onBlur: true)
                                                     ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->default(0),
+                                                Forms\Components\Checkbox::make('kiv')
+                                                    ->label('KIV')
+                                                    ->dehydrated(true)
+                                                    ->default(false)
+                                                    ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
@@ -973,6 +982,10 @@ class EstimateResource extends Resource
                                                         ->width('10%'),
                                                 ];
 
+                                                if (config('erp.show_estimate_kiv', false)) {
+                                                    $headers[] = Header::make('KIV')->width('5%');
+                                                }
+
                                                 if (! config('erp.hide_tax_and_adjustment_fields', false)) {
                                                     if ($hasDiscounts) {
                                                         $headers[] = Header::make('Adjustments')->width('15%');
@@ -1106,6 +1119,11 @@ class EstimateResource extends Resource
                                                     ->live(onBlur: true)
                                                     ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
                                                     ->default(0),
+                                                Forms\Components\Checkbox::make('kiv')
+                                                    ->label('KIV')
+                                                    ->dehydrated(true)
+                                                    ->default(false)
+                                                    ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
                                                 Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
