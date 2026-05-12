@@ -145,11 +145,10 @@ class EstimateService
             // 4. Final Conversion and Company Scoping Update
             $newCompanyId = $estimate->template_company_id ?? $estimate->company_id;
 
-            // Update Estimate Status and Company
+            // Update Estimate Status only — company_id must not change on conversion
             $estimate->forceFill([
                 'status' => EstimateStatus::Accepted,
                 'accepted_at' => company_now(),
-                'company_id' => $newCompanyId,
             ]);
 
 

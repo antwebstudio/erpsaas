@@ -157,6 +157,7 @@ class CompanyPanelProvider extends PanelProvider
                         ...JobScopeResource::getNavigationItems(),
                         ...JobScopeDescriptionResource::getNavigationItems(),
                         ...JobScopeOptionResource::getNavigationItems(),
+                        ...EstimateTemplateResource::getNavigationItems(),
                     ])
                     ->groups([
                         NavigationGroup::make('Sales')
@@ -169,7 +170,6 @@ class CompanyPanelProvider extends PanelProvider
                                 ...AllClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),
                                 ...ContractResource::getNavigationItems(),
-                                ...EstimateTemplateResource::getNavigationItems(),
                                 ...InvoiceResource::getNavigationItems(),
                                 ...RecurringInvoiceResource::getNavigationItems(),
                                 ...VariationOrderResource::getNavigationItems(),

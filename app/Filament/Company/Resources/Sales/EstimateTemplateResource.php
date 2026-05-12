@@ -58,8 +58,6 @@ class EstimateTemplateResource extends Resource
 
     protected static ?string $slug = 'sales/estimate-templates';
 
-    protected static ?string $navigationGroup = 'Sales';
-
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
 
     protected static ?string $navigationLabel = 'Estimate Templates';
