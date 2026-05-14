@@ -211,6 +211,7 @@ class Estimate extends Document
             EstimateStatus::Accepted,
             EstimateStatus::Declined,
             EstimateStatus::Converted,
+            EstimateStatus::Completed,
             EstimateStatus::Expired,
         ]);
     }
@@ -982,5 +983,30 @@ class Estimate extends Document
     public function scopeNotArchived(Builder $query): Builder
     {
         return $query->whereNull('archived_at');
+    }
+
+    public function complete(): void
+    {
+        $this->update(['status' => EstimateStatus::Completed]);
+    }
+
+    public function uncomplete(): void
+    {
+        $this->update(['status' => EstimateStatus::Accepted]);
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === EstimateStatus::Completed;
+    }
+
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where('status', EstimateStatus::Completed);
+    }
+
+    public function scopeNotCompleted(Builder $query): Builder
+    {
+        return $query->where('status', '!=', EstimateStatus::Completed);
     }
 }

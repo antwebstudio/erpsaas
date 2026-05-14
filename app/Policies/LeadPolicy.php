@@ -74,4 +74,9 @@ class LeadPolicy
     {
         return $user->can('assign_lead_sales::lead');
     }
+
+    public function archive(User $user, $model): bool
+    {
+        return $user->can('archive_sales::lead');
+    }
 }

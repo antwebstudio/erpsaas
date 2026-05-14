@@ -170,8 +170,8 @@ class CompanyPanelProvider extends PanelProvider
                                 ...AllClientResource::getNavigationItems(),
                                 ...EstimateResource::getNavigationItems(),
                                 ...ContractResource::getNavigationItems(),
-                                ...InvoiceResource::getNavigationItems(),
-                                ...RecurringInvoiceResource::getNavigationItems(),
+                                ...(!$isErpCompany ? InvoiceResource::getNavigationItems() : []),
+                                ...(!$isErpCompany ? RecurringInvoiceResource::getNavigationItems() : []),
                                 ...VariationOrderResource::getNavigationItems(),
                             ]),
                         NavigationGroup::make('Purchases')

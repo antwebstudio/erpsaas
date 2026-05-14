@@ -15,6 +15,7 @@ enum EstimateStatus: string implements HasColor, HasLabel
     case Declined = 'declined';
     case Expired = 'expired';
     case Converted = 'converted';
+    case Completed = 'completed';
 
     public function getLabel(): ?string
     {
@@ -27,6 +28,7 @@ enum EstimateStatus: string implements HasColor, HasLabel
             self::Draft, self::Unsent => 'gray',
             self::Sent, self::Viewed => 'primary',
             self::Accepted, self::Converted => 'success',
+            self::Completed => 'info',
             self::Declined => 'danger',
             self::Expired => 'warning',
         };

@@ -70,4 +70,14 @@ class ClientPolicy
     {
         return $user->can('force_delete_sales::client') || $user->can('force_delete_sales::all::client');
     }
+
+    public function archive(User $user, Client $model): bool
+    {
+        return $user->can('archive_sales::client') || $user->can('archive_sales::all::client');
+    }
+
+    public function complete(User $user, Client $model): bool
+    {
+        return $user->can('complete_sales::client') || $user->can('complete_sales::all::client');
+    }
 }

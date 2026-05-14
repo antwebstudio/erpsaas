@@ -10,6 +10,7 @@ use App\Filament\Forms\Components\CreateCurrencySelect;
 use App\Filament\Forms\Components\CustomSection;
 use App\Filament\Forms\Components\PhoneBuilder;
 use App\Filament\Tables\Columns;
+use App\Enums\Common\ClientStatus;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Utilities\Currency\CurrencyConverter;
@@ -21,6 +22,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class ClientResource extends Resource
@@ -274,6 +276,9 @@ class ClientResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->description(static fn (Client $client) => $client->primaryContact?->full_name),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('primaryContact.email')
                     ->label('Email')
                     ->searchable()
@@ -318,7 +323,12 @@ class ClientResource extends Resource
                     ->alignEnd(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(collect(ClientStatus::cases())
+                        ->mapWithKeys(fn (ClientStatus $case) => [$case->value => $case->getLabel()])
+                        ->toArray())
+                    ->default(ClientStatus::Active->value)
+                    ->placeholder('All statuses'),
             ])
             ->headerActions([
                 Tables\Actions\ExportAction::make()
@@ -330,11 +340,59 @@ class ClientResource extends Resource
                         Tables\Actions\EditAction::make(),
                         Tables\Actions\ViewAction::make(),
                     ])->dropdown(false),
+                    Tables\Actions\Action::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('gray')
+                        ->visible(fn (Client $record) => Auth::user()->can('archive_sales::client') && $record->status !== ClientStatus::Archived)
+                        ->requiresConfirmation()
+                        ->modalHeading('Archive Client')
+                        ->modalDescription('Are you sure you want to archive this client?')
+                        ->action(fn (Client $record) => $record->update(['status' => ClientStatus::Archived])),
+                    Tables\Actions\Action::make('complete')
+                        ->label('Mark as Completed')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('primary')
+                        ->visible(fn (Client $record) => Auth::user()->can('complete_sales::client') && $record->status !== ClientStatus::Completed)
+                        ->requiresConfirmation()
+                        ->modalHeading('Mark Client as Completed')
+                        ->modalDescription('Are you sure you want to mark this client as completed?')
+                        ->action(fn (Client $record) => $record->update(['status' => ClientStatus::Completed])),
+                    Tables\Actions\Action::make('restore_active')
+                        ->label('Restore to Active')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->visible(fn (Client $record) => (Auth::user()->can('archive_sales::client') || Auth::user()->can('complete_sales::client')) && $record->status !== ClientStatus::Active)
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Client to Active')
+                        ->modalDescription('Are you sure you want to restore this client to active?')
+                        ->action(fn (Client $record) => $record->update(['status' => ClientStatus::Active])),
                     Tables\Actions\DeleteAction::make(),
                 ]),
             ])
             ->bulkActions([
-                //
+                Tables\Actions\BulkAction::make('bulk_archive')
+                    ->label('Archive')
+                    ->icon('heroicon-o-archive-box')
+                    ->color('gray')
+                    ->visible(fn () => Auth::user()->can('archive_sales::client'))
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->update(['status' => ClientStatus::Archived])),
+                Tables\Actions\BulkAction::make('bulk_complete')
+                    ->label('Mark as Completed')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('primary')
+                    ->visible(fn () => Auth::user()->can('complete_sales::client'))
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->update(['status' => ClientStatus::Completed])),
+                Tables\Actions\BulkAction::make('bulk_restore_active')
+                    ->label('Restore to Active')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->visible(fn () => Auth::user()->can('archive_sales::client') || Auth::user()->can('complete_sales::client'))
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->update(['status' => ClientStatus::Active])),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

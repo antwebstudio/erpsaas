@@ -127,6 +127,12 @@ class ShieldSeeder extends Seeder
         // Custom permissions (not auto-generated from resource prefixes)
         $customPermissions = [
             'assign_lead_sales::lead',
+            'complete_sales::contract',
+            'archive_sales::client',
+            'complete_sales::client',
+            'archive_sales::all::client',
+            'complete_sales::all::client',
+            'archive_sales::lead',
         ];
 
         foreach ($customPermissions as $permissionName) {
@@ -190,16 +196,21 @@ class ShieldSeeder extends Seeder
                 'create_sales::lead',
                 'update_sales::lead',
                 'delete_sales::lead',
+                'archive_sales::lead',
                 'view_mine_sales::client',
                 'view_sales::client',
                 'create_sales::client',
                 'update_sales::client',
                 'delete_sales::client',
+                'archive_sales::client',
+                'complete_sales::client',
                 'view_mine_sales::all::client',
                 'view_sales::all::client',
                 'create_sales::all::client',
                 'update_sales::all::client',
                 'delete_sales::all::client',
+                'archive_sales::all::client',
+                'complete_sales::all::client',
                 'view_mine_sales::estimate',
                 'create_sales::estimate',
                 'update_sales::estimate',

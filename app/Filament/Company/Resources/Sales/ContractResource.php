@@ -138,7 +138,7 @@ class ContractResource extends Resource
             ->withoutGlobalScopes([
                 CurrentCompanyScope::class,
             ])
-            ->where('status', EstimateStatus::Accepted)
+            ->whereIn('status', [EstimateStatus::Accepted, EstimateStatus::Completed])
             ->isNotTemplate();
 
         $user = Auth::user();
@@ -388,17 +388,35 @@ class ContractResource extends Resource
                     ->relationship('client', 'name')
                     ->searchable()
                     ->preload(),
-                Tables\Filters\TernaryFilter::make('archived_at')
-                    ->label('Archived')
-                    ->placeholder('Active Contracts')
-                    ->trueLabel('Archived Contracts')
-                    ->falseLabel('Active Contracts')
-                    ->queries(
-                        true: fn (Builder $query) => $query->archived(),
-                        false: fn (Builder $query) => $query->notArchived(),
-                        blank: fn (Builder $query) => $query->notArchived(),
-                    )
-                    ->default(false),
+                Tables\Filters\Filter::make('contract_state')
+                    ->label('State')
+                    ->form([
+                        Forms\Components\Select::make('state')
+                            ->label('State')
+                            ->options([
+                                'active'    => 'Active',
+                                'completed' => 'Completed',
+                                'archived'  => 'Archived',
+                                'all'       => 'All Contracts',
+                            ])
+                            ->default('active'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['state'] ?? 'active') {
+                            'completed' => $query->completed()->notArchived(),
+                            'archived'  => $query->archived(),
+                            'all'       => $query,
+                            default     => $query->notCompleted()->notArchived(),
+                        };
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        return match ($data['state'] ?? 'active') {
+                            'completed' => 'State: Completed',
+                            'archived'  => 'State: Archived',
+                            'all'       => 'State: All Contracts',
+                            default     => null,
+                        };
+                    }),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -407,13 +425,38 @@ class ContractResource extends Resource
                     static::getViewPaymentsAction(Tables\Actions\Action::class),
                     Estimate::getDownloadMergedPdfAction(Tables\Actions\Action::class),
                     static::getModel()::getPreviewAction(Tables\Actions\Action::class),
+                    Tables\Actions\Action::make('complete')
+                        ->label('Mark as Completed')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('info')
+                        ->visible(fn (Contract $record) => ! $record->isCompleted() && auth()->user()->canForCompany($record->company_id, 'complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(function (Contract $record) {
+                            $record->complete();
+                            Notification::make()
+                                ->title('Contract marked as completed')
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\Action::make('uncomplete')
+                        ->label('Mark as Active')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('warning')
+                        ->visible(fn (Contract $record) => $record->isCompleted() && auth()->user()->canForCompany($record->company_id, 'complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(function (Contract $record) {
+                            $record->uncomplete();
+                            Notification::make()
+                                ->title('Contract marked as active')
+                                ->success()
+                                ->send();
+                        }),
                     Tables\Actions\Action::make('archive')
                         ->label('Archive')
                         ->icon('heroicon-o-archive-box')
                         ->color('warning')
-                        ->hidden(fn (Contract $record) => $record->isArchived())
                         ->requiresConfirmation()
-                        ->visible(fn (Contract $record) => auth()->user()->can('update', $record))
+                        ->visible(fn (Contract $record) => ! $record->isArchived() && ! $record->isCompleted() && auth()->user()->can('update', $record))
                         ->action(function (Contract $record) {
                             $record->archive();
                             Notification::make()
@@ -448,12 +491,29 @@ class ContractResource extends Resource
                     ->label('Generate Invoice')
                     ->button()
                     ->outlined()
+                    ->visible(fn (Contract $record) => ! $record->isCompleted())
                     ->dropdownPlacement('bottom-end')
                     ->icon('heroicon-m-chevron-down')
                     ->iconPosition(IconPosition::After),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('complete')
+                        ->label('Mark as Completed')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('info')
+                        ->visible(fn () => auth()->user()->can('complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(fn (\Illuminate\Database\Eloquent\Collection $records) => $records->each->complete())
+                        ->after(fn () => Notification::make()->title('Contracts marked as completed')->success()->send()),
+                    Tables\Actions\BulkAction::make('uncomplete')
+                        ->label('Mark as Active')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('warning')
+                        ->visible(fn () => auth()->user()->can('complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(fn (\Illuminate\Database\Eloquent\Collection $records) => $records->each->uncomplete())
+                        ->after(fn () => Notification::make()->title('Contracts marked as active')->success()->send()),
                     Tables\Actions\BulkAction::make('archive')
                         ->label('Archive')
                         ->icon('heroicon-o-archive-box')

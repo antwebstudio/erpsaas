@@ -1268,7 +1268,7 @@ class EstimateResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate()->where('status', '!=', EstimateStatus::Accepted))
+            ->modifyQueryUsing(fn (Builder $query) => $query->isNotTemplate()->whereNotIn('status', [EstimateStatus::Accepted, EstimateStatus::Completed]))
             ->defaultSort('date', 'desc')
             ->columns([
                 Columns::id(),

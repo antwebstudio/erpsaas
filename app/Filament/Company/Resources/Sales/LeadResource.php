@@ -10,6 +10,7 @@ use App\Filament\Forms\Components\CreateCurrencySelect;
 use App\Filament\Forms\Components\CustomSection;
 use App\Filament\Forms\Components\PhoneBuilder;
 use App\Filament\Tables\Columns;
+use App\Enums\Common\ClientStatus;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Models\Common\Lead;
@@ -24,6 +25,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class LeadResource extends Resource
@@ -278,6 +280,9 @@ class LeadResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->description(static fn (Client $client) => $client->primaryContact?->full_name),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('leadSource.name')
                     ->label('Lead Source')
                     ->searchable()
@@ -327,7 +332,13 @@ class LeadResource extends Resource
                     ->alignEnd(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        ClientStatus::Active->value => ClientStatus::Active->getLabel(),
+                        ClientStatus::Archived->value => ClientStatus::Archived->getLabel(),
+                    ])
+                    ->default(ClientStatus::Active->value)
+                    ->placeholder('All statuses'),
             ])
             ->headerActions([
                 Tables\Actions\ExportAction::make()
@@ -339,6 +350,24 @@ class LeadResource extends Resource
                         Tables\Actions\EditAction::make(),
                         Tables\Actions\ViewAction::make(),
                     ])->dropdown(false),
+                    Tables\Actions\Action::make('archive')
+                        ->label('Archive')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('gray')
+                        ->visible(fn (Lead $record) => Auth::user()->can('archive_sales::lead') && $record->status !== ClientStatus::Archived)
+                        ->requiresConfirmation()
+                        ->modalHeading('Archive Lead')
+                        ->modalDescription('Are you sure you want to archive this lead?')
+                        ->action(fn (Lead $record) => $record->update(['status' => ClientStatus::Archived])),
+                    Tables\Actions\Action::make('restore_active')
+                        ->label('Restore to Active')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->visible(fn (Lead $record) => Auth::user()->can('archive_sales::lead') && $record->status === ClientStatus::Archived)
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Lead to Active')
+                        ->modalDescription('Are you sure you want to restore this lead to active?')
+                        ->action(fn (Lead $record) => $record->update(['status' => ClientStatus::Active])),
                     Tables\Actions\Action::make('assign_lead')
                         ->label('Assign Lead')
                         ->icon('heroicon-o-user-circle')
@@ -376,7 +405,21 @@ class LeadResource extends Resource
                 ]),
             ])
             ->bulkActions([
-                //
+                Tables\Actions\BulkAction::make('bulk_archive')
+                    ->label('Archive')
+                    ->icon('heroicon-o-archive-box')
+                    ->color('gray')
+                    ->visible(fn () => Auth::user()->can('archive_sales::lead'))
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->update(['status' => ClientStatus::Archived])),
+                Tables\Actions\BulkAction::make('bulk_restore_active')
+                    ->label('Restore to Active')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->visible(fn () => Auth::user()->can('archive_sales::lead'))
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->update(['status' => ClientStatus::Active])),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

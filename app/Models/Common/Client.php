@@ -5,6 +5,7 @@ namespace App\Models\Common;
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Common\AddressType;
+use App\Enums\Common\ClientStatus;
 use App\Models\Accounting\Estimate;
 use App\Models\Accounting\Invoice;
 use App\Models\Accounting\RecurringInvoice;
@@ -28,6 +29,7 @@ class Client extends Model
     protected $fillable = [
         'company_id',
         'type',
+        'status',
         'lead_source_id',
         'name',
         'nric',
@@ -37,6 +39,10 @@ class Client extends Model
         'notes',
         'created_by',
         'updated_by',
+    ];
+
+    protected $casts = [
+        'status' => ClientStatus::class,
     ];
 
     protected static function booted(): void
@@ -315,7 +321,7 @@ class Client extends Model
     public function contracts(): HasMany
     {
         return $this->hasMany(\App\Models\Accounting\Contract::class, 'client_id')
-            ->where('status', \App\Enums\Accounting\EstimateStatus::Accepted)
+            ->whereIn('status', [\App\Enums\Accounting\EstimateStatus::Accepted, \App\Enums\Accounting\EstimateStatus::Completed])
             ->isNotTemplate()
             ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }

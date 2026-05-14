@@ -38,11 +38,39 @@ class ViewContract extends ViewRecord
                 Actions\ActionGroup::make([
                     ContractResource::getViewPaymentsAction(Actions\Action::class),
 
+                    Actions\Action::make('complete')
+                        ->label('Mark as Completed')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('info')
+                        ->visible(fn () => ! $this->record->isCompleted() && auth()->user()->canForCompany($this->record->company_id, 'complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(function () {
+                            $this->record->complete();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Contract marked as completed')
+                                ->success()
+                                ->send();
+                        }),
+
+                    Actions\Action::make('uncomplete')
+                        ->label('Mark as Active')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('warning')
+                        ->visible(fn () => $this->record->isCompleted() && auth()->user()->canForCompany($this->record->company_id, 'complete_sales::contract'))
+                        ->requiresConfirmation()
+                        ->action(function () {
+                            $this->record->uncomplete();
+                            \Filament\Notifications\Notification::make()
+                                ->title('Contract marked as active')
+                                ->success()
+                                ->send();
+                        }),
+
                     Actions\Action::make('archive')
                         ->label('Archive')
                         ->icon('heroicon-o-archive-box')
                         ->color('warning')
-                        ->visible(fn () => ! $this->record->isArchived() && auth()->user()->can('update', $this->record))
+                        ->visible(fn () => ! $this->record->isArchived() && ! $this->record->isCompleted() && auth()->user()->can('update', $this->record))
                         ->requiresConfirmation()
                         ->action(function () {
                             $this->record->archive();
@@ -81,7 +109,7 @@ class ViewContract extends ViewRecord
                 ->label('Generate Invoice')
                 ->button()
                 ->outlined()
-                ->visible(fn () => auth()->user()->canForCompany($this->record->company_id, 'create_sales::invoice'))
+                ->visible(fn () => ! $this->record->isCompleted() && auth()->user()->canForCompany($this->record->company_id, 'create_sales::invoice'))
                 ->dropdownPlacement('bottom-end')
                 ->icon('heroicon-m-chevron-down')
                 ->iconPosition(IconPosition::After),

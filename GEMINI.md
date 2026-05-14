@@ -7,3 +7,4 @@
 - Keep agent knowledge whenever necessary
 - Check if the code work as expected after implemented it
 - Ask question whenever there is any additional information needed
+- Don't hard code role when checking permission, use permission based on role instead, or use policy if policy existed
