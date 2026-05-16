@@ -33,6 +33,23 @@ class DocumentDefaultFactory extends Factory
         ];
     }
 
+    private const COLOR_PALETTE_BROWN = [
+        'accent_color'          => '#C7B098',
+        'color_text'            => '#293834',
+        'color_secondary'       => '#d8d1c6',
+        'color_secondary_text'  => '#293834',
+        'color_section_bg'      => '#e62424ff',
+        'color_section_bg_text' => '#293834',
+        'color_group_bg'        => '#e8e2db', 
+        'color_group_bg_text'   => '#293834',
+        'color_subgroup_bg'     => '#ffffff',
+        'color_subgroup_text'   => '#C7B098',
+    ];
+
+    private const COLOR_PALETTE_INDIGO = [
+        'accent_color'          => '#C7B098',
+    ];
+
     /**
      * The model's common default state.
      */
@@ -48,12 +65,17 @@ class DocumentDefaultFactory extends Factory
         ];
 
         if ($type !== DocumentType::Bill) {
+            $colors = match ($type) {
+                DocumentType::Estimate, DocumentType::VariationOrder => self::COLOR_PALETTE_BROWN,
+                default => self::COLOR_PALETTE_INDIGO,
+            };
+
             $state = [...$state,
                 'header' => $type->getLabel(),
                 'show_logo' => false,
-                'accent_color' => '#4F46E5',
                 'font' => Font::Inter,
                 'template' => Template::Default,
+                ...$colors,
             ];
         }
 
