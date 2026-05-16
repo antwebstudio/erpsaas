@@ -47,6 +47,18 @@ class DocumentDefaultColorSeeder extends Seeder
                 'color_subgroup_bg'     => '#f7f1eb',
                 'color_subgroup_text'   => '#96693c',
             ],
+            DocumentType::RecurringInvoice->value => [
+                'accent_color'          => '#4F46E5',
+                'color_text'            => null,
+                'color_secondary'       => null,
+                'color_secondary_text'  => null,
+                'color_section_bg'      => null,
+                'color_section_bg_text' => null,
+                'color_group_bg'        => null,
+                'color_group_bg_text'   => null,
+                'color_subgroup_bg'     => null,
+                'color_subgroup_text'   => null,
+            ],
             DocumentType::Contract->value => [
                 'accent_color'          => '#4F46E5',
                 'color_text'            => null,
