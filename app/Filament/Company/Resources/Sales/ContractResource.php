@@ -223,7 +223,7 @@ class ContractResource extends Resource
 
     public static function createPaymentInvoice(Estimate $record, string $description, ?int $offeringId = null): Invoice
     {
-        $company = $record->company;
+        $company = $record->templateCompany ?? $record->company;
 
         $defaultInvoice = $company->defaultInvoice;
 
@@ -288,7 +288,7 @@ class ContractResource extends Resource
                     fn (Offering $offering) => $actionClass::make('invoice_offering_' . $offering->id)
                         ->label($offering->name)
                         ->icon('heroicon-o-document-plus')
-                        ->visible(fn (Estimate $record) => auth()->user()->canForCompany($record->company_id, 'create_sales::invoice'))
+                        ->visible(fn (Estimate $record) => ! $record->isCompleted() && auth()->user()->canForCompany($record->template_company_id ?? $record->company_id, 'create_sales::invoice'))
                         ->action(function (Estimate $record) use ($offering) {
                             $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
                             redirect(route('invoices.switch-and-edit', $invoice));
@@ -311,11 +311,17 @@ class ContractResource extends Resource
                 ->label($offering->name)
                 ->icon('heroicon-o-document-plus')
                 ->visible(function (Estimate $record) use ($offering) {
-                    $categoryId = $record->company->profile?->payment_offering_category_id;
+                    if ($record->isCompleted()) {
+                        return false;
+                    }
 
-                    return $categoryId && 
-                        $offering->categories->contains('id', $categoryId) && 
-                        auth()->user()->canForCompany($record->company_id, 'create_sales::invoice');
+                    $effectiveCompanyId = $record->template_company_id ?? $record->company_id;
+                    $categoryId = $record->templateCompany?->profile?->payment_offering_category_id
+                        ?? $record->company->profile?->payment_offering_category_id;
+
+                    return $categoryId &&
+                        $offering->categories->contains('id', $categoryId) &&
+                        auth()->user()->canForCompany($effectiveCompanyId, 'create_sales::invoice');
                 })
                 ->action(function (Estimate $record) use ($offering) {
                     $invoice = static::createPaymentInvoice($record, $offering->name, $offering->id);
@@ -491,7 +497,6 @@ class ContractResource extends Resource
                     ->label('Generate Invoice')
                     ->button()
                     ->outlined()
-                    ->visible(fn (Contract $record) => ! $record->isCompleted())
                     ->dropdownPlacement('bottom-end')
                     ->icon('heroicon-m-chevron-down')
                     ->iconPosition(IconPosition::After),

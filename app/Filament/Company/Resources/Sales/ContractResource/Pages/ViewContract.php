@@ -31,7 +31,7 @@ class ViewContract extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        $invoiceActions = ContractResource::buildPaymentInvoiceActions(Actions\Action::class, $this->record->company_id);
+        $invoiceActions = ContractResource::buildPaymentInvoiceActions(Actions\Action::class, $this->record->template_company_id ?? $this->record->company_id);
 
         return [
             Actions\ActionGroup::make([
@@ -109,7 +109,7 @@ class ViewContract extends ViewRecord
                 ->label('Generate Invoice')
                 ->button()
                 ->outlined()
-                ->visible(fn () => ! $this->record->isCompleted() && auth()->user()->canForCompany($this->record->company_id, 'create_sales::invoice'))
+                ->visible(fn () => ! $this->record->isCompleted() && auth()->user()->canForCompany($this->record->template_company_id ?? $this->record->company_id, 'create_sales::invoice'))
                 ->dropdownPlacement('bottom-end')
                 ->icon('heroicon-m-chevron-down')
                 ->iconPosition(IconPosition::After),
