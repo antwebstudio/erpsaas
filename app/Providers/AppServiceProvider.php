@@ -3,8 +3,13 @@
 namespace App\Providers;
 
 use App\Http\Responses\LoginRedirectResponse;
+use App\Models\Common\Client;
+use App\Models\Common\Lead;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Mail\MailTemplate;
+use App\Observers\MailchimpContactObserver;
+use App\Observers\MailchimpTemplateObserver;
 use App\Models\Export;
 use App\Models\Import;
 use App\Models\Notification;
@@ -35,6 +40,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Client::observe(MailchimpContactObserver::class);
+        Lead::observe(MailchimpContactObserver::class);
+        MailTemplate::observe(MailchimpTemplateObserver::class);
+
         app(\Spatie\Permission\PermissionRegistrar::class)
             ->setPermissionClass(Permission::class)
             ->setRoleClass(Role::class);

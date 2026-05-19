@@ -54,6 +54,10 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\User\Clusters\Account;
 use App\Http\Middleware\ConfigureCurrentCompany;
 use App\Livewire\UpdatePassword;
+use App\Filament\Company\Resources\Mail\MailLogResource;
+use App\Filament\Company\Resources\Mail\MailSuppressionResource;
+use App\Filament\Company\Resources\Mail\MailTemplateResource;
+use JeffersonGoncalves\FilamentMail\Pages\MailDashboard;
 use App\Livewire\UpdateProfileInformation;
 use App\Models\Company;
 use App\Services\CompanySettingsService;
@@ -138,6 +142,21 @@ class CompanyPanelProvider extends PanelProvider
                         return $builder
                             ->items(Account::getNavigationItems());
                     }),
+                \JeffersonGoncalves\FilamentMail\FilamentMailPlugin::make()
+                    ->navigationGroup('Email')
+                    ->navigationIcon('heroicon-o-envelope')
+                    ->navigationSort(50)
+                    ->mailLogResource()           // Enable/disable mail log resource
+                    ->mailTemplateResource()      // Enable/disable template resource
+                    ->mailSuppressionResource()   // Enable/disable suppression resource
+                    ->statsWidgets()              // Enable/disable stats widgets
+                    ->analyticsWidget()           // Enable/disable analytics charts
+                    ->dashboard()                 // Enable/disable dashboard page
+                    ->tenantScoping(),             // Enable/disable tenant scoping
+
+                    
+                \Filament\SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['en']),            
             ])
             ->colors([
                 'primary' => Color::Indigo,
@@ -200,6 +219,15 @@ class CompanyPanelProvider extends PanelProvider
                             ->items([
                                 ...ConnectedAccount::getNavigationItems(),
                                 ...LiveCurrency::getNavigationItems(),
+                            ]),
+                        NavigationGroup::make('Email')
+                            ->label('Email')
+                            ->icon('heroicon-o-envelope')
+                            ->items([
+                                ...MailDashboard::getNavigationItems(),
+                                ...MailLogResource::getNavigationItems(),
+                                ...MailTemplateResource::getNavigationItems(),
+                                ...MailSuppressionResource::getNavigationItems(),
                             ]),
                     ]);
             })

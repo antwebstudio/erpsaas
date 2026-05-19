@@ -4,6 +4,9 @@ namespace App\Models;
 
 use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\DocumentType;
+use App\Models\Mail\MailLog;
+use App\Models\Mail\MailSuppression;
+use App\Models\Mail\MailTemplate;
 use App\Models\Accounting\AccountSubtype;
 use App\Models\Banking\BankAccount;
 use App\Models\Banking\ConnectedBankAccount;
@@ -272,6 +275,21 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
     public function vendors(): HasMany
     {
         return $this->hasMany(Common\Vendor::class, 'company_id');
+    }
+
+    public function mailLogs(): HasMany
+    {
+        return $this->hasMany(MailLog::class, 'tenant_id');
+    }
+
+    public function mailSuppressions(): HasMany
+    {
+        return $this->hasMany(MailSuppression::class, 'tenant_id');
+    }
+
+    public function mailTemplates(): HasMany
+    {
+        return $this->hasMany(MailTemplate::class, 'tenant_id');
     }
 
     public function roles(): HasMany
