@@ -3,12 +3,17 @@
 namespace App\Providers;
 
 use App\Http\Responses\LoginRedirectResponse;
+use App\Models\Common\Address;
+use App\Models\Common\AllClient;
 use App\Models\Common\Client;
+use App\Models\Common\Contact;
 use App\Models\Common\Lead;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Mail\MailTemplate;
+use App\Observers\MailchimpBillingAddressObserver;
 use App\Observers\MailchimpContactObserver;
+use App\Observers\MailchimpPrimaryContactObserver;
 use App\Observers\MailchimpTemplateObserver;
 use App\Models\Export;
 use App\Models\Import;
@@ -42,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Client::observe(MailchimpContactObserver::class);
         Lead::observe(MailchimpContactObserver::class);
+        AllClient::observe(MailchimpContactObserver::class);
+        Contact::observe(MailchimpPrimaryContactObserver::class);
+        Address::observe(MailchimpBillingAddressObserver::class);
         MailTemplate::observe(MailchimpTemplateObserver::class);
 
         app(\Spatie\Permission\PermissionRegistrar::class)

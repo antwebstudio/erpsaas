@@ -12,22 +12,23 @@ class SyncContactToMailchimp implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public readonly Client $client) {}
+    public function __construct(
+        public readonly Client $client,
+        public readonly ?string $previousEmail = null,
+    ) {}
 
     public function handle(MailchimpService $mailchimp): void
     {
         if (! $mailchimp->isConfigured()) {
-            \Log::debug('mailchimp is not configured');
             return;
         }
 
-        $this->client->loadMissing(['primaryContact', 'billingAddress']);
+        $this->client->loadMissing(['primaryContact', 'billingAddress.state']);
 
         $contact = $this->client->primaryContact;
-        \Log::debug('mailchimp contact', [$contact, $contact->email]);
+
         if ($contact && $contact->email) {
-            \Log::debug('sync mailchimp contact', [$contact]);
-            $mailchimp->syncContact($this->client, $contact);
+            $mailchimp->syncContact($this->client, $contact, $this->previousEmail);
         }
     }
 }

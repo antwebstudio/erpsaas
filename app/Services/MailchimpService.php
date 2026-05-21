@@ -40,10 +40,30 @@ class MailchimpService
      * @return array{email_address: string, status: string, id: string}  Member data from Mailchimp.
      * @throws \RuntimeException  When a required merge field cannot be populated.
      */
-    public function syncContact(Client $client, Contact $contact): array
+    public function syncContact(Client $client, Contact $contact, ?string $previousEmail = null): array
     {
-        $subscriberHash = md5(strtolower($contact->email));
+        $emailChanged = $previousEmail && $previousEmail !== $contact->email;
         $audienceTag = $client->type === 'lead' ? 'lead' : 'client';
+
+        if ($emailChanged) {
+            $oldHash = md5(strtolower($previousEmail));
+            try {
+                // Archive the old subscriber so Mailchimp doesn't reject the new email as a duplicate.
+                $this->http()->delete("{$this->baseUrl}/lists/{$this->contactsListId}/members/{$oldHash}");
+                Log::info('Mailchimp: archived old subscriber after email change', [
+                    'contact_id' => $contact->id,
+                    'old_email' => $previousEmail,
+                ]);
+            } catch (\Exception $e) {
+                // Old subscriber may not exist in Mailchimp — that's fine, continue with upsert.
+                Log::debug('Mailchimp: old subscriber not found during email change, skipping archive', [
+                    'contact_id' => $contact->id,
+                    'old_email' => $previousEmail,
+                ]);
+            }
+        }
+
+        $subscriberHash = md5(strtolower($contact->email));
 
         Log::info('Mailchimp: starting contact sync', [
             'contact_id' => $contact->id,
@@ -84,44 +104,31 @@ class MailchimpService
             'LNAME' => $contact->last_name ?? '',
             'COMPANY' => $client->name ?? '',
             'ADDRESS' => $addressValue,
-            'PHONE' => $contact->phones[0]['number'] ?? '',
+            'PHONE' => $contact->first_available_phone ?? '',
         ];
 
-        // If ADDRESS is in the audience, it must be included in every merge_fields payload —
-        // Mailchimp re-validates all stored merge fields when any merge_fields are sent,
-        // so sending FNAME/LNAME alone will fail if the stored ADDRESS is incomplete.
-        $addressInAudience = isset($mergeFieldDefs['ADDRESS']);
         $mergeFields = [];
 
-        if (! $addressInAudience || $addressValue !== null) {
-            // Either ADDRESS is not in this audience, or we have valid address data.
-            foreach ($mergeFieldDefs as $tag => $def) {
-                if (! array_key_exists($tag, $candidates)) {
-                    continue;
-                }
-
-                $value = $candidates[$tag];
-
-                if ($value === null || $value === '') {
-                    if ($def['required']) {
-                        Log::warning('Mailchimp: required merge field has no value', [
-                            'contact_id' => $contact->id,
-                            'merge_field' => $tag,
-                        ]);
-
-                        throw new \RuntimeException("Required merge field {$tag} has no value.");
-                    }
-                    continue;
-                }
-
-                $mergeFields[$tag] = $value;
+        foreach ($mergeFieldDefs as $tag => $def) {
+            if (! array_key_exists($tag, $candidates)) {
+                continue;
             }
-        } else {
-            // When ADDRESS is in the audience but we have no valid address data, we omit
-            // merge_fields entirely. Mailchimp accepts a PUT with only email+status.
-            Log::debug('Mailchimp: omitting merge_fields — ADDRESS is in audience but no valid address data', [
-                'contact_id' => $contact->id,
-            ]);
+
+            $value = $candidates[$tag];
+
+            if ($value === null || $value === '') {
+                if ($def['required']) {
+                    Log::warning('Mailchimp: required merge field has no value', [
+                        'contact_id' => $contact->id,
+                        'merge_field' => $tag,
+                    ]);
+
+                    throw new \RuntimeException("Required merge field {$tag} has no value.");
+                }
+                continue;
+            }
+
+            $mergeFields[$tag] = $value;
         }
 
         $payload = ['email_address' => $contact->email, 'status_if_new' => 'subscribed'];
