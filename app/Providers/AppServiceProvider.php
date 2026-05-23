@@ -11,6 +11,12 @@ use App\Models\Common\Lead;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Mail\MailTemplate;
+use App\Models\Mail\MailLog;
+use App\Models\Mail\MailSuppression;
+use App\Policies\Mail\MailTemplatePolicy;
+use App\Policies\Mail\MailSuppressionPolicy;
+use App\Policies\Mail\MailLogPolicy;
+use Illuminate\Support\Facades\Gate;
 use App\Observers\MailchimpBillingAddressObserver;
 use App\Observers\MailchimpContactObserver;
 use App\Observers\MailchimpPrimaryContactObserver;
@@ -55,6 +61,10 @@ class AppServiceProvider extends ServiceProvider
         app(\Spatie\Permission\PermissionRegistrar::class)
             ->setPermissionClass(Permission::class)
             ->setRoleClass(Role::class);
+
+        Gate::policy(MailTemplate::class, MailTemplatePolicy::class);
+        Gate::policy(MailSuppression::class, MailSuppressionPolicy::class);
+        Gate::policy(MailLog::class, MailLogPolicy::class);
 
         // Bind custom Import and Export models
         $this->app->bind(BaseImport::class, Import::class);

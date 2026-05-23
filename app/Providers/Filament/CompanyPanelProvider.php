@@ -55,9 +55,9 @@ use App\Filament\User\Clusters\Account;
 use App\Http\Middleware\ConfigureCurrentCompany;
 use App\Livewire\UpdatePassword;
 use App\Filament\Company\Resources\Mail\MailLogResource;
-use App\Filament\Company\Resources\Mail\MailSuppressionResource;
 use App\Filament\Company\Resources\Mail\MailTemplateResource;
-use JeffersonGoncalves\FilamentMail\Pages\MailDashboard;
+use App\Filament\Company\Resources\Mail\MailSuppressionResource;
+use App\Filament\Company\Pages\MailDashboard;
 use App\Livewire\UpdateProfileInformation;
 use App\Models\Company;
 use App\Services\CompanySettingsService;
@@ -148,10 +148,10 @@ class CompanyPanelProvider extends PanelProvider
                     ->navigationSort(50)
                     ->mailLogResource(false)      // Disabled — using App\Filament\Company\Resources\Mail\MailLogResource instead
                     ->mailTemplateResource(false) // Disabled — using App\Filament\Company\Resources\Mail\MailTemplateResource instead
-                    ->mailSuppressionResource()   // Enable/disable suppression resource
+                    ->mailSuppressionResource(false) // Disabled — using App\Filament\Company\Resources\Mail\MailSuppressionResource instead
                     ->statsWidgets()              // Enable/disable stats widgets
                     ->analyticsWidget()           // Enable/disable analytics charts
-                    ->dashboard()                 // Enable/disable dashboard page
+                    ->dashboard(false)            // Disabled — using App\Filament\Company\Pages\MailDashboard instead
                     ->tenantScoping(),             // Enable/disable tenant scoping
 
                     
@@ -163,6 +163,64 @@ class CompanyPanelProvider extends PanelProvider
             ])
             ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
                 $isErpCompany = filament()->getTenant()?->id == config('erp.erp_system_company_id');
+
+                $emailItems = [
+                    ...(MailDashboard::canAccess() ? MailDashboard::getNavigationItems() : []),
+                    ...(MailLogResource::canAccess() ? MailLogResource::getNavigationItems() : []),
+                    ...(MailTemplateResource::canAccess() ? MailTemplateResource::getNavigationItems() : []),
+                    ...(MailSuppressionResource::canAccess() ? MailSuppressionResource::getNavigationItems() : []),
+                ];
+
+                $groups = [
+                    NavigationGroup::make('Sales')
+                        ->label('Sales')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->items([
+                            ...($isErpCompany ? LeadResource::getNavigationItems() : []),
+                            ...($isErpCompany ? LeadSourceResource::getNavigationItems() : []),
+                            ...ClientResource::getNavigationItems(),
+                            ...AllClientResource::getNavigationItems(),
+                            ...EstimateResource::getNavigationItems(),
+                            ...ContractResource::getNavigationItems(),
+                            ...(!$isErpCompany ? InvoiceResource::getNavigationItems() : []),
+                            ...(!$isErpCompany ? RecurringInvoiceResource::getNavigationItems() : []),
+                            ...VariationOrderResource::getNavigationItems(),
+                        ]),
+                    NavigationGroup::make('Purchases')
+                        ->label('Purchases')
+                        ->icon('heroicon-o-shopping-cart')
+                        ->items([
+                            ...BillResource::getNavigationItems(),
+                            ...VendorResource::getNavigationItems(),
+                        ]),
+                    NavigationGroup::make('Accounting')
+                        ->localizeLabel()
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->extraSidebarAttributes(['class' => 'es-sidebar-group'])
+                        ->items([
+                            // ...BudgetResource::getNavigationItems(),
+                            ...AccountChart::getNavigationItems(),
+                            ...TransactionResource::getNavigationItems(),
+                        ]),
+                    NavigationGroup::make('Banking')
+                        ->localizeLabel()
+                        ->icon('heroicon-o-building-library')
+                        ->items(AccountResource::getNavigationItems()),
+                    NavigationGroup::make('Services')
+                        ->localizeLabel()
+                        ->icon('heroicon-o-wrench-screwdriver')
+                        ->items([
+                            ...ConnectedAccount::getNavigationItems(),
+                            ...LiveCurrency::getNavigationItems(),
+                        ]),
+                ];
+
+                if (! empty($emailItems)) {
+                    $groups[] = NavigationGroup::make('Email')
+                        ->label('Email')
+                        ->icon('heroicon-o-envelope')
+                        ->items($emailItems);
+                }
 
                 return $builder
                     ->items([
@@ -178,58 +236,7 @@ class CompanyPanelProvider extends PanelProvider
                         ...JobScopeOptionResource::getNavigationItems(),
                         ...EstimateTemplateResource::getNavigationItems(),
                     ])
-                    ->groups([
-                        NavigationGroup::make('Sales')
-                            ->label('Sales')
-                            ->icon('heroicon-o-currency-dollar')
-                            ->items([
-                                ...($isErpCompany ? LeadResource::getNavigationItems() : []),
-                                ...($isErpCompany ? LeadSourceResource::getNavigationItems() : []),
-                                ...ClientResource::getNavigationItems(),
-                                ...AllClientResource::getNavigationItems(),
-                                ...EstimateResource::getNavigationItems(),
-                                ...ContractResource::getNavigationItems(),
-                                ...(!$isErpCompany ? InvoiceResource::getNavigationItems() : []),
-                                ...(!$isErpCompany ? RecurringInvoiceResource::getNavigationItems() : []),
-                                ...VariationOrderResource::getNavigationItems(),
-                            ]),
-                        NavigationGroup::make('Purchases')
-                            ->label('Purchases')
-                            ->icon('heroicon-o-shopping-cart')
-                            ->items([
-                                ...BillResource::getNavigationItems(),
-                                ...VendorResource::getNavigationItems(),
-                            ]),
-                        NavigationGroup::make('Accounting')
-                            ->localizeLabel()
-                            ->icon('heroicon-o-clipboard-document-list')
-                            ->extraSidebarAttributes(['class' => 'es-sidebar-group'])
-                            ->items([
-                                // ...BudgetResource::getNavigationItems(),
-                                ...AccountChart::getNavigationItems(),
-                                ...TransactionResource::getNavigationItems(),
-                            ]),
-                        NavigationGroup::make('Banking')
-                            ->localizeLabel()
-                            ->icon('heroicon-o-building-library')
-                            ->items(AccountResource::getNavigationItems()),
-                        NavigationGroup::make('Services')
-                            ->localizeLabel()
-                            ->icon('heroicon-o-wrench-screwdriver')
-                            ->items([
-                                ...ConnectedAccount::getNavigationItems(),
-                                ...LiveCurrency::getNavigationItems(),
-                            ]),
-                        NavigationGroup::make('Email')
-                            ->label('Email')
-                            ->icon('heroicon-o-envelope')
-                            ->items([
-                                ...MailDashboard::getNavigationItems(),
-                                ...MailLogResource::getNavigationItems(),
-                                ...MailTemplateResource::getNavigationItems(),
-                                ...MailSuppressionResource::getNavigationItems(),
-                            ]),
-                    ]);
+                    ->groups($groups);
             })
             ->globalSearch(false)
             ->sidebarCollapsibleOnDesktop()
@@ -245,6 +252,7 @@ class CompanyPanelProvider extends PanelProvider
             ->pages([
                 // Pages\Dashboard::class,
                 WelcomePage::class,
+                MailDashboard::class,
             ])
             ->authGuard('web')
             ->discoverWidgets(in: app_path('Filament/Company/Widgets'), for: 'App\\Filament\\Company\\Widgets')

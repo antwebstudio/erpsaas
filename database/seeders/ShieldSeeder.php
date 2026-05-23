@@ -49,6 +49,9 @@ class ShieldSeeder extends Seeder
             'Transaction' => 'accounting::transaction',
             'Vendor' => 'purchases::vendor',
             'DocumentDefault' => 'document::default',
+            'MailLog' => 'mail::mail::log',
+            'MailTemplate' => 'mail::mail::template',
+            'MailSuppression' => 'mail::mail::suppression',
         ];
 
         $globalResource = [
@@ -169,7 +172,7 @@ class ShieldSeeder extends Seeder
             ]);
 
             if ($company->id == 1) {
-                $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn($p) => str_contains($p, 'document::default')));
+                $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn($p) => str_contains($p, 'document::default') || str_contains($p, 'mail::')));
                 $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $documentDefaultPerms, $customPermissions);
             } else {
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
