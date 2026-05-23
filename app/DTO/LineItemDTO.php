@@ -10,7 +10,7 @@ readonly class LineItemDTO
     public function __construct(
         public string $name,
         public string $description,
-        public int $quantity,
+        public float|int $quantity,
         public string $unitPrice,
         public string $subtotal,
         public ?string $unit,
@@ -26,7 +26,7 @@ readonly class LineItemDTO
         return new self(
             name: $lineItem->offering->name ?? '',
             description: $lineItem->description ?? '',
-            quantity: $lineItem->quantity,
+            quantity: (float) $lineItem->quantity,
             unitPrice: $lineItem->kiv ? 'KIV' : self::formatToMoney($lineItem->unit_price, $currencyCode, true),
             subtotal: $lineItem->kiv ? 'KIV' : self::formatToMoney($lineItem->subtotal, $currencyCode, true),
             unit: $lineItem->unit,

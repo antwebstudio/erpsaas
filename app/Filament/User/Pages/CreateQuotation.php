@@ -187,6 +187,11 @@ class CreateQuotation extends Page
                     $user->id
                 );
 
+                // Ensure it uses per document discount method
+                $estimate->update([
+                    'discount_method' => DocumentDiscountMethod::PerDocument,
+                ]);
+
                 // Estimate::createFromTemplate(Estimate::find(1), 1, null, App\Models\Company::find(1), 1);
 
 
@@ -206,6 +211,7 @@ class CreateQuotation extends Page
             $estimate = Estimate::find($this->estimateId);
             $estimate->update([
                 'client_id' => $this->data['client_id'],
+                'discount_method' => DocumentDiscountMethod::PerDocument,
                 'updated_by' => $user->id,
             ]);
         } else {
@@ -222,7 +228,7 @@ class CreateQuotation extends Page
                 'expiration_date' => now()->addDays(30), 
                 'status' => EstimateStatus::Draft,
                 'currency_code' => $currencyCode,
-                'discount_method' => DocumentDiscountMethod::PerLineItem, 
+                'discount_method' => DocumentDiscountMethod::PerDocument, 
                 'discount_computation' => AdjustmentComputation::Percentage,
                 'discount_rate' => 0,
                 'subtotal' => 0,

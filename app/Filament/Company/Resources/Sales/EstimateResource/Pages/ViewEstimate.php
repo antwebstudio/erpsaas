@@ -36,6 +36,7 @@ class ViewEstimate extends ViewRecord
             Actions\ActionGroup::make([
                 Actions\ActionGroup::make([
                     Estimate::getApproveDraftAction(),
+                    Estimate::getSendEmailAction(),
                     Estimate::getMarkAsSentAction(),
                     Estimate::getMarkAsAcceptedAction(),
                     Estimate::getConvertToContractAction(),

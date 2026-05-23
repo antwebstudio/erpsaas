@@ -166,8 +166,9 @@ class BillResource extends Resource
                                 Forms\Components\Select::make('discount_method')
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
+                                    ->hidden(fn () => config('erp.hide_per_line_item_discount', false))
                                     ->softRequired()
-                                    ->default($settings->discount_method)
+                                    ->default(config('erp.hide_per_line_item_discount', false) ? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument : $settings->discount_method)
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
                                         $discountMethod = DocumentDiscountMethod::parse($state);
 

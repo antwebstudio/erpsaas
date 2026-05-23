@@ -3,6 +3,7 @@
 return [
     'hide_tax_fields' => env('HIDE_TAX_FIELDS', false),
     'hide_discount_fields' => env('HIDE_DISCOUNT_FIELDS', false),
+    'hide_per_line_item_discount' => env('HIDE_PER_LINE_ITEM_DISCOUNT', false),
     'show_expiry_date' => env('SHOW_EXPIRY_DATE', true),
     'async_pdf_generation' => env('ASYNC_PDF_GENERATION', true),
     'hide_estimate_in_navigation' => env('HIDE_ESTIMATE_IN_NAVIGATION', false),

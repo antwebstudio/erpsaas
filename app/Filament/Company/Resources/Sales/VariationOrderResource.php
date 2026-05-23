@@ -184,9 +184,9 @@ class VariationOrderResource extends Resource
                                 Forms\Components\Select::make('discount_method')
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
-                                    ->hidden(fn () => config('erp.hide_discount_fields', false))
+                                    ->hidden(fn () => config('erp.hide_discount_fields', false) || config('erp.hide_per_line_item_discount', false))
                                     ->softRequired()
-                                    ->default($settings?->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument)
+                                    ->default(config('erp.hide_per_line_item_discount', false) ? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument : ($settings?->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument))
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
                                         $discountMethod = DocumentDiscountMethod::parse($state);
 
@@ -220,6 +220,7 @@ class VariationOrderResource extends Resource
                     ->schema([
                         Forms\Components\Repeater::make('lineItemGroups')
                             ->label('Item Groups')
+                            ->addActionLabel('Add Group Title')
                             ->relationship('lineItemGroups', function ($query) {
                                 $query->whereNull('parent_id')->with(['children' => function ($query) {
                                     $query->orderBy('order');
@@ -623,6 +624,7 @@ class VariationOrderResource extends Resource
                                     ->orderColumn('order')
                                     ->label('Sub-Groups')
                                     ->hiddenLabel()
+                                    ->addActionLabel('Add Subgroup Title')
                                     ->visible(fn (Forms\Get $get) => filled($get('offering_category_id')))
                                     ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                                     ->schema([

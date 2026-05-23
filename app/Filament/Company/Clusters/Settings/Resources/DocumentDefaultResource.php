@@ -55,6 +55,7 @@ class DocumentDefaultResource extends Resource
                     ->options(PaymentTerms::class),
                 Forms\Components\Select::make('discount_method')
                     ->softRequired()
+                    ->hidden(fn () => config('erp.hide_per_line_item_discount', false))
                     ->options(DocumentDiscountMethod::class),
             ])->columns();
     }

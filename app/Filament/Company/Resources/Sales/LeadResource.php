@@ -78,11 +78,9 @@ class LeadResource extends Resource
                                     ->default(true),
                                 Forms\Components\TextInput::make('first_name')
                                     ->label('First name')
-                                    ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('last_name')
                                     ->label('Last name')
-                                    ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('email')
                                     ->label('Email')
