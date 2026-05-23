@@ -186,7 +186,7 @@ class BillResource extends Resource
                                     ->multiple()
                                     ->live()
                                     ->searchable()
-                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
+                                    ->hidden(fn () => config('erp.hide_tax_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
                         CustomTableRepeater::make('lineItems')

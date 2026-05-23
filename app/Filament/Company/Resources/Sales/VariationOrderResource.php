@@ -184,7 +184,7 @@ class VariationOrderResource extends Resource
                                 Forms\Components\Select::make('discount_method')
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
-                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false))
+                                    ->hidden(fn () => config('erp.hide_discount_fields', false))
                                     ->softRequired()
                                     ->default($settings?->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument)
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -211,7 +211,7 @@ class VariationOrderResource extends Resource
                                     ->searchable()
                                     ->forceEnableRelationship()
                                     ->saveRelationshipsUsing(null)
-                                    ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
+                                    ->hidden(fn () => config('erp.hide_tax_fields', false)),
                             ])->grow(true),
                         ])->from('md'),
                     ]),
@@ -669,7 +669,7 @@ class VariationOrderResource extends Resource
                                                     $headers[] = Header::make('KIV')->width('5%');
                                                 }
 
-                                                if (! config('erp.hide_tax_and_adjustment_fields', false)) {
+                                                if (! config('erp.hide_tax_fields', false) || ($hasDiscounts && ! config('erp.hide_discount_fields', false))) {
                                                     if ($hasDiscounts) {
                                                         $headers[] = Header::make('Adjustments')->width('15%');
                                                     } else {
@@ -719,7 +719,7 @@ class VariationOrderResource extends Resource
                                                     ->dehydrated(true)
                                                     ->default(false)
                                                     ->hidden(fn () => ! config('erp.show_variation_order_kiv', false)),
-                                                Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
+                                                Forms\Components\Group::make([
                                                     CreateAdjustmentSelect::make('salesTaxes', true)
                                                         ->label('Taxes')
                                                         ->hiddenLabel()
@@ -739,6 +739,7 @@ class VariationOrderResource extends Resource
                                                                 $component->state($record->{$relation}->pluck('id')->toArray());
                                                             }
                                                         })
+                                                        ->hidden(fn () => config('erp.hide_tax_fields', false))
                                                         ->searchable(),
                                                     CreateAdjustmentSelect::make('salesDiscounts', true)
                                                         ->label('Discounts')
@@ -760,13 +761,25 @@ class VariationOrderResource extends Resource
                                                             }
                                                         })
                                                         ->hidden(function (Forms\Get $get) {
+                                                            if (config('erp.hide_discount_fields', false)) {
+                                                                return true;
+                                                            }
                                                             $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
 
                                                             return $discountMethod->isPerDocument();
                                                         })
                                                         ->searchable(),
                                                 ])->columnSpan(1)
-                                                  ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
+                                                  ->hidden(function (Forms\Get $get) {
+                                                      if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                          return true;
+                                                      }
+                                                      if (config('erp.hide_tax_fields', false)) {
+                                                          $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
+                                                          return $discountMethod->isPerDocument();
+                                                      }
+                                                      return false;
+                                                  }),
                                                 Forms\Components\Placeholder::make('line_total_amount')
                                                     ->hiddenLabel()
                                                     ->dehydrated(true)
@@ -858,7 +871,7 @@ class VariationOrderResource extends Resource
                                             $headers[] = Header::make('KIV')->width('5%');
                                         }
 
-                                        if (! config('erp.hide_tax_and_adjustment_fields', false)) {
+                                        if (! config('erp.hide_tax_fields', false) || ($hasDiscounts && ! config('erp.hide_discount_fields', false))) {
                                             if ($hasDiscounts) {
                                                 $headers[] = Header::make('Adjustments')->width('15%');
                                             } else {
@@ -907,7 +920,7 @@ class VariationOrderResource extends Resource
                                             ->label('KIV')
                                             ->dehydrated(true)
                                             ->default(false),
-                                        Forms\Components\Group::make(config('erp.hide_tax_and_adjustment_fields', false) ? [] : [
+                                        Forms\Components\Group::make([
                                             CreateAdjustmentSelect::make('salesTaxes', true)
                                                 ->label('Taxes')
                                                 ->hiddenLabel()
@@ -927,6 +940,7 @@ class VariationOrderResource extends Resource
                                                         $component->state($record->{$relation}->pluck('id')->toArray());
                                                     }
                                                 })
+                                                ->hidden(fn () => config('erp.hide_tax_fields', false))
                                                 ->searchable(),
                                             CreateAdjustmentSelect::make('salesDiscounts', true)
                                                 ->label('Discounts')
@@ -948,13 +962,25 @@ class VariationOrderResource extends Resource
                                                     }
                                                 })
                                                 ->hidden(function (Forms\Get $get) {
+                                                    if (config('erp.hide_discount_fields', false)) {
+                                                        return true;
+                                                    }
                                                     $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
 
                                                     return $discountMethod->isPerDocument();
                                                 })
                                                 ->searchable(),
                                         ])->columnSpan(1)
-                                          ->hidden(fn () => config('erp.hide_tax_and_adjustment_fields', false)),
+                                          ->hidden(function (Forms\Get $get) {
+                                              if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                  return true;
+                                              }
+                                              if (config('erp.hide_tax_fields', false)) {
+                                                  $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+                                                  return $discountMethod->isPerDocument();
+                                              }
+                                              return false;
+                                          }),
                                         Forms\Components\Placeholder::make('line_total_amount')
                                             ->hiddenLabel()
                                             ->dehydrated(true)
