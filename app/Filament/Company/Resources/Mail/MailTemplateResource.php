@@ -5,6 +5,11 @@ namespace App\Filament\Company\Resources\Mail;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Tabs;
+use Filament\Infolists\Components\Tabs\Tab;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
+use Filament\Infolists\Infolist;
 use JeffersonGoncalves\FilamentMail\Contracts\TemplateEditorContract;
 use JeffersonGoncalves\FilamentMail\Resources\MailTemplateResource as BaseMailTemplateResource;
 use App\Filament\Company\Resources\Mail\MailTemplateResource\Pages;
@@ -133,6 +138,58 @@ class MailTemplateResource extends BaseMailTemplateResource
 
                         app(TemplateEditorContract::class)
                             ->getFormField('html_body'),
+                    ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                \Filament\Infolists\Components\Section::make('Details')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('key')->copyable(),
+                        TextEntry::make('name'),
+                        TextEntry::make('is_active')
+                            ->label('Active')
+                            ->badge()
+                            ->color(fn (bool $state) => $state ? 'success' : 'gray')
+                            ->formatStateUsing(fn (bool $state) => $state ? 'Yes' : 'No'),
+                    ]),
+
+                \Filament\Infolists\Components\Section::make('Content')
+                    ->schema([
+                        Tabs::make('content_tabs')
+                            ->tabs([
+                                Tab::make('Preview')
+                                    ->schema([
+                                        ViewEntry::make('html_body_preview')
+                                            ->view('filament.infolists.html-preview-entry')
+                                            ->columnSpanFull(),
+                                    ]),
+                                Tab::make('HTML')
+                                    ->schema([
+                                        ViewEntry::make('html_body')
+                                            ->view('filament.infolists.template-html-source-entry')
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
+                    ]),
+
+                \Filament\Infolists\Components\Section::make('Variables')
+                    ->schema([
+                        ViewEntry::make('variables')
+                            ->view('filament-mail::components.variables-entry')
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn ($record) => ! empty($record->variables)),
+
+                \Filament\Infolists\Components\Section::make('Version History')
+                    ->schema([
+                        ViewEntry::make('versions')
+                            ->view('filament-mail::components.versions-entry')
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

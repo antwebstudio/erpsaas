@@ -75,10 +75,16 @@ class MailLogResource extends BaseMailLogResource
                     ->schema([
                         Tabs::make('content_tabs')
                             ->tabs([
+                                Tab::make('Preview')
+                                    ->schema([
+                                        ViewEntry::make('html_body_preview')
+                                            ->view('filament.infolists.html-preview-entry')
+                                            ->columnSpanFull(),
+                                    ]),
                                 Tab::make('HTML')
                                     ->schema([
                                         ViewEntry::make('html_body')
-                                            ->view('filament-mail::components.mail-preview-entry')
+                                            ->view('filament.infolists.html-source-entry')
                                             ->columnSpanFull(),
                                     ]),
                                 Tab::make('Plain Text')
