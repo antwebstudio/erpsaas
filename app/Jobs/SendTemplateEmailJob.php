@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\TemplateEmailMailable;
 use App\Models\Mail\MailTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -9,7 +10,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
-use JeffersonGoncalves\LaravelMail\Mail\TemplateNotificationMailable;
 
 class SendTemplateEmailJob implements ShouldQueue
 {
@@ -34,13 +34,14 @@ class SendTemplateEmailJob implements ShouldQueue
         }
 
         if (isset($this->variables['client_id'])) {
-            $client = \App\Models\Common\Client::find($this->variables['client_id']);
+            $client = \App\Models\Common\Client::withoutGlobalScope('type')
+                ->find($this->variables['client_id']);
             if ($client) {
                 $template->replaceVariablesForClient($client);
             }
         }
 
-        $mailable = (new TemplateNotificationMailable('', $this->variables))
+        $mailable = (new TemplateEmailMailable('', $this->variables))
             ->useTemplate($template);
 
         Mail::to($this->email, $this->recipientName)->send($mailable);
