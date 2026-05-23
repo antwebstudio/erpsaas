@@ -9,6 +9,7 @@ use App\Filament\Forms\Components\AddressFields;
 use App\Filament\Forms\Components\CreateCurrencySelect;
 use App\Filament\Forms\Components\CustomSection;
 use App\Filament\Forms\Components\PhoneBuilder;
+use App\Filament\Tables\Actions\BulkSendEmailAction;
 use App\Filament\Tables\Columns;
 use App\Enums\Common\ClientStatus;
 use App\Models\Common\Address;
@@ -405,6 +406,7 @@ class LeadResource extends Resource
                 ]),
             ])
             ->bulkActions([
+                BulkSendEmailAction::make(),
                 Tables\Actions\BulkAction::make('bulk_archive')
                     ->label('Archive')
                     ->icon('heroicon-o-archive-box')

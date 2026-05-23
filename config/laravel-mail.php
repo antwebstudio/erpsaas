@@ -226,7 +226,7 @@ return [
     */
 
     'tenant' => [
-        'enabled' => false,
+        'enabled' => true,
         'column' => 'tenant_id',
     ],
 
