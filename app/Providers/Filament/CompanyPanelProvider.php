@@ -147,7 +147,7 @@ class CompanyPanelProvider extends PanelProvider
                     ->navigationIcon('heroicon-o-envelope')
                     ->navigationSort(50)
                     ->mailLogResource(false)      // Disabled — using App\Filament\Company\Resources\Mail\MailLogResource instead
-                    ->mailTemplateResource()      // Enable/disable template resource
+                    ->mailTemplateResource(false) // Disabled — using App\Filament\Company\Resources\Mail\MailTemplateResource instead
                     ->mailSuppressionResource()   // Enable/disable suppression resource
                     ->statsWidgets()              // Enable/disable stats widgets
                     ->analyticsWidget()           // Enable/disable analytics charts

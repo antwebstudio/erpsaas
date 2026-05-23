@@ -33,6 +33,13 @@ class SendTemplateEmailJob implements ShouldQueue
             return;
         }
 
+        if (isset($this->variables['client_id'])) {
+            $client = \App\Models\Common\Client::find($this->variables['client_id']);
+            if ($client) {
+                $template->replaceVariablesForClient($client);
+            }
+        }
+
         $mailable = (new TemplateNotificationMailable('', $this->variables))
             ->useTemplate($template);
 

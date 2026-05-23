@@ -82,6 +82,7 @@ class BulkSendEmailAction extends BulkAction
                             'first_name' => $contact->first_name,
                             'last_name' => $contact->last_name,
                             'email' => $contact->email,
+                            'client_id' => $record->id,
                         ],
                     );
 
