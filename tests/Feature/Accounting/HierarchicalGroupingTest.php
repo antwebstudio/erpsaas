@@ -6,7 +6,6 @@ use App\DTO\DocumentDTO;
 use App\Models\Accounting\DocumentLineItemGroup;
 use App\Models\Accounting\Estimate;
 use App\Models\Common\Offering;
-use App\Models\Common\OfferingCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,10 +16,10 @@ class HierarchicalGroupingTest extends TestCase
     public function test_items_can_be_grouped_into_two_levels()
     {
         $this->withOfferings();
-        
+
         $estimate = Estimate::factory()->for($this->testCompany)->create();
         $estimate->lineItems()->delete();
-        
+
         $offering = Offering::first();
 
         // Level 1 Group
@@ -70,16 +69,45 @@ class HierarchicalGroupingTest extends TestCase
         $this->assertEquals(1, $childGroup->items()->count());
 
         // Verify DTO transformation
-        
+
         $dto = DocumentDTO::fromModel($estimate);
-        
+
         $this->assertCount(2, $dto->lineItemGroups);
         $parentDto = $dto->lineItemGroups[0];
         $this->assertEquals('Parent Group', $parentDto->name);
         $this->assertCount(1, $parentDto->items);
-        
+
         $childDto = $dto->lineItemGroups[1];
         $this->assertEquals('Child Group', $childDto->name);
         $this->assertCount(1, $childDto->items);
+    }
+
+    public function test_document_dto_respects_main_group_header_config()
+    {
+        $this->withOfferings();
+
+        $estimate = Estimate::factory()->for($this->testCompany)->create();
+
+        // 1. Without config, it should use defaults/settings
+        config(['erp.main_group_header_bg_color' => null]);
+        config(['erp.main_group_header_font_color' => null]);
+        $dto = DocumentDTO::fromModel($estimate);
+
+        $settings = $estimate->company->documentDefaults()
+            ->withoutGlobalScopes()
+            ->type($estimate::documentType())
+            ->first();
+        $expectedBg = $settings?->color_group_bg ?? '#d4b896';
+        $expectedText = $settings?->color_group_bg_text ?? '#293834';
+
+        $this->assertEquals($expectedBg, $dto->colorGroupBg);
+        $this->assertEquals($expectedText, $dto->colorGroupBgText);
+
+        // 2. With config set, it should use the config values
+        config(['erp.main_group_header_bg_color' => '#123456']);
+        config(['erp.main_group_header_font_color' => '#ffffff']);
+        $dto = DocumentDTO::fromModel($estimate);
+        $this->assertEquals('#123456', $dto->colorGroupBg);
+        $this->assertEquals('#ffffff', $dto->colorGroupBgText);
     }
 }

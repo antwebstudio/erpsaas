@@ -78,9 +78,9 @@ class EstimateResource extends Resource
         if ($user && ! $user->can('view_any_sales::estimate') && $user->can('view_mine_sales::estimate')) {
             $query->where(function (Builder $q) use ($user) {
                 $q->where('created_by', $user->id)
-                  ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
-                      $q->where('created_by', $user->id);
-                  });
+                    ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
+                        $q->where('created_by', $user->id);
+                    });
             });
         }
 
@@ -93,8 +93,36 @@ class EstimateResource extends Resource
 
         $settings = $company->defaultEstimate;
 
+        $bgColor = config('erp.main_group_header_bg_color') ?: config('erp.main_group_header_bg_color_dark');
+        $bgColorDark = config('erp.main_group_header_bg_color_dark') ?: config('erp.main_group_header_bg_color');
+        $fontColor = config('erp.main_group_header_font_color') ?: config('erp.main_group_header_font_color_dark');
+        $fontColorDark = config('erp.main_group_header_font_color_dark') ?: config('erp.main_group_header_font_color');
+
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('main_group_header_bg_color_style')
+                    ->hiddenLabel()
+                    ->content(new \Illuminate\Support\HtmlString(
+                        '<style>' .
+                        ($bgColor ? '
+                            .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: ' . $bgColor . ' !important; }
+                            .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: #d1d5db !important; }
+                        ' : '') .
+                        ($fontColor ? '
+                            .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: ' . $fontColor . ' !important; }
+                            .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: revert !important; }
+                        ' : '') .
+                        ($bgColorDark ? '
+                            .dark .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: ' . $bgColorDark . ' !important; }
+                            .dark .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: rgba(255, 255, 255, 0.15) !important; }
+                        ' : '') .
+                        ($fontColorDark ? '
+                            .dark .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: ' . $fontColorDark . ' !important; }
+                            .dark .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: revert !important; }
+                        ' : '') .
+                        '</style>'
+                    ))
+                    ->columnSpanFull(),
                 DocumentHeaderSection::make('Estimate Header')
                     ->defaultHeader($settings->header)
                     ->defaultSubheader($settings->subheader),
@@ -146,7 +174,7 @@ class EstimateResource extends Resource
                                         }),
                                     Forms\Components\Select::make('payment_terms')
                                         ->hidden(fn () => ! config('erp.show_expiry_date', true))
-										->nullable(fn () => ! config('erp.show_expiry_date', true))
+                                        ->nullable(fn () => ! config('erp.show_expiry_date', true))
                                         ->label('Payment terms')
                                         ->options(function () {
                                             return collect(PaymentTerms::cases())
@@ -212,7 +240,7 @@ class EstimateResource extends Resource
                                     ->default(config('erp.hide_per_line_item_discount', false) ? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument : ($settings->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument))
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
                                         $discountMethod = DocumentDiscountMethod::parse($state);
-                                        
+
                                         if ($discountMethod->isPerLineItem()) {
                                             $set('lineItemGroups.*.items.*.salesDiscounts', []);
                                         }
@@ -246,49 +274,52 @@ class EstimateResource extends Resource
                                     ->color('primary')
                                     ->icon('heroicon-m-plus')
                                     ->visible(function (Forms\Components\Repeater $component, array $arguments) {
-                                        if (!isset($arguments['item'])) return false;
+                                        if (! isset($arguments['item'])) {
+                                            return false;
+                                        }
                                         $itemState = $component->getState()[$arguments['item']] ?? [];
+
                                         return filled($itemState['offering_category_id'] ?? null);
                                     })
                                     ->fillForm(function (Forms\Components\Repeater $component, array $arguments) {
                                         $itemState = $component->getState()[$arguments['item']] ?? [];
                                         $categoryId = $itemState['offering_category_id'] ?? null;
                                         $category = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($categoryId);
-                                        
+
                                         // Gather all existing offering IDs in this group (main items + sub-group items)
                                         $existingItems = $itemState['items'] ?? [];
                                         $existingOfferingIds = array_column($existingItems, 'offering_id');
-                                        
+
                                         $existingChildren = $itemState['children'] ?? [];
                                         foreach ($existingChildren as $child) {
                                             $childItems = $child['items'] ?? [];
                                             $childOfferingIds = array_column($childItems, 'offering_id');
                                             $existingOfferingIds = array_merge($existingOfferingIds, $childOfferingIds);
                                         }
-                                        
+
                                         $existingOfferingIds = array_unique(array_map('strval', array_filter($existingOfferingIds)));
-                                        
+
                                         $preSelectedGrouped = [];
                                         $preSelectedRoot = [];
                                         if ($category) {
                                             $preSelectedRoot = $category->offerings->pluck('id')
                                                 ->map('strval')
-                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                ->filter(fn ($id) => in_array($id, $existingOfferingIds))
                                                 ->values()
                                                 ->toArray();
 
                                             foreach ($category->children as $child) {
                                                 $ids = $child->offerings->pluck('id')
                                                     ->map('strval')
-                                                    ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                    ->filter(fn ($id) => in_array($id, $existingOfferingIds))
                                                     ->values()
                                                     ->toArray();
-                                                if (!empty($ids)) {
+                                                if (! empty($ids)) {
                                                     $preSelectedGrouped[$child->id] = $ids;
                                                 }
                                             }
                                         }
-                                        
+
                                         return [
                                             'job_scopes_grouped' => $preSelectedGrouped,
                                             'job_scopes_root' => $preSelectedRoot,
@@ -298,20 +329,20 @@ class EstimateResource extends Resource
                                         $itemState = $component->getState()[$arguments['item']] ?? [];
                                         $categoryId = $itemState['offering_category_id'] ?? null;
                                         $category = \App\Models\Common\OfferingCategory::with('offerings')->find($categoryId);
-                                        
+
                                         // Get all children categories (Job Scope Descriptions)
                                         // And their offerings (Job Scope Options)
                                         $jobScopeDescriptions = $category ? $category->children()->with('offerings')->get() : collect();
                                         $rootOfferings = $category ? $category->offerings()
                                             ->orderBy('sort_order')
-                                            
+
                                             ->get()
-                                            ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                            ->map(fn ($o) => ['id' => (string) $o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                             ->values()
                                             ->toArray() : [];
 
                                         $schema = [];
-                                        
+
                                         // Add Search Input
                                         $schema[] = Forms\Components\TextInput::make('search_job_scopes')
                                             ->label('Search')
@@ -322,28 +353,29 @@ class EstimateResource extends Resource
                                         if ($jobScopeDescriptions->isEmpty() && empty($rootOfferings)) {
                                             $schema[] = Forms\Components\Placeholder::make('no_options')
                                                 ->content('No Job Scopes available for this category.');
+
                                             return $schema;
                                         }
 
-                                        if (!empty($rootOfferings)) {
+                                        if (! empty($rootOfferings)) {
                                             $schema[] = Forms\Components\Section::make('General')
                                                 ->extraAttributes(['class' => 'job-scope-section'])
                                                 ->schema([
-                                                    Forms\Components\CheckboxList::make("job_scopes_root")
+                                                    Forms\Components\CheckboxList::make('job_scopes_root')
                                                         ->hiddenLabel()
                                                         ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                         ->searchable(false)
                                                         ->bulkToggleable()
                                                         ->options(function (Forms\Get $get) use ($rootOfferings) {
                                                             $term = $get('search_job_scopes');
-                                                            
+
                                                             $filtered = collect($rootOfferings);
                                                             if (filled($term)) {
                                                                 $filtered = $filtered->filter(function ($item) use ($term) {
                                                                     return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
                                                                 });
                                                             }
-                                                            
+
                                                             return $filtered->pluck('name', 'id')->toArray();
                                                         }),
                                                 ])
@@ -354,6 +386,7 @@ class EstimateResource extends Resource
                                                     if (blank($term)) {
                                                         return true;
                                                     }
+
                                                     // Check if any offering matches
                                                     return collect($rootOfferings)->contains(function ($item) use ($term) {
                                                         return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
@@ -370,9 +403,9 @@ class EstimateResource extends Resource
                                             // To avoid serializing large objects, let's pass a simple array of [id, name]
                                             $allOfferings = $description->offerings()
                                                 ->orderBy('sort_order')
-                                                
+
                                                 ->get()
-                                                ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                                ->map(fn ($o) => ['id' => (string) $o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                                 ->values()
                                                 ->toArray();
 
@@ -390,14 +423,14 @@ class EstimateResource extends Resource
                                                         ->bulkToggleable()
                                                         ->options(function (Forms\Get $get) use ($allOfferings) {
                                                             $term = $get('search_job_scopes');
-                                                            
+
                                                             $filtered = collect($allOfferings);
                                                             if (filled($term)) {
                                                                 $filtered = $filtered->filter(function ($item) use ($term) {
                                                                     return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
                                                                 });
                                                             }
-                                                            
+
                                                             return $filtered->pluck('name', 'id')->toArray();
                                                         }),
                                                 ])
@@ -408,6 +441,7 @@ class EstimateResource extends Resource
                                                     if (blank($term)) {
                                                         return true;
                                                     }
+
                                                     // Check if any offering matches
                                                     return collect($allOfferings)->contains(function ($item) use ($term) {
                                                         return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
@@ -424,23 +458,25 @@ class EstimateResource extends Resource
 
                                         $parentCategoryId = $itemState['offering_category_id'] ?? null;
                                         $parentCategory = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($parentCategoryId);
-                                        if (!$parentCategory) return;
+                                        if (! $parentCategory) {
+                                            return;
+                                        }
 
                                         $childCategories = $parentCategory->children()->defaultOrder()->get();
                                         $currentChildren = $itemState['children'] ?? [];
                                         $currentItems = $itemState['items'] ?? [];
                                         $existingOfferingIds = array_column($currentItems, 'offering_id');
-                                        
+
                                         // Get IDs of offerings that belong to the root category
                                         $rootCategoryOfferingIds = $parentCategory->offerings->pluck('id')->map('strval')->toArray();
-                                        
+
                                         $addedCount = 0;
                                         $removedCount = 0;
 
                                         // --- Handle Root Offerings (Removal and Addition) ---
                                         $newItems = [];
                                         foreach ($currentItems as $key => $item) {
-                                            $offeringId = (string)($item['offering_id'] ?? '');
+                                            $offeringId = (string) ($item['offering_id'] ?? '');
                                             if (in_array($offeringId, $rootCategoryOfferingIds)) {
                                                 // Keep if still selected
                                                 if (in_array($offeringId, $rootSelectedIds)) {
@@ -457,17 +493,18 @@ class EstimateResource extends Resource
 
                                         // Add newly selected root offerings
                                         foreach ($rootSelectedIds as $selectedId) {
-                                            if (in_array((string)$selectedId, $rootCategoryOfferingIds)) {
+                                            if (in_array((string) $selectedId, $rootCategoryOfferingIds)) {
                                                 // Check if it already exists
                                                 $exists = false;
                                                 foreach ($currentItems as $item) {
-                                                    if ((string)($item['offering_id'] ?? '') === (string)$selectedId) {
+                                                    if ((string) ($item['offering_id'] ?? '') === (string) $selectedId) {
                                                         $exists = true;
+
                                                         break;
                                                     }
                                                 }
 
-                                                if (!$exists) {
+                                                if (! $exists) {
                                                     $offering = \App\Models\Common\Offering::find($selectedId);
                                                     if ($offering) {
                                                         $newKey = (string) \Illuminate\Support\Str::uuid();
@@ -493,24 +530,24 @@ class EstimateResource extends Resource
                                         uasort($currentItems, function ($a, $b) use ($parentOfferingSortOrders) {
                                             $orderA = $parentOfferingSortOrders[$a['offering_id']] ?? 0;
                                             $orderB = $parentOfferingSortOrders[$b['offering_id']] ?? 0;
-                                            
+
                                             if ($orderA === $orderB) {
                                                 return strcmp($a['description'] ?? '', $b['description'] ?? '');
                                             }
-                                            
+
                                             return $orderA <=> $orderB;
                                         });
                                         $allState = $component->getState();
                                         $allState[$arguments['item']]['items'] = $currentItems;
                                         $component->state($allState);
-                                        
+
                                         // --- Handle Child Category Groups (Removal and Addition) ---
                                         $newChildren = [];
                                         $processedChildCategoryIds = [];
 
                                         foreach ($childCategories as $childCategory) {
                                             $selectedIds = $groupedData[$childCategory->id] ?? [];
-                                            $childCategoryOfferingIds = $childCategory->offerings()->pluck('offerings.id')->map(fn($id) => (string)$id)->toArray();
+                                            $childCategoryOfferingIds = $childCategory->offerings()->pluck('offerings.id')->map(fn ($id) => (string) $id)->toArray();
                                             $processedChildCategoryIds[] = $childCategory->id;
 
                                             // Find existing child group for this category
@@ -520,6 +557,7 @@ class EstimateResource extends Resource
                                                 if (($child['offering_category_id'] ?? null) === $childCategory->id) {
                                                     $existingChildKey = $key;
                                                     $existingChild = $child;
+
                                                     break;
                                                 }
                                             }
@@ -529,7 +567,7 @@ class EstimateResource extends Resource
                                             // 1. Remove items that belong to this child category but are NO LONGER selected
                                             $newChildItems = [];
                                             foreach ($items as $itemKey => $item) {
-                                                $offeringId = (string)($item['offering_id'] ?? '');
+                                                $offeringId = (string) ($item['offering_id'] ?? '');
                                                 if (in_array($offeringId, $childCategoryOfferingIds)) {
                                                     if (in_array($offeringId, $selectedIds)) {
                                                         $newChildItems[$itemKey] = $item;
@@ -544,16 +582,17 @@ class EstimateResource extends Resource
 
                                             // 2. Add newly selected offerings to this child group
                                             foreach ($selectedIds as $selectedId) {
-                                                if (in_array((string)$selectedId, $childCategoryOfferingIds)) {
+                                                if (in_array((string) $selectedId, $childCategoryOfferingIds)) {
                                                     $exists = false;
                                                     foreach ($items as $item) {
-                                                        if ((string)($item['offering_id'] ?? '') === (string)$selectedId) {
+                                                        if ((string) ($item['offering_id'] ?? '') === (string) $selectedId) {
                                                             $exists = true;
+
                                                             break;
                                                         }
                                                     }
 
-                                                    if (!$exists) {
+                                                    if (! $exists) {
                                                         $offering = \App\Models\Common\Offering::find($selectedId);
                                                         if ($offering) {
                                                             $newItemKey = (string) \Illuminate\Support\Str::uuid();
@@ -584,11 +623,11 @@ class EstimateResource extends Resource
                                             uasort($items, function ($a, $b) use ($allOfferingSortOrders) {
                                                 $orderA = $allOfferingSortOrders[$a['offering_id']] ?? 0;
                                                 $orderB = $allOfferingSortOrders[$b['offering_id']] ?? 0;
-                                                
+
                                                 if ($orderA === $orderB) {
                                                     return strcmp($a['description'] ?? '', $b['description'] ?? '');
                                                 }
-                                                
+
                                                 return $orderA <=> $orderB;
                                             });
 
@@ -612,7 +651,7 @@ class EstimateResource extends Resource
 
                                         // Preserve other child groups that weren't managed by this selection (e.g. manually added sub-groups)
                                         foreach ($currentChildren as $key => $child) {
-                                            if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
+                                            if (! in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
                                                 $newChildren[$key] = $child;
                                             }
                                         }
@@ -620,7 +659,7 @@ class EstimateResource extends Resource
                                         $allState = $component->getState();
                                         $allState[$arguments['item']]['children'] = $newChildren;
                                         $component->state($allState);
-                                        
+
                                         if ($addedCount > 0 || $removedCount > 0) {
                                             $message = $addedCount . ' added';
                                             if ($removedCount > 0) {
@@ -635,11 +674,11 @@ class EstimateResource extends Resource
                             ])
                             ->relationship('lineItemGroups', function (Builder $query) {
                                 return $query->whereNull('parent_id')->with([
-                                    'items.offering.salesTaxes', 
-                                    'items.offering.salesDiscounts', 
-                                    'items.sellableOffering.salesTaxes', 
-                                    'items.sellableOffering.salesDiscounts', 
-                                    'items.salesTaxes', 
+                                    'items.offering.salesTaxes',
+                                    'items.offering.salesDiscounts',
+                                    'items.sellableOffering.salesTaxes',
+                                    'items.sellableOffering.salesDiscounts',
+                                    'items.salesTaxes',
                                     'items.salesDiscounts',
                                     'children.items.offering.salesTaxes',
                                     'children.items.offering.salesDiscounts',
@@ -667,285 +706,288 @@ class EstimateResource extends Resource
                                     ->dehydratedWhenHidden()
                                     ->placeholder('e.g. Materials, Labor')
                                     ->columnSpanFull(),
-                                
+
                                 // Original items repeater for parent groups without children (backward compatibility)
                                 CustomTableRepeater::make('items')
-                                            ->hiddenLabel()
-                                            ->minItems(0)
-                                            ->emptyLabel(false)
-                                            ->relationship()
-                                            ->saveRelationshipsUsing(null)
+                                    ->hiddenLabel()
+                                    ->minItems(0)
+                                    ->emptyLabel(false)
+                                    ->relationship()
+                                    ->saveRelationshipsUsing(null)
+                                    ->dehydrated(true)
+                                    ->reorderable()
+                                    ->orderColumn('line_number')
+                                    ->reorderAtStart()
+                                    ->cloneable()
+                                    ->addActionLabel('Add an item')
+                                    ->addable(fn (Forms\Get $get) => ! (filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
+                                    ->headers(function (Forms\Get $get) use ($settings) {
+                                        $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
+                                        $hasDiscounts = $discountMethod->isPerLineItem();
+
+                                        $headers = [
+                                            Header::make($settings->resolveColumnLabel('item_name', 'Items'))
+                                                ->width('45%'),
+                                            Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
+                                                ->width('8%'),
+                                            Header::make('Unit')
+                                                ->width('12%')
+                                                ->markAsRequired(false),
+                                            Header::make($settings->resolveColumnLabel('price_name', 'Price'))
+                                                ->width('10%'),
+                                        ];
+
+                                        if (config('erp.show_estimate_kiv', false)) {
+                                            $headers[] = Header::make('KIV')->width('5%');
+                                        }
+
+                                        if (! config('erp.hide_tax_fields', false) || ($hasDiscounts && ! config('erp.hide_discount_fields', false))) {
+                                            if ($hasDiscounts) {
+                                                $headers[] = Header::make('Adjustments')->width('15%');
+                                            } else {
+                                                $headers[] = Header::make('Taxes')->width('15%');
+                                            }
+                                        }
+
+                                        $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
+                                            ->width('10%')
+                                            ->align('right');
+
+                                        return $headers;
+                                    })
+                                    ->schema([
+                                        Forms\Components\Hidden::make('id'),
+                                        Forms\Components\Hidden::make('is_locked')
+                                            ->default(0),
+                                        Forms\Components\Group::make([
+                                            CreateOfferingSelect::make('offering_id', true)
+                                                ->label('Item')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select item')
+                                                ->default('0')
+                                                ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
+                                                ->live(onBlur: true)
+                                                ->inlineSuffix()
+                                                ->sellable()
+                                                ->options(function (Forms\Get $get) {
+                                                    $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
+                                                    if (! $categoryId) {
+                                                        return \App\Models\Common\Offering::where('sellable', true)->pluck('name', 'id')->toArray();
+                                                    }
+                                                    $category = \App\Models\Common\OfferingCategory::find($categoryId);
+                                                    if (! $category) {
+                                                        return [];
+                                                    }
+                                                    // Collect this category + all descendant category IDs
+                                                    $categoryIds = \App\Models\Common\OfferingCategory::where('_lft', '>=', $category->_lft)
+                                                        ->where('_rgt', '<=', $category->_rgt)
+                                                        ->pluck('id')
+                                                        ->toArray();
+
+                                                    return \App\Models\Common\Offering::whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $categoryIds))
+                                                        ->where('sellable', true)
+                                                        ->pluck('name', 'id')
+                                                        ->toArray();
+                                                })
+                                                ->searchable()
+                                                ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1 || $get('offering_id') == '0')
+                                                ->dehydrated(true)
+                                                ->dehydratedWhenHidden(true)
+                                                ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
+                                                    $offeringId = $state;
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+                                                    $isPerLineItem = $discountMethod->isPerLineItem();
+
+                                                    $existingTaxIds = [];
+                                                    $existingDiscountIds = [];
+
+                                                    if ($record) {
+                                                        $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
+                                                        if ($isPerLineItem) {
+                                                            $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
+                                                        }
+                                                    }
+
+                                                    $with = [
+                                                        'salesTaxes' => static function ($query) use ($existingTaxIds) {
+                                                            $query->where(static function ($query) use ($existingTaxIds) {
+                                                                $query->where('status', AdjustmentStatus::Active)
+                                                                    ->orWhereIn('adjustments.id', $existingTaxIds);
+                                                            });
+                                                        },
+                                                    ];
+
+                                                    if ($isPerLineItem) {
+                                                        $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
+                                                            $query->where(static function ($query) use ($existingDiscountIds) {
+                                                                $query->where('status', AdjustmentStatus::Active)
+                                                                    ->orWhereIn('adjustments.id', $existingDiscountIds);
+                                                            });
+                                                        };
+                                                    }
+
+                                                    if (config('app.disable_custom_select_relationships', false)) {
+                                                        return;
+                                                    }
+
+                                                    $offeringRecord = Offering::with($with)->find($offeringId);
+
+                                                    if (! $offeringRecord) {
+                                                        return;
+                                                    }
+
+                                                    $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
+
+                                                    $set('description', $offeringRecord->description);
+                                                    $set('unit', $offeringRecord->unit);
+                                                    $set('unit_price', $unitPrice);
+                                                    $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
+
+                                                    if ($isPerLineItem) {
+                                                        $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
+                                                    }
+                                                }),
+                                            Forms\Components\TextInput::make('description')
+                                                ->placeholder('Enter item description')
+                                                ->dehydrated(true)
+                                                ->hiddenLabel(),
+                                        ])->columnSpan(1),
+                                        Forms\Components\TextInput::make('quantity')
+                                            ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
+                                            ->numeric()
+                                            ->live(onBlur: true)
+                                            ->maxValue(9999999999.99)
+                                            ->default(1),
+                                        Forms\Components\TextInput::make('unit')
+                                            ->placeholder('Unit')
+                                            ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
                                             ->dehydrated(true)
-                                            ->reorderable()
-                                            ->orderColumn('line_number')
-                                            ->reorderAtStart()
-                                            ->cloneable()
-                                            ->addActionLabel('Add an item')
-                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
-                                            ->headers(function (Forms\Get $get) use ($settings) {
-                                                $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
-                                                $hasDiscounts = $discountMethod->isPerLineItem();
+                                            ->hiddenLabel(),
+                                        Forms\Components\TextInput::make('unit_price')
+                                            ->hiddenLabel()
+                                            ->money(useAffix: false)
+                                            ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                            ->dehydrated(true)
+                                            ->live(onBlur: true)
+                                            ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
+                                            ->default(0),
+                                        Forms\Components\Checkbox::make('kiv')
+                                            ->label('KIV')
+                                            ->dehydrated(true)
+                                            ->default(false)
+                                            ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
+                                        Forms\Components\Group::make([
+                                            CreateAdjustmentSelect::make('salesTaxes', true)
+                                                ->label('Taxes')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select taxes')
+                                                ->category(AdjustmentCategory::Tax)
+                                                ->type(AdjustmentType::Sales)
+                                                ->adjustmentsRelationship('salesTaxes')
+                                                ->saveRelationshipsUsing(null)
+                                                ->dehydrated(true)
+                                                ->inlineSuffix()
+                                                ->preload()
+                                                ->multiple()
+                                                ->live(onBlur: true)
+                                                ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                    if ($record) {
+                                                        $relation = $component->getAdjustmentsRelationship();
+                                                        $component->state($record->{$relation}->pluck('id')->toArray());
+                                                    }
+                                                })
+                                                ->hidden(fn () => config('erp.hide_tax_fields', false))
+                                                ->searchable(),
+                                            CreateAdjustmentSelect::make('salesDiscounts', true)
+                                                ->label('Discounts')
+                                                ->hiddenLabel()
+                                                ->placeholder('Select discounts')
+                                                ->category(AdjustmentCategory::Discount)
+                                                ->type(AdjustmentType::Sales)
+                                                ->adjustmentsRelationship('salesDiscounts')
+                                                ->saveRelationshipsUsing(null)
+                                                ->dehydrated(true)
+                                                ->inlineSuffix()
+                                                ->multiple()
+                                                ->live(onBlur: true)
+                                                ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
+                                                ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
+                                                    if ($record) {
+                                                        $relation = $component->getAdjustmentsRelationship();
+                                                        $component->state($record->{$relation}->pluck('id')->toArray());
+                                                    }
+                                                })
+                                                ->hidden(function (Forms\Get $get) {
+                                                    if (config('erp.hide_discount_fields', false)) {
+                                                        return true;
+                                                    }
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
 
-                                                $headers = [
-                                                    Header::make($settings->resolveColumnLabel('item_name', 'Items'))
-                                                        ->width('45%'),
-                                                    Header::make($settings->resolveColumnLabel('unit_name', 'Quantity'))
-                                                        ->width('8%'),
-                                                    Header::make('Unit')
-                                                        ->width('12%')
-                                                        ->markAsRequired(false),
-                                                    Header::make($settings->resolveColumnLabel('price_name', 'Price'))
-                                                        ->width('10%'),
-                                                ];
+                                                    return $discountMethod->isPerDocument();
+                                                })
+                                                ->searchable(),
+                                        ])->columnSpan(1)
+                                            ->hidden(function (Forms\Get $get) {
+                                                if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                    return true;
+                                                }
+                                                if (config('erp.hide_tax_fields', false)) {
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
 
-                                                if (config('erp.show_estimate_kiv', false)) {
-                                                    $headers[] = Header::make('KIV')->width('5%');
+                                                    return $discountMethod->isPerDocument();
                                                 }
 
-                                                if (! config('erp.hide_tax_fields', false) || ($hasDiscounts && ! config('erp.hide_discount_fields', false))) {
-                                                    if ($hasDiscounts) {
-                                                        $headers[] = Header::make('Adjustments')->width('15%');
-                                                    } else {
-                                                        $headers[] = Header::make('Taxes')->width('15%');
+                                                return false;
+                                            }),
+                                        Forms\Components\Placeholder::make('line_total_amount')
+                                            ->hiddenLabel()
+                                            ->extraAttributes(['class' => 'text-left sm:text-right'])
+                                            ->content(function (Forms\Get $get) {
+                                                $quantity = max((float) ($get('quantity') ?? 0), 0);
+                                                $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
+                                                    ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
+                                                    : 0;
+                                                $salesTaxes = $get('salesTaxes') ?? [];
+                                                $salesDiscounts = $get('salesDiscounts') ?? [];
+                                                $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
+
+                                                $subtotal = $quantity * $unitPrice;
+                                                $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
+
+                                                static $companyAdjustments = [];
+                                                $companyId = auth()->user()->current_company_id;
+
+                                                if (! isset($companyAdjustments[$companyId])) {
+                                                    $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
+                                                }
+
+                                                $taxAmountInCents = 0;
+                                                foreach ($salesTaxes as $id) {
+                                                    $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                    if ($adjustment) {
+                                                        $taxAmountInCents += $adjustment->computation->isPercentage()
+                                                            ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                            : $adjustment->getRawOriginal('rate');
                                                     }
                                                 }
 
-                                                $headers[] = Header::make($settings->resolveColumnLabel('amount_name', 'Amount'))
-                                                    ->width('10%')
-                                                    ->align('right');
+                                                $discountAmountInCents = 0;
+                                                foreach ($salesDiscounts as $id) {
+                                                    $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                    if ($adjustment) {
+                                                        $discountAmountInCents += $adjustment->computation->isPercentage()
+                                                            ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                            : $adjustment->getRawOriginal('rate');
+                                                    }
+                                                }
 
-                                                return $headers;
-                                            })
-                                            ->schema([
-                                                Forms\Components\Hidden::make('id'),
-                                                Forms\Components\Hidden::make('is_locked')
-                                                    ->default(0),
-                                                Forms\Components\Group::make([
-                                                    CreateOfferingSelect::make('offering_id', true)
-                                                        ->label('Item')
-                                                        ->hiddenLabel()
-                                                        ->placeholder('Select item')
-                                                        ->default('0')
-                                                        ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
-                                                        ->live(onBlur: true)
-                                                        ->inlineSuffix()
-                                                        ->sellable()
-                                                        ->options(function (Forms\Get $get) {
-                                                            $categoryId = $get('../../offering_category_id') ?: $get('../../../../offering_category_id');
-                                                            if (! $categoryId) {
-                                                                return \App\Models\Common\Offering::where('sellable', true)->pluck('name', 'id')->toArray();
-                                                            }
-                                                            $category = \App\Models\Common\OfferingCategory::find($categoryId);
-                                                            if (! $category) {
-                                                                return [];
-                                                            }
-                                                            // Collect this category + all descendant category IDs
-                                                            $categoryIds = \App\Models\Common\OfferingCategory::where('_lft', '>=', $category->_lft)
-                                                                ->where('_rgt', '<=', $category->_rgt)
-                                                                ->pluck('id')
-                                                                ->toArray();
-                                                            return \App\Models\Common\Offering::whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $categoryIds))
-                                                                ->where('sellable', true)
-                                                                ->pluck('name', 'id')
-                                                                ->toArray();
-                                                        })
-                                                        ->searchable()
-                                                        ->hidden(fn (Forms\Get $get) => $get('is_locked') >= 1 || $get('offering_id') == '0')
-                                                        ->dehydrated(true)
-                                                        ->dehydratedWhenHidden(true)
-                                                        ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, $state, ?DocumentLineItem $record) {
-                                                            $offeringId = $state;
-                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
-                                                            $isPerLineItem = $discountMethod->isPerLineItem();
+                                                $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
 
-                                                            $existingTaxIds = [];
-                                                            $existingDiscountIds = [];
-
-                                                            if ($record) {
-                                                                $existingTaxIds = $record->salesTaxes()->pluck('adjustments.id')->toArray();
-                                                                if ($isPerLineItem) {
-                                                                    $existingDiscountIds = $record->salesDiscounts()->pluck('adjustments.id')->toArray();
-                                                                }
-                                                            }
-
-                                                            $with = [
-                                                                'salesTaxes' => static function ($query) use ($existingTaxIds) {
-                                                                    $query->where(static function ($query) use ($existingTaxIds) {
-                                                                        $query->where('status', AdjustmentStatus::Active)
-                                                                            ->orWhereIn('adjustments.id', $existingTaxIds);
-                                                                    });
-                                                                },
-                                                            ];
-
-                                                            if ($isPerLineItem) {
-                                                                $with['salesDiscounts'] = static function ($query) use ($existingDiscountIds) {
-                                                                    $query->where(static function ($query) use ($existingDiscountIds) {
-                                                                        $query->where('status', AdjustmentStatus::Active)
-                                                                            ->orWhereIn('adjustments.id', $existingDiscountIds);
-                                                                    });
-                                                                };
-                                                            }
-
-                                                            if (config('app.disable_custom_select_relationships', false)) {
-                                                                return;
-                                                            }
-
-                                                            $offeringRecord = Offering::with($with)->find($offeringId);
-
-                                                            if (! $offeringRecord) {
-                                                                return;
-                                                            }
-
-                                                            $unitPrice = CurrencyConverter::convertCentsToFormatSimple($offeringRecord->price, 'USD');
-
-                                                            $set('description', $offeringRecord->description);
-                                                            $set('unit', $offeringRecord->unit);
-                                                            $set('unit_price', $unitPrice);
-                                                            $set('salesTaxes', $offeringRecord->salesTaxes->pluck('id')->toArray());
-
-                                                            if ($isPerLineItem) {
-                                                                $set('salesDiscounts', $offeringRecord->salesDiscounts->pluck('id')->toArray());
-                                                            }
-                                                        }),
-                                                    Forms\Components\TextInput::make('description')
-                                                        ->placeholder('Enter item description')
-                                                        ->dehydrated(true)
-                                                        ->hiddenLabel(),
-                                                ])->columnSpan(1),
-                                                Forms\Components\TextInput::make('quantity')
-                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
-                                                    ->numeric()
-                                                    ->live(onBlur: true)
-                                                    ->maxValue(9999999999.99)
-                                                    ->default(1),
-                                                Forms\Components\TextInput::make('unit')
-                                                    ->placeholder('Unit')
-                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                                    ->dehydrated(true)
-                                                    ->hiddenLabel(),
-                                                Forms\Components\TextInput::make('unit_price')
-                                                    ->hiddenLabel()
-                                                    ->money(useAffix: false)
-                                                    ->readonly(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                                    ->dehydrated(true)
-                                                    ->live(onBlur: true)
-                                                    ->required(fn (Forms\Get $get) => filled($get('offering_id')) && $get('offering_id') != '0')
-                                                    ->default(0),
-                                                Forms\Components\Checkbox::make('kiv')
-                                                    ->label('KIV')
-                                                    ->dehydrated(true)
-                                                    ->default(false)
-                                                    ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
-                                                Forms\Components\Group::make([
-                                                    CreateAdjustmentSelect::make('salesTaxes', true)
-                                                        ->label('Taxes')
-                                                        ->hiddenLabel()
-                                                        ->placeholder('Select taxes')
-                                                        ->category(AdjustmentCategory::Tax)
-                                                        ->type(AdjustmentType::Sales)
-                                                        ->adjustmentsRelationship('salesTaxes')
-                                                        ->saveRelationshipsUsing(null)
-                                                        ->dehydrated(true)
-                                                        ->inlineSuffix()
-                                                        ->preload()
-                                                        ->multiple()
-                                                        ->live(onBlur: true)
-                                                        ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
-                                                            if ($record) {
-                                                                $relation = $component->getAdjustmentsRelationship();
-                                                                $component->state($record->{$relation}->pluck('id')->toArray());
-                                                            }
-                                                        })
-                                                        ->hidden(fn () => config('erp.hide_tax_fields', false))
-                                                        ->searchable(),
-                                                    CreateAdjustmentSelect::make('salesDiscounts', true)
-                                                        ->label('Discounts')
-                                                        ->hiddenLabel()
-                                                        ->placeholder('Select discounts')
-                                                        ->category(AdjustmentCategory::Discount)
-                                                        ->type(AdjustmentType::Sales)
-                                                        ->adjustmentsRelationship('salesDiscounts')
-                                                        ->saveRelationshipsUsing(null)
-                                                        ->dehydrated(true)
-                                                        ->inlineSuffix()
-                                                        ->multiple()
-                                                        ->live(onBlur: true)
-                                                        ->disabled(fn (Forms\Get $get) => $get('is_locked') >= 2)
-                                                        ->afterStateHydrated(static function (CreateAdjustmentSelect $component, ?\Illuminate\Database\Eloquent\Model $record) {
-                                                            if ($record) {
-                                                                $relation = $component->getAdjustmentsRelationship();
-                                                                $component->state($record->{$relation}->pluck('id')->toArray());
-                                                            }
-                                                        })
-                                                        ->hidden(function (Forms\Get $get) {
-                                                            if (config('erp.hide_discount_fields', false)) {
-                                                                return true;
-                                                            }
-                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
-
-                                                            return $discountMethod->isPerDocument();
-                                                        })
-                                                        ->searchable(),
-                                                ])->columnSpan(1)
-                                                  ->hidden(function (Forms\Get $get) {
-                                                      if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
-                                                          return true;
-                                                      }
-                                                      if (config('erp.hide_tax_fields', false)) {
-                                                          $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
-                                                          return $discountMethod->isPerDocument();
-                                                      }
-                                                      return false;
-                                                  }),
-                                                 Forms\Components\Placeholder::make('line_total_amount')
-                                                     ->hiddenLabel()
-                                                     ->extraAttributes(['class' => 'text-left sm:text-right'])
-                                                     ->content(function (Forms\Get $get) {
-                                                         $quantity = max((float) ($get('quantity') ?? 0), 0);
-                                                         $unitPrice = CurrencyConverter::isValidAmount($get('unit_price'), 'USD')
-                                                             ? CurrencyConverter::convertToFloat($get('unit_price'), 'USD')
-                                                             : 0;
-                                                         $salesTaxes = $get('salesTaxes') ?? [];
-                                                         $salesDiscounts = $get('salesDiscounts') ?? [];
-                                                         $currencyCode = $get('../../../../currency_code') ?? CurrencyAccessor::getDefaultCurrency();
-
-                                                         $subtotal = $quantity * $unitPrice;
-                                                         $subtotalInCents = CurrencyConverter::convertToCents($subtotal, $currencyCode);
-
-                                                         static $companyAdjustments = [];
-                                                         $companyId = auth()->user()->current_company_id;
-
-                                                         if (! isset($companyAdjustments[$companyId])) {
-                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
-                                                         }
-
-                                                         $taxAmountInCents = 0;
-                                                         foreach ($salesTaxes as $id) {
-                                                             $adjustment = $companyAdjustments[$companyId]->get($id);
-                                                             if ($adjustment) {
-                                                                 $taxAmountInCents += $adjustment->computation->isPercentage()
-                                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
-                                                                     : $adjustment->getRawOriginal('rate');
-                                                             }
-                                                         }
-
-                                                         $discountAmountInCents = 0;
-                                                         foreach ($salesDiscounts as $id) {
-                                                             $adjustment = $companyAdjustments[$companyId]->get($id);
-                                                             if ($adjustment) {
-                                                                 $discountAmountInCents += $adjustment->computation->isPercentage()
-                                                                     ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
-                                                                     : $adjustment->getRawOriginal('rate');
-                                                             }
-                                                         }
-
-                                                         $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);
-
-                                                         return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
-                                                     }),
-                                             ]),
-                                        // Nested child groups
+                                                return CurrencyConverter::formatCentsToMoney($totalInCents, $currencyCode);
+                                            }),
+                                    ]),
+                                // Nested child groups
                                 Forms\Components\Repeater::make('children')
                                     ->extraAttributes(['class' => 'item-group-sub'])
                                     ->relationship('children')
@@ -963,7 +1005,7 @@ class EstimateResource extends Resource
                                         Forms\Components\Hidden::make('parent_id'),
                                         Forms\Components\TextInput::make('name')
                                             ->label('Sub-Section Name')
-                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
+                                            ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
                                             ->dehydrated(true)
                                             ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Foundation, Framing')
@@ -980,7 +1022,7 @@ class EstimateResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
-                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
+                                            ->addable(fn (Forms\Get $get) => ! (filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -1043,6 +1085,7 @@ class EstimateResource extends Resource
                                                                 ->where('_rgt', '<=', $category->_rgt)
                                                                 ->pluck('id')
                                                                 ->toArray();
+
                                                             return \App\Models\Common\Offering::whereHas('categories', fn ($q) => $q->whereIn('offering_categories.id', $categoryIds))
                                                                 ->where('sellable', true)
                                                                 ->pluck('name', 'id')
@@ -1191,16 +1234,18 @@ class EstimateResource extends Resource
                                                         })
                                                         ->searchable(),
                                                 ])->columnSpan(1)
-                                                  ->hidden(function (Forms\Get $get) {
-                                                      if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
-                                                          return true;
-                                                      }
-                                                      if (config('erp.hide_tax_fields', false)) {
-                                                          $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
-                                                          return $discountMethod->isPerDocument();
-                                                      }
-                                                      return false;
-                                                  }),
+                                                    ->hidden(function (Forms\Get $get) {
+                                                        if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                            return true;
+                                                        }
+                                                        if (config('erp.hide_tax_fields', false)) {
+                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
+
+                                                            return $discountMethod->isPerDocument();
+                                                        }
+
+                                                        return false;
+                                                    }),
                                                 Forms\Components\Placeholder::make('line_total_amount')
                                                     ->hiddenLabel()
                                                     ->dehydrated(true)
@@ -1220,12 +1265,12 @@ class EstimateResource extends Resource
 
                                                         static $companyAdjustments = [];
                                                         $companyId = \Filament\Facades\Filament::getTenant()?->id ?? auth()->user()?->current_company_id ?? 1;
-                                                        if (!isset($companyAdjustments[$companyId])) {
+                                                        if (! isset($companyAdjustments[$companyId])) {
                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                         }
 
                                                         $taxAmountInCents = collect($salesTaxes)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                             ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
@@ -1236,7 +1281,7 @@ class EstimateResource extends Resource
                                                             });
 
                                                         $discountAmountInCents = collect($salesDiscounts)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                             ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
@@ -1254,7 +1299,7 @@ class EstimateResource extends Resource
                                             ]),
                                     ])
                                     ->columnSpanFull(),
-                                
+
                             ]),
                         DocumentTotals::make()
                             ->type(DocumentType::Estimate),
@@ -1273,7 +1318,7 @@ class EstimateResource extends Resource
                                     return;
                                 }
 
-                                $company = \App\Models\Company::with(['profile' => fn($query) => $query->withoutGlobalScopes()])->find($state);
+                                $company = \App\Models\Company::with(['profile' => fn ($query) => $query->withoutGlobalScopes()])->find($state);
                                 $defaultTaxId = $company?->profile?->default_sales_tax_id;
 
                                 if ($defaultTaxId) {
@@ -1328,7 +1373,7 @@ class EstimateResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
-                 Tables\Columns\TextColumn::make('clientAndLead.name')
+                Tables\Columns\TextColumn::make('clientAndLead.name')
                     ->label('Lead')
                     ->sortable()
                     ->searchable()
@@ -1576,8 +1621,6 @@ class EstimateResource extends Resource
             //
         ];
     }
-
-
 
     public static function getPages(): array
     {

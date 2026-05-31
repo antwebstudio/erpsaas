@@ -24,8 +24,8 @@ return [
     'autosave_interval' => env('AUTOSAVE_INTERVAL', 30),
     'show_estimate_kiv' => env('SHOW_ESTIMATE_KIV', true),
     'show_variation_order_kiv' => env('SHOW_VARIATION_ORDER_KIV', true),
+    'main_group_header_bg_color' => env('MAIN_GROUP_HEADER_BG_COLOR'),
+    'main_group_header_bg_color_dark' => env('MAIN_GROUP_HEADER_BG_COLOR_DARK'),
+    'main_group_header_font_color' => env('MAIN_GROUP_HEADER_FONT_COLOR'),
+    'main_group_header_font_color_dark' => env('MAIN_GROUP_HEADER_FONT_COLOR_DARK'),
 ];
-
-
-
-

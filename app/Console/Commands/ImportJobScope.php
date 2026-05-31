@@ -164,6 +164,18 @@ class ImportJobScope extends Command
                             break;
                     }
                 }
+
+                // Ensure Design & Services is sorted last among root categories if it exists
+                $designServices = OfferingCategory::where('company_id', $companyId)
+                    ->where('name', 'Design & Services')
+                    ->whereNull('parent_id')
+                    ->first();
+                if ($designServices) {
+                    $lastSibling = $designServices->siblings()->orderBy('_lft', 'desc')->first();
+                    if ($lastSibling && $designServices->id !== $lastSibling->id) {
+                        $designServices->afterNode($lastSibling)->save();
+                    }
+                }
             });
 
             $this->info("Import completed successfully!");

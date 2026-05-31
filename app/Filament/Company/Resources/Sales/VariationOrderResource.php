@@ -3,7 +3,6 @@
 namespace App\Filament\Company\Resources\Sales;
 
 use App\Enums\Accounting\AdjustmentCategory;
-use App\Enums\Accounting\AdjustmentStatus;
 use App\Enums\Accounting\AdjustmentType;
 use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\DocumentType;
@@ -13,32 +12,28 @@ use App\Filament\Company\Resources\Sales\VariationOrderResource\Pages;
 use App\Filament\Forms\Components\CreateAdjustmentSelect;
 use App\Filament\Forms\Components\CreateClientSelect;
 use App\Filament\Forms\Components\CreateCurrencySelect;
-use App\Filament\Forms\Components\CreateOfferingSelect;
 use App\Filament\Forms\Components\CustomTableRepeater;
 use App\Filament\Forms\Components\DocumentFooterSection;
 use App\Filament\Forms\Components\DocumentHeaderSection;
 use App\Filament\Forms\Components\DocumentTotals;
-use Guava\FilamentClusters\Forms\Cluster;
-use Illuminate\Support\Carbon;
+use App\Filament\Tables\Columns;
+use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Models\Accounting\Adjustment;
-use App\Models\Accounting\DocumentLineItem;
-use App\Models\Common\Offering;
 use App\Models\Accounting\VariationOrder;
 use App\Models\Company;
+use App\Scopes\CurrentCompanyScope;
 use App\Utilities\Currency\CurrencyAccessor;
 use App\Utilities\Currency\CurrencyConverter;
 use App\Utilities\RateCalculator;
-use App\Filament\Tables\Columns;
-use App\Filament\Tables\Filters\DateRangeFilter;
 use Awcodes\TableRepeater\Header;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use App\Scopes\CurrentCompanyScope;
+use Guava\FilamentClusters\Forms\Cluster;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class VariationOrderResource extends Resource
 {
@@ -81,7 +76,7 @@ class VariationOrderResource extends Resource
 
         return static::canViewAny();
     }
-    
+
     public static function form(Form $form): Form
     {
         /** @var Company $company */
@@ -89,8 +84,36 @@ class VariationOrderResource extends Resource
 
         $settings = $company->defaultVariationOrder;
 
+        $bgColor = config('erp.main_group_header_bg_color') ?: config('erp.main_group_header_bg_color_dark');
+        $bgColorDark = config('erp.main_group_header_bg_color_dark') ?: config('erp.main_group_header_bg_color');
+        $fontColor = config('erp.main_group_header_font_color') ?: config('erp.main_group_header_font_color_dark');
+        $fontColorDark = config('erp.main_group_header_font_color_dark') ?: config('erp.main_group_header_font_color');
+
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('main_group_header_bg_color_style')
+                    ->hiddenLabel()
+                    ->content(new \Illuminate\Support\HtmlString(
+                        '<style>' .
+                        ($bgColor ? '
+                            .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: ' . $bgColor . ' !important; }
+                            .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: #d1d5db !important; }
+                        ' : '') .
+                        ($fontColor ? '
+                            .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: ' . $fontColor . ' !important; }
+                            .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: revert !important; }
+                        ' : '') .
+                        ($bgColorDark ? '
+                            .dark .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: ' . $bgColorDark . ' !important; }
+                            .dark .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header { background-color: rgba(255, 255, 255, 0.15) !important; }
+                        ' : '') .
+                        ($fontColorDark ? '
+                            .dark .item-group-darker .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: ' . $fontColorDark . ' !important; }
+                            .dark .item-group-darker .item-group-sub .fi-fo-repeater-item .fi-fo-repeater-item-header h4 { color: revert !important; }
+                        ' : '') .
+                        '</style>'
+                    ))
+                    ->columnSpanFull(),
                 DocumentHeaderSection::make('Variation Order Header')
                     ->defaultHeader($settings?->header)
                     ->defaultSubheader($settings?->subheader),
@@ -240,8 +263,11 @@ class VariationOrderResource extends Resource
                                     ->color('primary')
                                     ->icon('heroicon-m-plus')
                                     ->visible(function (Forms\Components\Repeater $component, array $arguments) {
-                                        if (!isset($arguments['item'])) return false;
+                                        if (! isset($arguments['item'])) {
+                                            return false;
+                                        }
                                         $itemState = $component->getState()[$arguments['item']] ?? [];
+
                                         return filled($itemState['offering_category_id'] ?? null);
                                     })
                                     ->fillForm(function (Forms\Components\Repeater $component, array $arguments) {
@@ -266,17 +292,17 @@ class VariationOrderResource extends Resource
                                         if ($category) {
                                             $preSelectedRoot = $category->offerings->pluck('id')
                                                 ->map('strval')
-                                                ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                ->filter(fn ($id) => in_array($id, $existingOfferingIds))
                                                 ->values()
                                                 ->toArray();
 
                                             foreach ($category->children as $child) {
                                                 $ids = $child->offerings->pluck('id')
                                                     ->map('strval')
-                                                    ->filter(fn($id) => in_array($id, $existingOfferingIds))
+                                                    ->filter(fn ($id) => in_array($id, $existingOfferingIds))
                                                     ->values()
                                                     ->toArray();
-                                                if (!empty($ids)) {
+                                                if (! empty($ids)) {
                                                     $preSelectedGrouped[$child->id] = $ids;
                                                 }
                                             }
@@ -296,7 +322,7 @@ class VariationOrderResource extends Resource
                                         $rootOfferings = $category ? $category->offerings()
                                             ->orderBy('sort_order')
                                             ->get()
-                                            ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                            ->map(fn ($o) => ['id' => (string) $o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                             ->values()
                                             ->toArray() : [];
 
@@ -311,14 +337,15 @@ class VariationOrderResource extends Resource
                                         if ($jobScopeDescriptions->isEmpty() && empty($rootOfferings)) {
                                             $schema[] = Forms\Components\Placeholder::make('no_options')
                                                 ->content('No Job Scopes available for this category.');
+
                                             return $schema;
                                         }
 
-                                        if (!empty($rootOfferings)) {
+                                        if (! empty($rootOfferings)) {
                                             $schema[] = Forms\Components\Section::make('General')
                                                 ->extraAttributes(['class' => 'job-scope-section'])
                                                 ->schema([
-                                                    Forms\Components\CheckboxList::make("job_scopes_root")
+                                                    Forms\Components\CheckboxList::make('job_scopes_root')
                                                         ->hiddenLabel()
                                                         ->extraAttributes(['class' => 'job-scope-checkbox-list'])
                                                         ->searchable(false)
@@ -343,6 +370,7 @@ class VariationOrderResource extends Resource
                                                     if (blank($term)) {
                                                         return true;
                                                     }
+
                                                     return collect($rootOfferings)->contains(function ($item) use ($term) {
                                                         return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
                                                     });
@@ -355,7 +383,7 @@ class VariationOrderResource extends Resource
                                             $allOfferings = $description->offerings()
                                                 ->orderBy('sort_order')
                                                 ->get()
-                                                ->map(fn($o) => ['id' => (string)$o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
+                                                ->map(fn ($o) => ['id' => (string) $o->id, 'name' => $o->name, 'sort_order' => $o->sort_order])
                                                 ->values()
                                                 ->toArray();
 
@@ -391,6 +419,7 @@ class VariationOrderResource extends Resource
                                                     if (blank($term)) {
                                                         return true;
                                                     }
+
                                                     return collect($allOfferings)->contains(function ($item) use ($term) {
                                                         return \Illuminate\Support\Str::contains(strtolower($item['name']), strtolower($term));
                                                     });
@@ -406,7 +435,9 @@ class VariationOrderResource extends Resource
 
                                         $parentCategoryId = $itemState['offering_category_id'] ?? null;
                                         $parentCategory = \App\Models\Common\OfferingCategory::with(['children.offerings', 'offerings'])->find($parentCategoryId);
-                                        if (!$parentCategory) return;
+                                        if (! $parentCategory) {
+                                            return;
+                                        }
 
                                         $childCategories = $parentCategory->children()->defaultOrder()->get();
                                         $currentChildren = $itemState['children'] ?? [];
@@ -420,7 +451,7 @@ class VariationOrderResource extends Resource
                                         // --- Handle Root Offerings (Removal and Addition) ---
                                         $newItems = [];
                                         foreach ($currentItems as $key => $item) {
-                                            $offeringId = (string)($item['offering_id'] ?? '');
+                                            $offeringId = (string) ($item['offering_id'] ?? '');
                                             if (in_array($offeringId, $rootCategoryOfferingIds)) {
                                                 if (in_array($offeringId, $rootSelectedIds)) {
                                                     $newItems[$key] = $item;
@@ -438,13 +469,14 @@ class VariationOrderResource extends Resource
                                             // Check if it already exists
                                             $exists = false;
                                             foreach ($currentItems as $item) {
-                                                if ((string)($item['offering_id'] ?? '') === (string)$offeringId) {
+                                                if ((string) ($item['offering_id'] ?? '') === (string) $offeringId) {
                                                     $exists = true;
+
                                                     break;
                                                 }
                                             }
 
-                                            if (!$exists) {
+                                            if (! $exists) {
                                                 $offering = $parentCategory->offerings->firstWhere('id', $offeringId);
                                                 if ($offering) {
                                                     $newKey = (string) \Illuminate\Support\Str::uuid();
@@ -472,6 +504,7 @@ class VariationOrderResource extends Resource
                                             if ($orderA === $orderB) {
                                                 return strcmp($a['description'] ?? '', $b['description'] ?? '');
                                             }
+
                                             return $orderA <=> $orderB;
                                         });
                                         $allState = $component->getState();
@@ -494,6 +527,7 @@ class VariationOrderResource extends Resource
                                                 if (($child['offering_category_id'] ?? null) == $childCategory->id) {
                                                     $existingChildKey = $key;
                                                     $existingChild = $child;
+
                                                     break;
                                                 }
                                             }
@@ -503,7 +537,7 @@ class VariationOrderResource extends Resource
                                             // 1. Remove items that belong to this child category but are NO LONGER selected
                                             $newChildItems = [];
                                             foreach ($items as $itemKey => $item) {
-                                                $offeringId = (string)($item['offering_id'] ?? '');
+                                                $offeringId = (string) ($item['offering_id'] ?? '');
                                                 if (in_array($offeringId, $childCategoryOfferingIds)) {
                                                     if (in_array($offeringId, $selectedIds)) {
                                                         $newChildItems[$itemKey] = $item;
@@ -518,16 +552,17 @@ class VariationOrderResource extends Resource
 
                                             // 2. Add newly selected offerings to this child group
                                             foreach ($selectedIds as $selectedId) {
-                                                if (in_array((string)$selectedId, $childCategoryOfferingIds)) {
+                                                if (in_array((string) $selectedId, $childCategoryOfferingIds)) {
                                                     $exists = false;
                                                     foreach ($items as $item) {
-                                                        if ((string)($item['offering_id'] ?? '') === (string)$selectedId) {
+                                                        if ((string) ($item['offering_id'] ?? '') === (string) $selectedId) {
                                                             $exists = true;
+
                                                             break;
                                                         }
                                                     }
 
-                                                    if (!$exists) {
+                                                    if (! $exists) {
                                                         $offering = $childCategory->offerings->firstWhere('id', $selectedId);
                                                         if ($offering) {
                                                             $newItemKey = (string) \Illuminate\Support\Str::uuid();
@@ -561,6 +596,7 @@ class VariationOrderResource extends Resource
                                                 if ($orderA === $orderB) {
                                                     return strcmp($a['description'] ?? '', $b['description'] ?? '');
                                                 }
+
                                                 return $orderA <=> $orderB;
                                             });
 
@@ -583,7 +619,7 @@ class VariationOrderResource extends Resource
 
                                         // Preserve other child groups that weren't managed by this selection
                                         foreach ($currentChildren as $key => $child) {
-                                            if (!in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
+                                            if (! in_array($child['offering_category_id'] ?? null, $processedChildCategoryIds)) {
                                                 $newChildren[$key] = $child;
                                             }
                                         }
@@ -593,8 +629,12 @@ class VariationOrderResource extends Resource
                                         $component->state($allState);
 
                                         $message = [];
-                                        if ($addedCount > 0) $message[] = "{$addedCount} item(s) added";
-                                        if ($removedCount > 0) $message[] = "{$removedCount} item(s) removed";
+                                        if ($addedCount > 0) {
+                                            $message[] = "{$addedCount} item(s) added";
+                                        }
+                                        if ($removedCount > 0) {
+                                            $message[] = "{$removedCount} item(s) removed";
+                                        }
 
                                         \Filament\Notifications\Notification::make()
                                             ->title('Job scope updated')
@@ -633,7 +673,7 @@ class VariationOrderResource extends Resource
                                         Forms\Components\Hidden::make('parent_id'),
                                         Forms\Components\TextInput::make('name')
                                             ->label('Sub-Section Name')
-                                            ->hidden(fn(Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
+                                            ->hidden(fn (Forms\Get $get) => filled($get('offering_category_id')) && ! config('erp.allow_edit_sub_group_header', false))
                                             ->dehydrated(true)
                                             ->dehydratedWhenHidden()
                                             ->placeholder('e.g. Foundation, Framing')
@@ -650,7 +690,7 @@ class VariationOrderResource extends Resource
                                             ->reorderAtStart()
                                             ->cloneable()
                                             ->addActionLabel('Add an item')
-                                            ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
+                                            ->addable(fn (Forms\Get $get) => ! (filled($get('offering_category_id')) && config('erp.hide_add_item_for_sub_group', false)))
                                             ->headers(function (Forms\Get $get) use ($settings) {
                                                 $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
                                                 $hasDiscounts = $discountMethod->isPerLineItem();
@@ -772,16 +812,18 @@ class VariationOrderResource extends Resource
                                                         })
                                                         ->searchable(),
                                                 ])->columnSpan(1)
-                                                  ->hidden(function (Forms\Get $get) {
-                                                      if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
-                                                          return true;
-                                                      }
-                                                      if (config('erp.hide_tax_fields', false)) {
-                                                          $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
-                                                          return $discountMethod->isPerDocument();
-                                                      }
-                                                      return false;
-                                                  }),
+                                                    ->hidden(function (Forms\Get $get) {
+                                                        if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                            return true;
+                                                        }
+                                                        if (config('erp.hide_tax_fields', false)) {
+                                                            $discountMethod = DocumentDiscountMethod::parse($get('../../../../../../discount_method'));
+
+                                                            return $discountMethod->isPerDocument();
+                                                        }
+
+                                                        return false;
+                                                    }),
                                                 Forms\Components\Placeholder::make('line_total_amount')
                                                     ->hiddenLabel()
                                                     ->dehydrated(true)
@@ -801,12 +843,12 @@ class VariationOrderResource extends Resource
 
                                                         static $companyAdjustments = [];
                                                         $companyId = \Filament\Facades\Filament::getTenant()?->id ?? \Illuminate\Support\Facades\Auth::user()?->current_company_id ?? 1;
-                                                        if (!isset($companyAdjustments[$companyId])) {
+                                                        if (! isset($companyAdjustments[$companyId])) {
                                                             $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                         }
 
                                                         $taxAmountInCents = collect($salesTaxes)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                             ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
@@ -817,7 +859,7 @@ class VariationOrderResource extends Resource
                                                             });
 
                                                         $discountAmountInCents = collect($salesDiscounts)
-                                                            ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                            ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                             ->filter()
                                                             ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                                 if ($adjustment->computation->isPercentage()) {
@@ -834,11 +876,11 @@ class VariationOrderResource extends Resource
                                                     }),
                                             ])
                                             ->extraActions([
-                                                
+
                                             ]),
                                     ])
                                     ->columnSpanFull(),
-                                
+
                                 // Items directly in group
                                 CustomTableRepeater::make('items')
                                     ->hiddenLabel()
@@ -852,7 +894,7 @@ class VariationOrderResource extends Resource
                                     ->reorderAtStart()
                                     ->cloneable()
                                     ->addActionLabel('Add an item')
-                                    ->addable(fn (Forms\Get $get) => !(filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
+                                    ->addable(fn (Forms\Get $get) => ! (filled($get('offering_category_id')) && config('erp.hide_add_item_for_group', false)))
                                     ->headers(function (Forms\Get $get) use ($settings) {
                                         $discountMethod = DocumentDiscountMethod::parse($get('../../discount_method'));
                                         $hasDiscounts = $discountMethod->isPerLineItem();
@@ -973,16 +1015,18 @@ class VariationOrderResource extends Resource
                                                 })
                                                 ->searchable(),
                                         ])->columnSpan(1)
-                                          ->hidden(function (Forms\Get $get) {
-                                              if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
-                                                  return true;
-                                              }
-                                              if (config('erp.hide_tax_fields', false)) {
-                                                  $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
-                                                  return $discountMethod->isPerDocument();
-                                              }
-                                              return false;
-                                          }),
+                                            ->hidden(function (Forms\Get $get) {
+                                                if (config('erp.hide_tax_fields', false) && config('erp.hide_discount_fields', false)) {
+                                                    return true;
+                                                }
+                                                if (config('erp.hide_tax_fields', false)) {
+                                                    $discountMethod = DocumentDiscountMethod::parse($get('../../../../discount_method'));
+
+                                                    return $discountMethod->isPerDocument();
+                                                }
+
+                                                return false;
+                                            }),
                                         Forms\Components\Placeholder::make('line_total_amount')
                                             ->hiddenLabel()
                                             ->dehydrated(true)
@@ -1002,12 +1046,12 @@ class VariationOrderResource extends Resource
 
                                                 static $companyAdjustments = [];
                                                 $companyId = \Filament\Facades\Filament::getTenant()?->id ?? \Illuminate\Support\Facades\Auth::user()?->current_company_id ?? 1;
-                                                if (!isset($companyAdjustments[$companyId])) {
+                                                if (! isset($companyAdjustments[$companyId])) {
                                                     $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                 }
 
                                                 $taxAmountInCents = collect($salesTaxes)
-                                                    ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                    ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                     ->filter()
                                                     ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                         if ($adjustment->computation->isPercentage()) {
@@ -1018,7 +1062,7 @@ class VariationOrderResource extends Resource
                                                     });
 
                                                 $discountAmountInCents = collect($salesDiscounts)
-                                                    ->map(fn($id) => $companyAdjustments[$companyId]->get($id))
+                                                    ->map(fn ($id) => $companyAdjustments[$companyId]->get($id))
                                                     ->filter()
                                                     ->sum(function (Adjustment $adjustment) use ($subtotalInCents) {
                                                         if ($adjustment->computation->isPercentage()) {
@@ -1054,7 +1098,7 @@ class VariationOrderResource extends Resource
                                     return;
                                 }
 
-                                $company = \App\Models\Company::with(['profile' => fn($query) => $query->withoutGlobalScopes()])->find($state);
+                                $company = \App\Models\Company::with(['profile' => fn ($query) => $query->withoutGlobalScopes()])->find($state);
                                 $defaultTaxId = $company?->profile?->default_sales_tax_id;
 
                                 if ($defaultTaxId) {
@@ -1173,10 +1217,10 @@ class VariationOrderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListVariationOrders::route('/'),
+            'index' => Pages\ListVariationOrders::route('/'),
             'create' => Pages\CreateVariationOrder::route('/create'),
-            'view'   => Pages\ViewVariationOrder::route('/{record}'),
-            'edit'   => Pages\EditVariationOrder::route('/{record}/edit'),
+            'view' => Pages\ViewVariationOrder::route('/{record}'),
+            'edit' => Pages\EditVariationOrder::route('/{record}/edit'),
         ];
     }
 }
