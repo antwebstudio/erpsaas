@@ -16,10 +16,10 @@ class DatabaseSeeder extends Seeder
             VariationOrderDefaultSeeder::class,
             ContractDefaultSeeder::class,
             PaymentOfferingSeeder::class,
-            DesignServicesJobScopeSeeder::class,
             LeadSourceSeeder::class,
             ShieldSeeder::class,
             DocumentDefaultColorSeeder::class,
+            DesignServicesJobScopeSeeder::class,
         ]);
     }
 }

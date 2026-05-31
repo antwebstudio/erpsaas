@@ -42,6 +42,12 @@ class DesignServicesJobScopeSeeder extends Seeder
             'company_id' => $company->id,
         ]);
 
+        // Ensure the category is sorted last among root categories
+        $lastSibling = $category->siblings()->orderBy('_lft', 'desc')->first();
+        if ($lastSibling && $category->id !== $lastSibling->id) {
+            $category->afterNode($lastSibling)->save();
+        }
+
         foreach (self::OPTIONS as $data) {
             $offering = Offering::updateOrCreate(
                 [
