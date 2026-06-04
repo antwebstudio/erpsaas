@@ -69,6 +69,7 @@ class EditEstimateTemplate extends EditRecord
                         ->columns(2)
                         ->options(OfferingCategory::query()
                             ->whereNull('parent_id')
+                            ->defaultOrder()
                             ->pluck('name', 'id'))
                         ->default(function () {
                             $selected = [];
