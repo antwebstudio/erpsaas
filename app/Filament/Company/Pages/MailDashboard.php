@@ -12,7 +12,7 @@ class MailDashboard extends BaseMailDashboard
     public static function canAccess(): bool
     {
         $user = auth()->user();
-        
+
         return $user && (
             $user->can('view_any_mail::mail::template') ||
             $user->can('view_any_mail::mail::log') ||

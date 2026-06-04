@@ -4,11 +4,11 @@ namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Models\Accounting\VariationOrder;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class VariationOrdersRelationManager extends RelationManager
 {

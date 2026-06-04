@@ -4,7 +4,6 @@ namespace App\Filament\Company\Resources\Sales\VariationOrderResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
 use App\Filament\Company\Resources\Sales\AllClientResource;
-use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Filament\Infolists\Components\BannerEntry;
@@ -17,7 +16,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\IconPosition;
-use Filament\Support\Enums\MaxWidth;
 use Illuminate\Support\HtmlString;
 
 class ViewVariationOrder extends ViewRecord
@@ -99,7 +97,8 @@ class ViewVariationOrder extends ViewRecord
                                 TextEntry::make('estimate.estimate_number')
                                     ->label('Linked Quotation')
                                     ->placeholder('—')
-                                    ->url(fn (VariationOrder $record) => $record->estimate_id
+                                    ->url(
+                                        fn (VariationOrder $record) => $record->estimate_id
                                         ? EstimateResource::getUrl('view', ['record' => $record->estimate_id])
                                         : null
                                     )
@@ -128,5 +127,4 @@ class ViewVariationOrder extends ViewRecord
                     ]),
             ]);
     }
-
 }

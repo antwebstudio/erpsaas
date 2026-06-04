@@ -46,7 +46,6 @@ class CompanyDefault extends Page
         return static::canAccess();
     }
 
-
     protected static ?string $title = 'Default';
 
     protected static string $view = 'filament.company.pages.setting.company-default';

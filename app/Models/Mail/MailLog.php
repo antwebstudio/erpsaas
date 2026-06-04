@@ -17,6 +17,7 @@ class MailLog extends BaseMailLog
                     $template = \App\Models\Mail\MailTemplate::find($mailLog->mail_template_id);
                     if ($template && $template->tenant_id) {
                         $mailLog->tenant_id = $template->tenant_id;
+
                         return;
                     }
                 }

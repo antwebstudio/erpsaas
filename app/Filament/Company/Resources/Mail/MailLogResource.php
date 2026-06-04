@@ -2,14 +2,13 @@
 
 namespace App\Filament\Company\Resources\Mail;
 
+use App\Filament\Company\Resources\Mail\MailLogResource\Pages as LocalPages;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Tabs;
 use Filament\Infolists\Components\Tabs\Tab;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
-use Filament\Support\Enums\FontWeight;
-use App\Filament\Company\Resources\Mail\MailLogResource\Pages as LocalPages;
 use JeffersonGoncalves\FilamentMail\Resources\MailLogResource as BaseMailLogResource;
 use JeffersonGoncalves\FilamentMail\Resources\MailLogResource\Pages;
 use JeffersonGoncalves\FilamentMail\Resources\MailTemplateResource;

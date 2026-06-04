@@ -48,7 +48,7 @@ class PaymentOfferingSeeder extends Seeder
         // Create or find the "Payment" category (root-level)
         $category = OfferingCategory::firstOrCreate(
             [
-                'name'       => 'Payment',
+                'name' => 'Payment',
                 'company_id' => $company->id,
             ]
         );
@@ -67,18 +67,18 @@ class PaymentOfferingSeeder extends Seeder
         /** @var Account $depositAccount */
         $depositAccount = $company->accounts()->firstOrCreate(
             [
-                'name'       => 'Deposit',
+                'name' => 'Deposit',
                 'company_id' => $company->id,
             ],
             [
-                'subtype_id'    => $depositSubtype?->id,
-                'category'      => $depositSubtype?->category ?? AccountCategory::Liability,
-                'type'          => $depositSubtype?->type ?? AccountType::CurrentLiability,
-                'code'          => '2310',
+                'subtype_id' => $depositSubtype?->id,
+                'category' => $depositSubtype?->category ?? AccountCategory::Liability,
+                'type' => $depositSubtype?->type ?? AccountType::CurrentLiability,
+                'code' => '2310',
                 'currency_code' => $company->default?->currency_code ?? 'SGD',
-                'description'   => 'Customer deposits and prepayments.',
-                'created_by'    => $company->owner->id,
-                'updated_by'    => $company->owner->id,
+                'description' => 'Customer deposits and prepayments.',
+                'created_by' => $company->owner->id,
+                'updated_by' => $company->owner->id,
             ]
         );
 
@@ -86,16 +86,16 @@ class PaymentOfferingSeeder extends Seeder
             /** @var Offering $offering */
             $offering = Offering::updateOrCreate(
                 [
-                    'name'       => $data['name'],
+                    'name' => $data['name'],
                     'company_id' => $company->id,
                 ],
                 [
-                    'description'       => $data['name'],
-                    'type'              => OfferingType::Service,
-                    'price'             => 0,
-                    'sellable'          => true,
-                    'purchasable'       => false,
-                    'sort_order'        => $data['sort_order'],
+                    'description' => $data['name'],
+                    'type' => OfferingType::Service,
+                    'price' => 0,
+                    'sellable' => true,
+                    'purchasable' => false,
+                    'sort_order' => $data['sort_order'],
                     'income_account_id' => ($data['name'] === 'Deposit payment') ? $depositAccount->id : null,
                 ]
             );

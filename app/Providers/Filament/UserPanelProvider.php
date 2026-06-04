@@ -3,10 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Components\PanelShiftDropdown;
-use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Filament\User\Clusters\Account;
 use App\Http\Middleware\Authenticate;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
 use Exception;
 use Filament\Facades\Filament;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -63,7 +63,7 @@ class UserPanelProvider extends PanelProvider
 
                                         return Filament::getPanel($companyPanel)->getTenantRegistrationUrl();
                                     })
-                                    ->visible(fn() => Auth::user()?->allCompanies()->isNotEmpty()),
+                                    ->visible(fn () => Auth::user()?->allCompanies()->isNotEmpty()),
                             ]);
                     }),
             )

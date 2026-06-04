@@ -10,7 +10,7 @@ readonly class LineItemDTO
     public function __construct(
         public string $name,
         public string $description,
-        public float|int $quantity,
+        public float | int $quantity,
         public string $unitPrice,
         public string $subtotal,
         public ?string $unit,

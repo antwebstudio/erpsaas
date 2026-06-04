@@ -2,19 +2,15 @@
 
 namespace App\Filament\User\Pages;
 
-use App\Models\Common\OfferingCategory;
-use App\Models\Accounting\Estimate;
-use App\Models\Accounting\DocumentLineItemGroup;
-use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Enums\Accounting\AdjustmentComputation;
+use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\EstimateStatus;
-use App\Models\Setting\DocumentDefault;
+use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Models\Accounting\Estimate;
+use App\Models\Common\OfferingCategory;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Wallo\FilamentCompanies\FilamentCompanies;
-use Filament\Notifications\Notification;
-use App\Enums\Accounting\DocumentDiscountMethod;
-use App\Enums\Accounting\AdjustmentComputation;
 
 class CreateQuotation extends Page
 {
@@ -25,14 +21,14 @@ class CreateQuotation extends Page
         return ! config('erp.hide_estimate_in_navigation', false);
     }
 
-
     protected static string $view = 'filament.user.pages.create-quotation';
 
     protected static ?string $navigationLabel = 'Quotation Builder';
 
     protected static ?string $title = 'User Quotation Builder';
-    
+
     public array $data = [];
+
     public ?int $estimateId = null;
 
     public function mount()
@@ -40,7 +36,7 @@ class CreateQuotation extends Page
         ini_set('memory_limit', '1024M');
         $clientId = request()->query('client');
         $this->estimateId = request()->query('estimate_id') ? (int) request()->query('estimate_id') : null;
-        
+
         $this->loadData($clientId ? (int) $clientId : null);
     }
 
@@ -49,7 +45,7 @@ class CreateQuotation extends Page
         $scopes = OfferingCategory::query()
             ->whereNull('parent_id')
             ->defaultOrder()
-            ->with(['children' => fn($q) => $q->defaultOrder(), 'children.offerings'])
+            ->with(['children' => fn ($q) => $q->defaultOrder(), 'children.offerings'])
             ->get();
 
         $clients = \App\Models\Common\Client::query()
@@ -94,7 +90,7 @@ class CreateQuotation extends Page
 
         $this->data['scopes'] = $scopes->map(function ($scope) use ($selectedScopeIds) {
             $isScopeSelected = in_array($scope->id, $selectedScopeIds);
-            
+
             return [
                 'id' => $scope->id,
                 'name' => $scope->name,
@@ -114,15 +110,15 @@ class CreateQuotation extends Page
                                 'price' => isset($item->price) ? $item->price / 100 : 0,
                                 'selected' => false, // Items for now manual
                             ];
-                        })->toArray()
+                        })->toArray(),
                     ];
-                })->toArray()
+                })->toArray(),
             ];
         })->toArray();
 
         $this->data['templates'] = $this->loadTemplates();
     }
-    
+
     protected function loadTemplates()
     {
         return Estimate::query()
@@ -151,20 +147,20 @@ class CreateQuotation extends Page
                 ->body('Please select a client to create a quotation.')
                 ->danger()
                 ->send();
+
             return;
         }
-
-
 
         $selectedScopes = collect($this->data['scopes'])->where('selected', true);
         $selectedTemplate = collect($this->data['templates'] ?? [])->firstWhere('selected', true);
 
-        if ($selectedScopes->isEmpty() && !$selectedTemplate) {
+        if ($selectedScopes->isEmpty() && ! $selectedTemplate) {
             Notification::make()
                 ->title('No scope or template selected')
                 ->body('Please select at least one work scope or an estimate template.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -180,10 +176,10 @@ class CreateQuotation extends Page
             if ($template) {
                 // Replicate logic using the model method
                 $estimate = Estimate::createFromTemplate(
-                    $template, 
-                    $this->data['client_id'], 
-                    $this->estimateId, 
-                    $company, 
+                    $template,
+                    $this->data['client_id'],
+                    $this->estimateId,
+                    $company,
                     $user->id
                 );
 
@@ -194,18 +190,17 @@ class CreateQuotation extends Page
 
                 // Estimate::createFromTemplate(Estimate::find(1), 1, null, App\Models\Company::find(1), 1);
 
-
                 Notification::make()
                     ->title($this->estimateId ? 'Quotation updated from template' : 'Quotation created from template')
                     ->success()
                     ->send();
-            
+
                 return redirect()->to(EstimateResource::getUrl('edit', ['record' => $estimate, 'tenant' => $company], panel: 'company'));
             }
         }
-        
+
         // --- Existing Scope Logic starts here ---
-        
+
         // 2. Create or Update Estimate
         if ($this->estimateId) {
             $estimate = Estimate::find($this->estimateId);
@@ -225,10 +220,10 @@ class CreateQuotation extends Page
                 'header' => $settings->header ?? '',
                 'subheader' => $settings->subheader ?? '', // Fixed typo?
                 'date' => now(),
-                'expiration_date' => now()->addDays(30), 
+                'expiration_date' => now()->addDays(30),
                 'status' => EstimateStatus::Draft,
                 'currency_code' => $currencyCode,
-                'discount_method' => DocumentDiscountMethod::PerDocument, 
+                'discount_method' => DocumentDiscountMethod::PerDocument,
                 'discount_computation' => AdjustmentComputation::Percentage,
                 'discount_rate' => 0,
                 'subtotal' => 0,
@@ -248,7 +243,7 @@ class CreateQuotation extends Page
         $groupsToDelete = $managedGroups->whereNotIn('offering_category_id', $selectedScopeIds);
         foreach ($groupsToDelete as $group) {
             // Also delete children if this group has any
-            $group->children()->each(function($child) {
+            $group->children()->each(function ($child) {
                 $child->items()->delete();
                 $child->delete();
             });
@@ -287,7 +282,7 @@ class CreateQuotation extends Page
         foreach ($customGroups as $group) {
             $group->update(['order' => $order++]);
         }
-        
+
         // Recalculate totals
         $grandTotal = $estimate->lineItems()->sum('total');
         $estimate->update([
@@ -299,7 +294,7 @@ class CreateQuotation extends Page
             ->title($this->estimateId ? 'Quotation updated' : 'Quotation created')
             ->success()
             ->send();
-        
+
         return redirect()->to(EstimateResource::getUrl('edit', ['record' => $estimate, 'tenant' => $company], panel: 'company'));
     }
 }

@@ -115,23 +115,24 @@ class EditInvoice extends EditRecord
                         $record->approveDraft();
 
                         $record->recordPayment([
-                            'posted_at'       => $data['posted_at'],
+                            'posted_at' => $data['posted_at'],
                             'bank_account_id' => $data['bank_account_id'],
-                            'payment_method'  => $data['payment_method'],
-                            'amount'          => $record->total,
-                            'notes'           => $data['notes'] ?? null,
+                            'payment_method' => $data['payment_method'],
+                            'amount' => $record->total,
+                            'notes' => $data['notes'] ?? null,
                         ]);
 
                         $this->commitDatabaseTransaction();
                     } catch (\Throwable $exception) {
                         $this->rollBackDatabaseTransaction();
+
                         throw $exception;
                     }
 
                     $record->refresh();
                     $record->load(['salesTaxes', 'lineItems', 'client', 'company', 'estimate.templateCompany', 'estimate.company', 'createdBy']);
 
-                    $pdfService = new InvoicePdfService();
+                    $pdfService = new InvoicePdfService;
                     $pdfOutput = $pdfService->generate($record);
 
                     $filename = "Invoice-{$record->invoice_number}.pdf";
@@ -173,6 +174,7 @@ class EditInvoice extends EditRecord
                         $this->commitDatabaseTransaction();
                     } catch (\Throwable $exception) {
                         $this->rollBackDatabaseTransaction();
+
                         throw $exception;
                     }
 
@@ -182,7 +184,7 @@ class EditInvoice extends EditRecord
 
                     $this->fillForm();
 
-                    $pdfService = new InvoicePdfService();
+                    $pdfService = new InvoicePdfService;
                     $pdfOutput = $pdfService->generate($record);
 
                     $filename = "Invoice-{$record->invoice_number}.pdf";
@@ -268,16 +270,17 @@ class EditInvoice extends EditRecord
                         $record->approveDraft();
 
                         $record->recordPayment([
-                            'posted_at'      => $data['posted_at'],
+                            'posted_at' => $data['posted_at'],
                             'bank_account_id' => $data['bank_account_id'],
                             'payment_method' => $data['payment_method'],
-                            'amount'         => $record->total,
-                            'notes'          => $data['notes'] ?? null,
+                            'amount' => $record->total,
+                            'notes' => $data['notes'] ?? null,
                         ]);
 
                         $this->commitDatabaseTransaction();
                     } catch (\Throwable $exception) {
                         $this->rollBackDatabaseTransaction();
+
                         throw $exception;
                     }
 

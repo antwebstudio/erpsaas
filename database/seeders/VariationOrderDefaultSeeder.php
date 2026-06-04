@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Accounting\DocumentType;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
-use App\Enums\Accounting\DocumentType;
 use Illuminate\Database\Seeder;
 
 class VariationOrderDefaultSeeder extends Seeder
@@ -20,7 +20,7 @@ class VariationOrderDefaultSeeder extends Seeder
                 ->where('type', DocumentType::VariationOrder)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 DocumentDefault::factory()
                     ->variationOrder()
                     ->create([

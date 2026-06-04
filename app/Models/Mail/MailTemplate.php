@@ -55,20 +55,20 @@ class MailTemplate extends BaseMailTemplate
             'website' => $client->website,
             'account_number' => $client->account_number,
             'notes' => $client->notes,
-            
+
             'contact.first_name' => $client->primaryContact?->first_name,
             'contact.last_name' => $client->primaryContact?->last_name,
             'contact.full_name' => $client->primaryContact?->fullName,
             'contact.email' => $client->primaryContact?->email,
             'contact.phone' => $client->primaryContact?->firstAvailablePhone,
-            
+
             'billing_address.address_line_1' => $client->billingAddress?->address_line_1,
             'billing_address.address_line_2' => $client->billingAddress?->address_line_2,
             'billing_address.city' => $client->billingAddress?->city,
             'billing_address.state' => $client->billingAddress?->state?->name,
             'billing_address.postal_code' => $client->billingAddress?->postal_code,
             'billing_address.country' => $client->billingAddress?->country?->name,
-            
+
             'shipping_address.address_line_1' => $client->shippingAddress?->address_line_1,
             'shipping_address.address_line_2' => $client->shippingAddress?->address_line_2,
             'shipping_address.city' => $client->shippingAddress?->city,

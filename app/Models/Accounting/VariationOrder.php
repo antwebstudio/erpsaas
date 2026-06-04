@@ -5,20 +5,17 @@ namespace App\Models\Accounting;
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\VariationOrderStatus;
+use App\Mail\Sales\VariationOrderMail;
 use App\Models\Common\Client;
-use App\Models\Common\ClientAndLead;
 use App\Models\Common\Lead;
 use App\Models\Setting\Currency;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Carbon;
+use Filament\Forms;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\Sales\VariationOrderMail;
-use Filament\Forms;
-use Filament\Actions\Action;
-use Filament\Actions\MountableAction;
 
 class VariationOrder extends Document
 {
@@ -64,18 +61,18 @@ class VariationOrder extends Document
     ];
 
     protected $casts = [
-        'date'                 => 'date',
-        'expiry_date'          => 'date',
-        'approved_at'          => 'datetime',
-        'accepted_at'          => 'datetime',
-        'converted_at'         => 'datetime',
-        'declined_at'          => 'datetime',
-        'last_sent_at'         => 'datetime',
-        'last_viewed_at'       => 'datetime',
-        'status'               => VariationOrderStatus::class,
-        'discount_method'      => \App\Enums\Accounting\DocumentDiscountMethod::class,
+        'date' => 'date',
+        'expiry_date' => 'date',
+        'approved_at' => 'datetime',
+        'accepted_at' => 'datetime',
+        'converted_at' => 'datetime',
+        'declined_at' => 'datetime',
+        'last_sent_at' => 'datetime',
+        'last_viewed_at' => 'datetime',
+        'status' => VariationOrderStatus::class,
+        'discount_method' => \App\Enums\Accounting\DocumentDiscountMethod::class,
         'discount_computation' => \App\Enums\Accounting\AdjustmentComputation::class,
-        'is_template'          => 'boolean',
+        'is_template' => 'boolean',
     ];
 
     public function estimate(): BelongsTo
@@ -375,17 +372,17 @@ class VariationOrder extends Document
                     ->default(fn (self $record) => $record->clientOrLead?->primaryContact?->email),
                 Forms\Components\TextInput::make('subject')
                     ->required()
-                    ->default(fn (self $record) => "Variation Order #" . $record->vo_number),
+                    ->default(fn (self $record) => 'Variation Order #' . $record->vo_number),
                 Forms\Components\Textarea::make('message')
                     ->required()
                     ->rows(5)
-                    ->default(fn (self $record) => "Dear " . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached variation order " . $record->vo_number . ".\n\nBest regards."),
+                    ->default(fn (self $record) => 'Dear ' . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached variation order " . $record->vo_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
                 Mail::to($data['email'])->send(new VariationOrderMail($record, $data['message'], $data['subject']));
-                
+
                 $record->markAsSent();
-                
+
                 $action->success();
             });
     }
@@ -481,7 +478,7 @@ class VariationOrder extends Document
                     $record->refresh();
                 }
 
-                $pdfService = new \App\Services\VariationOrderPdfService();
+                $pdfService = new \App\Services\VariationOrderPdfService;
                 $finalPdfOutput = $pdfService->generate($record);
 
                 return response()->streamDownload(function () use ($finalPdfOutput) {

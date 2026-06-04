@@ -53,7 +53,6 @@ class Localization extends Page
         return static::canAccess();
     }
 
-
     protected static ?string $title = 'Localization';
 
     protected static string $view = 'filament.company.pages.setting.localization';

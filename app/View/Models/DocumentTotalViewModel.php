@@ -54,15 +54,21 @@ class DocumentTotalViewModel
         $allAdjustmentIds = [];
         foreach ($lineItems as $item) {
             $lineTaxIds = (array) ($item[$taxKey] ?? []);
-            foreach ($lineTaxIds as $id) $allAdjustmentIds[$id] = $id;
+            foreach ($lineTaxIds as $id) {
+                $allAdjustmentIds[$id] = $id;
+            }
 
             $lineDiscountIds = (array) ($item[$discountKey] ?? []);
-            foreach ($lineDiscountIds as $id) $allAdjustmentIds[$id] = $id;
+            foreach ($lineDiscountIds as $id) {
+                $allAdjustmentIds[$id] = $id;
+            }
         }
-        foreach ($documentTaxIds as $id) $allAdjustmentIds[$id] = $id;
+        foreach ($documentTaxIds as $id) {
+            $allAdjustmentIds[$id] = $id;
+        }
 
-        $adjustmentCache = empty($allAdjustmentIds) 
-            ? collect() 
+        $adjustmentCache = empty($allAdjustmentIds)
+            ? collect()
             : Adjustment::withoutGlobalScopes()->whereIn('id', array_keys($allAdjustmentIds))->get()->keyBy('id');
 
         $subtotalInCents = 0;

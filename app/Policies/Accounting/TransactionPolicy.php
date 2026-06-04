@@ -2,8 +2,8 @@
 
 namespace App\Policies\Accounting;
 
-use App\Models\User;
 use App\Models\Accounting\Transaction;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TransactionPolicy

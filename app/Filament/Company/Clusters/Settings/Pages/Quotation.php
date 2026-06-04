@@ -45,7 +45,6 @@ class Quotation extends Page
         return static::canAccess();
     }
 
-
     protected static ?string $title = 'Quotation';
 
     protected static string $view = 'filament.company.pages.setting.quotation';

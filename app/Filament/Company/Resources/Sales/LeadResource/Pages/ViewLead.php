@@ -5,8 +5,6 @@ namespace App\Filament\Company\Resources\Sales\LeadResource\Pages;
 use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Company\Resources\Sales\LeadResource;
-use App\Filament\User\Pages\CreateQuotation;
-use App\Filament\User\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;

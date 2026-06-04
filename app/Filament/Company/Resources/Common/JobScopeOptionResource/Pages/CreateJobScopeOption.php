@@ -2,11 +2,11 @@
 
 namespace App\Filament\Company\Resources\Common\JobScopeOptionResource\Pages;
 
+use App\Enums\Common\OfferingType;
 use App\Filament\Company\Resources\Common\JobScopeOptionResource;
 use App\Models\Setting\CompanyDefault;
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
-use App\Enums\Common\OfferingType;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreateJobScopeOption extends CreateRecord
 {

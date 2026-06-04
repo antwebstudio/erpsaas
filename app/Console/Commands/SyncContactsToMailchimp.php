@@ -45,6 +45,7 @@ class SyncContactsToMailchimp extends Command
 
             if (! $contact || empty($contact->email)) {
                 $skipped++;
+
                 continue;
             }
 

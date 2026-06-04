@@ -1,13 +1,13 @@
 <?php
 
+use App\Enums\Accounting\EstimateStatus;
 use App\Models\Accounting\Estimate;
 use App\Models\Common\Client;
+use App\Models\Common\Lead;
 use App\Models\Common\Offering;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\Accounting\EstimateService;
-use App\Enums\Accounting\EstimateStatus;
-use App\Models\Common\Lead;
 
 test('it converts estimate to contract and updates client details', function () {
     $service = app(EstimateService::class);

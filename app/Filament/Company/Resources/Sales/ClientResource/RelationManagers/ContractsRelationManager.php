@@ -4,10 +4,10 @@ namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\ContractResource;
 use App\Models\Accounting\Contract;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ContractsRelationManager extends RelationManager
 {

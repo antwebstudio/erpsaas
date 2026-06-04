@@ -2,6 +2,7 @@
 
 namespace App\Filament\Company\Resources\Mail;
 
+use App\Filament\Company\Resources\Mail\MailTemplateResource\Pages;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
@@ -12,7 +13,6 @@ use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use JeffersonGoncalves\FilamentMail\Contracts\TemplateEditorContract;
 use JeffersonGoncalves\FilamentMail\Resources\MailTemplateResource as BaseMailTemplateResource;
-use App\Filament\Company\Resources\Mail\MailTemplateResource\Pages;
 
 class MailTemplateResource extends BaseMailTemplateResource
 {
@@ -83,7 +83,7 @@ class MailTemplateResource extends BaseMailTemplateResource
                                                 }
                                                 \$event.target.value = '';
                                             }
-                                        "
+                                        ",
                                     ]),
 
                                 Forms\Components\Select::make('insert_lead_contact_address')
@@ -132,7 +132,7 @@ class MailTemplateResource extends BaseMailTemplateResource
                                                 }
                                                 \$event.target.value = '';
                                             }
-                                        "
+                                        ",
                                     ]),
                             ]),
 

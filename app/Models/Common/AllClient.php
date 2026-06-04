@@ -3,7 +3,6 @@
 namespace App\Models\Common;
 
 use App\Scopes\CurrentCompanyScope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
@@ -23,14 +22,13 @@ class AllClient extends Client
     {
         // Don't add CurrentCompanyScope in this model
     }
-    
 
     public function addresses(): MorphMany
     {
         return parent::addresses()->withoutGlobalScopes([
             CurrentCompanyScope::class,
         ]);
-            ;
+
     }
 
     public function billingAddress(): MorphOne

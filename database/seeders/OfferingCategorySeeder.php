@@ -2500,16 +2500,15 @@ class OfferingCategorySeeder extends Seeder
                 return $factory
                     ->state([
                         'name' => 'ERPSAAS',
-                    ])
-                    // ->withTransactions(250)
-                    // ->withOfferings()
-                    // ->withClients()
-                    // ->withVendors()
-                    // ->withInvoices(30)
-                    // ->withRecurringInvoices()
-                    // ->withEstimates(30)
-                    // ->withBills(30)
-                    ;
+                    ]);
+                // ->withTransactions(250)
+                // ->withOfferings()
+                // ->withClients()
+                // ->withVendors()
+                // ->withInvoices(30)
+                // ->withRecurringInvoices()
+                // ->withEstimates(30)
+                // ->withBills(30)
             })
             ->create([
                 'name' => 'Admin',
@@ -2525,20 +2524,20 @@ class OfferingCategorySeeder extends Seeder
     public function run(): void
     {
 
-        if (!\App\Models\User::where('email', 'admin@erpsaas.com')->exists()) {
+        if (! \App\Models\User::where('email', 'admin@erpsaas.com')->exists()) {
             $this->seedUsers();
         }
 
         // Ensure we have a company context
         $companyId = DB::table('companies')->value('id');
-        
-        if (!$companyId) {
-             $companyId = DB::table('companies')->insertGetId([
-                 'name' => 'Default',
-                 'email' => 'default@example.com',
-                 'created_at' => now(),
-                 'updated_at' => now(),
-             ]);
+
+        if (! $companyId) {
+            $companyId = DB::table('companies')->insertGetId([
+                'name' => 'Default',
+                'email' => 'default@example.com',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         return;
@@ -2550,7 +2549,7 @@ class OfferingCategorySeeder extends Seeder
 
         foreach ($scopes as $scopeData) {
             $scopeName = $scopeData['name'] ?? 'Unknown Scope';
-            
+
             // Level 1: Scope
             $scopeNode = OfferingCategory::firstOrCreate(
                 [
@@ -2564,8 +2563,8 @@ class OfferingCategorySeeder extends Seeder
             if (isset($scopeData['descriptions']) && is_array($scopeData['descriptions'])) {
                 foreach ($scopeData['descriptions'] as $descData) {
                     $descText = $descData['text'] ?? 'Unknown Description';
-                    
-                   try {
+
+                    try {
                         // Level 2: Description
                         $descNode = $scopeNode->children()->firstOrCreate(
                             [
@@ -2574,10 +2573,11 @@ class OfferingCategorySeeder extends Seeder
                             ],
                             []
                         );
-                   } catch (\Exception $e) {
-                       $this->command->error("Failed to create description: {$descText}");
-                       continue;
-                   }
+                    } catch (\Exception $e) {
+                        $this->command->error("Failed to create description: {$descText}");
+
+                        continue;
+                    }
 
                     if (isset($descData['items']) && is_array($descData['items'])) {
                         foreach ($descData['items'] as $itemData) {

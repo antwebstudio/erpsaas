@@ -3,7 +3,6 @@
 namespace App\DTO;
 
 use App\Models\Accounting\DocumentLineItemGroup;
-use Illuminate\Support\Collection;
 
 readonly class LineItemGroupDTO
 {

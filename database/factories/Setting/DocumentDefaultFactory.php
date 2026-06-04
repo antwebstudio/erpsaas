@@ -34,20 +34,20 @@ class DocumentDefaultFactory extends Factory
     }
 
     private const COLOR_PALETTE_BROWN = [
-        'accent_color'          => '#C7B098',
-        'color_text'            => '#293834',
-        'color_secondary'       => '#d8d1c6',
-        'color_secondary_text'  => '#293834',
-        'color_section_bg'      => '#e62424ff',
+        'accent_color' => '#C7B098',
+        'color_text' => '#293834',
+        'color_secondary' => '#d8d1c6',
+        'color_secondary_text' => '#293834',
+        'color_section_bg' => '#e62424ff',
         'color_section_bg_text' => '#293834',
-        'color_group_bg'        => '#e8e2db', 
-        'color_group_bg_text'   => '#293834',
-        'color_subgroup_bg'     => '#ffffff',
-        'color_subgroup_text'   => '#C7B098',
+        'color_group_bg' => '#e8e2db',
+        'color_group_bg_text' => '#293834',
+        'color_subgroup_bg' => '#ffffff',
+        'color_subgroup_text' => '#C7B098',
     ];
 
     private const COLOR_PALETTE_INDIGO = [
-        'accent_color'          => '#C7B098',
+        'accent_color' => '#C7B098',
     ];
 
     /**

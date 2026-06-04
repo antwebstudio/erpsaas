@@ -9,7 +9,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
@@ -61,38 +60,40 @@ class UserResource extends Resource
                                 }
                             }),
                         Forms\Components\Group::make()
-                            ->schema(fn (Forms\Get $get, ?\App\Models\User $record): array => collect($get('companies') ?? [])
-                                ->map(function ($companyId) use ($record) {
-                                    $company = \App\Models\Company::find($companyId);
-                                    if (! $company) {
-                                        return null;
-                                    }
-                                    return Forms\Components\CheckboxList::make("company_roles_{$company->id}")
-                                        ->label("Roles in {$company->name}")
-                                        ->default([])
-                                        ->options(\Spatie\Permission\Models\Role::withoutGlobalScopes()->where('company_id', $company->id)->orWhereNull('company_id')->pluck('name', 'id'))
-                                        ->afterStateHydrated(function (Forms\Components\CheckboxList $component, ?\App\Models\User $record) use ($company) {
-                                            if ($record) {
-                                                $component->state($record->getRolesForCompany($company->id)->pluck('id')->map(fn ($id) => (string) $id)->toArray());
-                                            }
-                                        })
-                                        ->dehydrated(false)
-                                        ->saveRelationshipsUsing(function (\App\Models\User $record, $state) use ($company) {
-                                            $sessionCompanyId = getPermissionsTeamId();
-                                            setPermissionsTeamId($company->id);
-                                            
-                                            $roleIds = is_array($state) ? $state : [];
-                                            $roles = \Spatie\Permission\Models\Role::withoutGlobalScopes()
-                                                        ->whereIn('id', $roleIds)
-                                                        ->get();
-                                                        
-                                            $record->syncRoles($roles);
-                                            
-                                            setPermissionsTeamId($sessionCompanyId);
-                                        });
-                                })
-                                ->filter()
-                                ->toArray()
+                            ->schema(
+                                fn (Forms\Get $get, ?\App\Models\User $record): array => collect($get('companies') ?? [])
+                                    ->map(function ($companyId) use ($record) {
+                                        $company = \App\Models\Company::find($companyId);
+                                        if (! $company) {
+                                            return null;
+                                        }
+
+                                        return Forms\Components\CheckboxList::make("company_roles_{$company->id}")
+                                            ->label("Roles in {$company->name}")
+                                            ->default([])
+                                            ->options(\Spatie\Permission\Models\Role::withoutGlobalScopes()->where('company_id', $company->id)->orWhereNull('company_id')->pluck('name', 'id'))
+                                            ->afterStateHydrated(function (Forms\Components\CheckboxList $component, ?\App\Models\User $record) use ($company) {
+                                                if ($record) {
+                                                    $component->state($record->getRolesForCompany($company->id)->pluck('id')->map(fn ($id) => (string) $id)->toArray());
+                                                }
+                                            })
+                                            ->dehydrated(false)
+                                            ->saveRelationshipsUsing(function (\App\Models\User $record, $state) use ($company) {
+                                                $sessionCompanyId = getPermissionsTeamId();
+                                                setPermissionsTeamId($company->id);
+
+                                                $roleIds = is_array($state) ? $state : [];
+                                                $roles = \Spatie\Permission\Models\Role::withoutGlobalScopes()
+                                                    ->whereIn('id', $roleIds)
+                                                    ->get();
+
+                                                $record->syncRoles($roles);
+
+                                                setPermissionsTeamId($sessionCompanyId);
+                                            });
+                                    })
+                                    ->filter()
+                                    ->toArray()
                             ),
                     ]),
             ]);
@@ -119,7 +120,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                \STS\FilamentImpersonate\Tables\Actions\Impersonate::make(), 
+                \STS\FilamentImpersonate\Tables\Actions\Impersonate::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

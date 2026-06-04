@@ -32,7 +32,7 @@ class EditMailTemplate extends BaseEditMailTemplate
                     [$html, $subject] = $this->renderTemplateForPreview($locale);
 
                     return view('filament-mail::components.mail-preview-modal', [
-                        'html'    => $html,
+                        'html' => $html,
                         'subject' => $subject,
                     ]);
                 })
@@ -102,7 +102,7 @@ class EditMailTemplate extends BaseEditMailTemplate
     private function renderTemplateForPreview(string $locale): array
     {
         try {
-            $htmlBody    = $this->record->getHtmlBodyForLocale($locale);
+            $htmlBody = $this->record->getHtmlBodyForLocale($locale);
             $subjectBody = $this->record->getSubjectForLocale($locale);
 
             $variables = collect($this->record->variables ?? [])
@@ -122,7 +122,7 @@ class EditMailTemplate extends BaseEditMailTemplate
                 }, $template);
             };
 
-            $html    = $replacer($htmlBody);
+            $html = $replacer($htmlBody);
             $subject = $replacer($subjectBody);
 
             if ($html !== null && config('laravel-mail.templates.inline_css', true)) {

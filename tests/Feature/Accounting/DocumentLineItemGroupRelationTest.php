@@ -2,7 +2,6 @@
 
 use App\Models\Accounting\DocumentLineItemGroup;
 use App\Models\Accounting\Invoice;
-use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
 
 beforeEach(function () {

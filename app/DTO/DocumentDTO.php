@@ -152,7 +152,7 @@ readonly class DocumentDTO
             colorSubgroupBg: $settings?->color_subgroup_bg ?? '#f7f1eb',
             colorSubgroupText: $settings?->color_subgroup_text ?? '#96693c',
             colorText: $settings?->color_text ?? '#293834',
-            lineItemGroups: $document->lineItemGroups()->withoutGlobalScopes()->whereNull('parent_id')->get()->isNotEmpty() 
+            lineItemGroups: $document->lineItemGroups()->withoutGlobalScopes()->whereNull('parent_id')->get()->isNotEmpty()
                 ? $document->lineItemGroups()
                     ->withoutGlobalScopes()
                     ->whereNull('parent_id')
@@ -164,6 +164,7 @@ readonly class DocumentDTO
                         foreach ($group->children as $child) {
                             $groups[] = LineItemGroupDTO::fromModel($child, false);
                         }
+
                         return $groups;
                     })
                 : collect([new LineItemGroupDTO(name: null, items: $document->lineItems()->withoutGlobalScopes()->with('offering')->get()->map(fn ($item) => LineItemDTO::fromModel($item)))]),

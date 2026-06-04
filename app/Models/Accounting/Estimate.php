@@ -9,11 +9,10 @@ use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
-use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
+use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
-use App\Filament\Company\Resources\Sales\VariationOrderResource;
-use App\Models\Accounting\VariationOrder;
+use App\Mail\Sales\EstimateMail;
 use App\Models\Common\Client;
 use App\Models\Common\ClientAndLead;
 use App\Models\Common\Lead;
@@ -34,13 +33,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use App\Models\Accounting\DocumentLineItemGroup;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\Sales\EstimateMail;
-
 
 #[CollectedBy(DocumentCollection::class)]
 #[ObservedBy(EstimateObserver::class)]
@@ -262,7 +257,6 @@ class Estimate extends Document
     {
         $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;
 
-
         $defaultEstimateSettings = $company->defaultEstimate;
 
         $numberPrefix = $defaultEstimateSettings->number_prefix ?? '';
@@ -303,6 +297,7 @@ class Estimate extends Document
             'status' => EstimateStatus::Unsent,
         ]);
     }
+
     public function scopeIsTemplate(Builder $query): Builder
     {
         return $query->where('is_template', true);
@@ -338,8 +333,8 @@ class Estimate extends Document
                 return $templateCompanyId !== null;
             })
             ->action(function (self $record, array $data, MountableAction $action, Component $livewire) {
-                 $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
-                 $templateCompany = Company::withoutGlobalScopes()->find($templateCompanyId);
+                $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+                $templateCompany = Company::withoutGlobalScopes()->find($templateCompanyId);
 
                 if (! $templateCompanyId) {
                     Notification::make()
@@ -418,17 +413,17 @@ class Estimate extends Document
                     ->default(fn (self $record) => $record->clientOrLead?->primaryContact?->email),
                 Forms\Components\TextInput::make('subject')
                     ->required()
-                    ->default(fn (self $record) => "Estimate #" . $record->estimate_number),
+                    ->default(fn (self $record) => 'Estimate #' . $record->estimate_number),
                 Forms\Components\Textarea::make('message')
                     ->required()
                     ->rows(5)
-                    ->default(fn (self $record) => "Dear " . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached estimate " . $record->estimate_number . ".\n\nBest regards."),
+                    ->default(fn (self $record) => 'Dear ' . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached estimate " . $record->estimate_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
                 Mail::to($data['email'])->send(new EstimateMail($record, $data['message'], $data['subject']));
-                
+
                 $record->markAsSent();
-                
+
                 $action->success();
             });
     }
@@ -530,8 +525,8 @@ class Estimate extends Document
                 'client_address_line_1' => $record->clientOrLead?->billingAddress?->address_line_1 ?? '',
                 'client_address_line_2' => $record->clientOrLead?->billingAddress?->address_line_2,
                 'client_postal_code' => $record->clientOrLead?->billingAddress?->postal_code,
-                'client_country_code' => $record->clientOrLead?->billingAddress?->country_code ?? 
-                    $record->templateCompany?->profile?->address?->country_code ?? 
+                'client_country_code' => $record->clientOrLead?->billingAddress?->country_code ??
+                    $record->templateCompany?->profile?->address?->country_code ??
                     $record->company?->profile?->address?->country_code,
                 'salesperson_name' => $record->createdBy?->name,
                 'salesperson_email' => $record->createdBy?->email,
@@ -588,7 +583,6 @@ class Estimate extends Document
                     $schema[] = Forms\Components\TextInput::make('client_address_line_2')
                         ->label('Address Line 2');
                 }
-
 
                 if (blank($record->clientOrLead?->billingAddress?->postal_code)) {
                     $schema[] = Forms\Components\TextInput::make('client_postal_code')
@@ -764,11 +758,11 @@ class Estimate extends Document
                 'created_by',
                 'updated_by',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ]);
             $replicaGroup->documentable_id = $target->id;
             $replicaGroup->documentable_type = $target->getMorphClass();
-            
+
             if ($group->parent_id && isset($groupMap[$group->parent_id])) {
                 $replicaGroup->parent_id = $groupMap[$group->parent_id];
             } else {
@@ -820,9 +814,9 @@ class Estimate extends Document
             $replica->adjustments()->sync($lineItem->adjustments->pluck('id'));
         });
 
-        //if ($this->adjustments()->exists()) {
+        // if ($this->adjustments()->exists()) {
         //    $target->adjustments()->sync($this->adjustments->pluck('id'));
-        //}
+        // }
     }
 
     public static function createFromTemplate(self $template, int $clientId, ?int $estimateId = null, ?Company $company = null, ?int $userId = null): self
@@ -833,7 +827,7 @@ class Estimate extends Document
 
         if ($estimateId) {
             $estimate = self::findOrFail($estimateId);
-            
+
             // Clear existing lines
             $estimate->lineItems()->delete();
             $estimate->lineItemGroups()->delete();
@@ -891,7 +885,7 @@ class Estimate extends Document
         $grandTotal = $estimate->lineItems()->sum('total');
         // Calculate other totals if needed, for now assuming simple sum
         $subtotal = $estimate->lineItems()->sum('subtotal');
-        // taxes etc... 
+        // taxes etc...
 
         $estimate->update([
             'subtotal' => $subtotal,
@@ -944,7 +938,7 @@ class Estimate extends Document
                 $record->refresh();
                 $record->load(['salesTaxes', 'lineItems', 'templateCompany']);
 
-                $pdfService = new \App\Services\EstimatePdfService();
+                $pdfService = new \App\Services\EstimatePdfService;
                 $finalPdfOutput = $pdfService->generate($record);
 
                 return response()->streamDownload(function () use ($finalPdfOutput) {

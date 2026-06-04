@@ -60,7 +60,7 @@ class CurrencyConverter
         static $moneyCache = [];
 
         $currency ??= CurrencyAccessor::getDefaultCurrency();
-        
+
         $key = "cents_{$amount}_{$currency}_" . ($withCode ? '1' : '0');
 
         if (isset($moneyCache[$key])) {

@@ -77,6 +77,7 @@ class EditEstimateTemplate extends EditRecord
                                     $selected[] = (int) $group['offering_category_id'];
                                 }
                             }
+
                             return $selected;
                         })
                         ->required(),

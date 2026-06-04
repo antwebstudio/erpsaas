@@ -10,7 +10,7 @@ class EstimateTemplate extends Estimate
 
     public function getMorphClass(): string
     {
-        return (new Estimate())->getMorphClass();
+        return (new Estimate)->getMorphClass();
     }
 
     protected static function booted(): void

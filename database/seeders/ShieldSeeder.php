@@ -2,21 +2,19 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Role;
-use App\Models\Permission;
 use App\Models\Company;
+use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use BezhanSalleh\FilamentShield\Support\Utils;
-use Illuminate\Support\Str;
 
 class ShieldSeeder extends Seeder
 {
     protected $adminEmail = [
-        2 => "muyi@example.com",
-        3 => "designstudio@example.com",
-        4 => "stylemyspace@example.com",
+        2 => 'muyi@example.com',
+        3 => 'designstudio@example.com',
+        4 => 'stylemyspace@example.com',
     ];
 
     /**
@@ -25,11 +23,11 @@ class ShieldSeeder extends Seeder
     public function run(): void
     {
         $superAdminName = config('filament-shield.super_admin.name', 'Super Admin');
-        
-        $this->command->info("Ensuring all permissions exist...");
+
+        $this->command->info('Ensuring all permissions exist...');
 
         $permissions = [];
-        
+
         // Resource permissions
         $companyResource = [
             'Adjustment' => 'adjustment',
@@ -69,8 +67,8 @@ class ShieldSeeder extends Seeder
         ];
 
         $prefixes = config('filament-shield.permission_prefixes.resource', [
-            'view', 'view_any', 'view_mine', 'create', 'update', 'update_any', 'restore', 'restore_any', 
-            'replicate', 'reorder', 'delete', 'delete_any', 'force_delete', 'force_delete_any'
+            'view', 'view_any', 'view_mine', 'create', 'update', 'update_any', 'restore', 'restore_any',
+            'replicate', 'reorder', 'delete', 'delete_any', 'force_delete', 'force_delete_any',
         ]);
 
         $companyResourcePermissions = [];
@@ -172,13 +170,13 @@ class ShieldSeeder extends Seeder
             ]);
 
             if ($company->id == 1) {
-                $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn($p) => str_contains($p, 'document::default') || str_contains($p, 'mail::')));
+                $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn ($p) => str_contains($p, 'document::default') || str_contains($p, 'mail::')));
                 $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $documentDefaultPerms, $customPermissions);
             } else {
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
-                $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn($p) => ! str_contains($p, 'sales::client')));
-                $allClientPerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::all::client')));
-                $estimateTemplatePerms = array_values(array_filter($globalResourcePermissions, fn($p) => str_contains($p, 'sales::estimate::template')));
+                $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn ($p) => ! str_contains($p, 'sales::client')));
+                $allClientPerms = array_values(array_filter($globalResourcePermissions, fn ($p) => str_contains($p, 'sales::all::client')));
+                $estimateTemplatePerms = array_values(array_filter($globalResourcePermissions, fn ($p) => str_contains($p, 'sales::estimate::template')));
                 $adminPermissions = array_merge($pagePermissions, $nonClientPerms, $allClientPerms, $estimateTemplatePerms, $customPermissions);
             }
 
@@ -243,7 +241,7 @@ class ShieldSeeder extends Seeder
         $adminEmail = 'admin@example.com';
         $user = User::where('email', $adminEmail)->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => 'Super Admin',
                 'email' => $adminEmail,
@@ -260,7 +258,7 @@ class ShieldSeeder extends Seeder
         }
 
         foreach ($companies as $company) {
-            if (!$user->belongsToCompany($company)) {
+            if (! $user->belongsToCompany($company)) {
                 $user->companies()->attach($company, ['role' => 'admin']);
             }
 
@@ -271,8 +269,8 @@ class ShieldSeeder extends Seeder
         // Assign Admin role to admin@erpsaas.com for all companies
         $erpsaasAdminEmail = 'admin@erpsaas.com';
         $erpsaasAdmin = User::where('email', $erpsaasAdminEmail)->first();
-        
-        if (!$erpsaasAdmin) {
+
+        if (! $erpsaasAdmin) {
             $erpsaasAdmin = User::create([
                 'name' => 'Admin',
                 'email' => $erpsaasAdminEmail,
@@ -283,12 +281,12 @@ class ShieldSeeder extends Seeder
             $this->command->info("User {$erpsaasAdminEmail} created.");
         }
 
-        if ($firstCompany && !$erpsaasAdmin->current_company_id) {
+        if ($firstCompany && ! $erpsaasAdmin->current_company_id) {
             $erpsaasAdmin->switchCompany($firstCompany);
         }
 
         foreach ($companies as $company) {
-            if (!$erpsaasAdmin->belongsToCompany($company)) {
+            if (! $erpsaasAdmin->belongsToCompany($company)) {
                 $erpsaasAdmin->companies()->attach($company, ['role' => 'admin']);
             }
 
@@ -300,10 +298,10 @@ class ShieldSeeder extends Seeder
         foreach ($companies as $company) {
             $companyAdminEmail = $this->adminEmail[$company->id] ?? "admin{$company->id}@example.com";
             $companyAdmin = User::where('email', $companyAdminEmail)->first();
-            
-            if (!$companyAdmin) {
+
+            if (! $companyAdmin) {
                 $companyAdmin = User::create([
-                    'name' => "Admin " . $company->name,
+                    'name' => 'Admin ' . $company->name,
                     'email' => $companyAdminEmail,
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
@@ -312,11 +310,11 @@ class ShieldSeeder extends Seeder
                 $this->command->info("User {$companyAdminEmail} created.");
             }
 
-            if (!$companyAdmin->current_company_id) {
+            if (! $companyAdmin->current_company_id) {
                 $companyAdmin->switchCompany($company);
             }
 
-            if (!$companyAdmin->belongsToCompany($company)) {
+            if (! $companyAdmin->belongsToCompany($company)) {
                 $companyAdmin->companies()->attach($company, ['role' => 'admin']);
             }
 
@@ -331,7 +329,7 @@ class ShieldSeeder extends Seeder
         foreach (['sales1@erpsaas.com', 'sales2@erpsaas.com'] as $index => $salesEmail) {
             $salesUser = User::where('email', $salesEmail)->first();
 
-            if (!$salesUser) {
+            if (! $salesUser) {
                 $salesUser = User::create([
                     'name' => 'Sales User ' . ($index + 1),
                     'email' => $salesEmail,
@@ -342,12 +340,12 @@ class ShieldSeeder extends Seeder
                 $this->command->info("User {$salesEmail} created.");
             }
 
-            if ($erpSystemCompany && !$salesUser->current_company_id) {
+            if ($erpSystemCompany && ! $salesUser->current_company_id) {
                 $salesUser->switchCompany($erpSystemCompany);
             }
 
             if ($erpSystemCompany) {
-                if (!$salesUser->belongsToCompany($erpSystemCompany)) {
+                if (! $salesUser->belongsToCompany($erpSystemCompany)) {
                     $salesUser->companies()->attach($erpSystemCompany, ['role' => 'user']);
                 }
 

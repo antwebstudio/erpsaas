@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Accounting\VariationOrder;
-use App\Models\Setting\DocumentDefault;
 use App\DTO\DocumentDTO;
 use App\Enums\Setting\Template;
-use Spatie\LaravelPdf\Facades\Pdf;
-use setasign\Fpdi\Fpdi;
+use App\Models\Accounting\VariationOrder;
+use App\Models\Setting\DocumentDefault;
 use Illuminate\Support\Facades\Storage;
+use setasign\Fpdi\Fpdi;
+use Spatie\LaravelPdf\Facades\Pdf;
 
 class VariationOrderPdfService
 {
@@ -18,7 +18,7 @@ class VariationOrderPdfService
     public function generate(VariationOrder $variationOrder): string
     {
         ini_set('memory_limit', '2048M');
-        
+
         $documentTypeEnum = $variationOrder::documentType();
         $defaults = DocumentDefault::query()
             ->type($documentTypeEnum)
@@ -44,21 +44,21 @@ class VariationOrderPdfService
             })
             ->format('a4')
             ->base64();
-            
+
         $pdfString = base64_decode($pdfBase64);
-        
-        $pdf = new Fpdi();
+
+        $pdf = new Fpdi;
 
         // 1. Prepend Cover PDF
         $coverPath = $defaults?->cover_pdf ? Storage::disk('public')->path($defaults->cover_pdf) : null;
-        
+
         // Handle template company override if exists
         if ($variationOrder->template_company_id) {
             $templateDefaults = DocumentDefault::withoutGlobalScopes()
                 ->where('company_id', $variationOrder->template_company_id)
                 ->type($documentTypeEnum)
                 ->first();
-            
+
             if ($templateDefaults?->cover_pdf) {
                 $coverPath = Storage::disk('public')->path($templateDefaults->cover_pdf);
             }
@@ -95,7 +95,7 @@ class VariationOrderPdfService
         }
 
         $finalPdfOutput = $pdf->Output('S');
-        
+
         if (file_exists($tempVO)) {
             unlink($tempVO);
         }

@@ -4,10 +4,7 @@ namespace App\Filament\Company\Resources\Sales\ContractResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
 use App\Filament\Company\Resources\Sales\AllClientResource;
-use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
-use App\Filament\Company\Resources\Sales\LeadResource;
-use App\Filament\Infolists\Components\BannerEntry;
 use App\Filament\Infolists\Components\DocumentPreview;
 use App\Models\Accounting\Estimate;
 use Filament\Actions;
@@ -17,7 +14,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\IconPosition;
-use Illuminate\Support\HtmlString;
 
 class ViewContract extends ViewRecord
 {

@@ -4,7 +4,6 @@ namespace App\Filament\Company\Resources\Sales\EstimateResource\Pages;
 
 use App\Enums\Accounting\DocumentType;
 use App\Filament\Company\Resources\Sales\AllClientResource;
-use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\LeadResource;
 use App\Filament\Infolists\Components\BannerEntry;
@@ -117,7 +116,7 @@ class ViewEstimate extends ViewRecord
                                     ->link(),
                                 TextEntry::make('expiration_date')
                                     ->label('Expiration date')
-                                     ->hidden(fn () => ! config('erp.show_expiry_date', true))
+                                    ->hidden(fn () => ! config('erp.show_expiry_date', true))
                                     ->asRelativeDay(),
                                 TextEntry::make('approved_at')
                                     ->label('Approved at')

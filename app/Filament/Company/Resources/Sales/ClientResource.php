@@ -2,6 +2,7 @@
 
 namespace App\Filament\Company\Resources\Sales;
 
+use App\Enums\Common\ClientStatus;
 use App\Filament\Company\Resources\Sales\ClientResource\Pages;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Exports\Common\ClientExporter;
@@ -11,7 +12,6 @@ use App\Filament\Forms\Components\CustomSection;
 use App\Filament\Forms\Components\PhoneBuilder;
 use App\Filament\Tables\Actions\BulkSendEmailAction;
 use App\Filament\Tables\Columns;
-use App\Enums\Common\ClientStatus;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Utilities\Currency\CurrencyConverter;
@@ -413,7 +413,7 @@ class ClientResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (Auth::user()->can('view_mine_sales::client') && !Auth::user()->can('view_any_sales::client')) {
+        if (Auth::user()->can('view_mine_sales::client') && ! Auth::user()->can('view_any_sales::client')) {
             $query->where('created_by', Auth::id());
         }
 

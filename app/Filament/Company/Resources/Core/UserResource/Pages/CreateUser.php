@@ -13,9 +13,9 @@ class CreateUser extends CreateRecord
     {
         /** @var \App\Models\User $user */
         $user = $this->record;
-        
+
         $user->companies()->syncWithoutDetaching([filament()->getTenant()->id]);
-        
+
         // Optionally set as current company if not set
         if (! $user->current_company_id) {
             $user->current_company_id = filament()->getTenant()->id;

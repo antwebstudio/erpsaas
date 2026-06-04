@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 trait ManagesLineItems
 {
     private array $preloadedGroups = [];
+
     private array $preloadedItems = [];
 
     /** Existing items (have IDs) collected for a single batch upsert. */
@@ -41,6 +42,7 @@ trait ManagesLineItems
             $this->flushPendingItems();
             $this->flushPendingAdjustments();
             $this->flushPendingTotals($record->discount_method ?? DocumentDiscountMethod::PerLineItem);
+
             return;
         }
 
@@ -87,7 +89,7 @@ trait ManagesLineItems
         }
 
         $discountMethod = $record->discount_method ?? DocumentDiscountMethod::PerLineItem;
-        $isBill = $record->getMorphClass() === (new Bill())->getMorphClass();
+        $isBill = $record->getMorphClass() === (new Bill)->getMorphClass();
 
         $groupOrder = 0;
         foreach ($groups as $groupData) {
@@ -103,11 +105,11 @@ trait ManagesLineItems
             $hasItems = $realItemCount > 0;
             $hasChildren = count($groupData['children'] ?? []) > 0;
 
-            if (!$hasName && !$hasCategory && !$hasItems && !$hasChildren) {
+            if (! $hasName && ! $hasCategory && ! $hasItems && ! $hasChildren) {
                 continue;
             }
 
-            if ($parentId !== null && !$hasItems && !$hasChildren) {
+            if ($parentId !== null && ! $hasItems && ! $hasChildren) {
                 $id = $groupData['id'] ?? null;
                 if ($id) {
                     $existingGroup = $this->preloadedGroups[$id] ?? null;
@@ -116,6 +118,7 @@ trait ManagesLineItems
                         $existingGroup->delete();
                     }
                 }
+
                 continue;
             }
 
@@ -237,13 +240,14 @@ trait ManagesLineItems
         if ($lineItems->isEmpty()) {
             $record->lineItems()->each(fn ($item) => $item->delete());
             $record->lineItemGroups()->each(fn ($group) => $group->delete());
+
             return;
         }
 
         $isGrouped = $lineItems->contains(fn ($item) => isset($item['items']) || isset($item['children']) || array_key_exists('name', $item));
 
         if ($isGrouped) {
-             $this->deleteRemovedLineItemGroups($record, $lineItems);
+            $this->deleteRemovedLineItemGroups($record, $lineItems);
         } else {
             $existingLineItemIds = $record->lineItems()->pluck('id');
             $updatedLineItemIds = $lineItems->pluck('id')->filter();
@@ -326,7 +330,7 @@ trait ManagesLineItems
      */
     protected function collectItemAdjustments(int $itemId, array $itemData, DocumentDiscountMethod $discountMethod, Model $record): void
     {
-        $isBill = $record->getMorphClass() === (new Bill())->getMorphClass();
+        $isBill = $record->getMorphClass() === (new Bill)->getMorphClass();
         $taxType = $isBill ? 'purchaseTaxes' : 'salesTaxes';
         $discountType = $isBill ? 'purchaseDiscounts' : 'salesDiscounts';
 
@@ -349,7 +353,7 @@ trait ManagesLineItems
             return;
         }
 
-        $morphType = (new DocumentLineItem())->getMorphClass();
+        $morphType = (new DocumentLineItem)->getMorphClass();
         $itemIds = array_keys($this->pendingAdjustments);
 
         DB::table('adjustmentables')
@@ -460,7 +464,7 @@ trait ManagesLineItems
         ];
     }
 
-    protected function calculateDocumentTaxTotal(array|Collection $taxIds, int $subtotalCents): int
+    protected function calculateDocumentTaxTotal(array | Collection $taxIds, int $subtotalCents): int
     {
         if (empty($taxIds)) {
             return 0;

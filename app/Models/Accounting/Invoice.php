@@ -11,6 +11,7 @@ use App\Enums\Accounting\InvoiceStatus;
 use App\Enums\Accounting\JournalEntryType;
 use App\Enums\Accounting\TransactionType;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
+use App\Mail\Sales\InvoiceMail;
 use App\Models\Banking\BankAccount;
 use App\Models\Common\Client;
 use App\Models\Company;
@@ -22,6 +23,7 @@ use Filament\Actions\Action;
 use Filament\Actions\MountableAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Actions\StaticAction;
+use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
@@ -33,15 +35,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use App\Mail\Sales\InvoiceMail;
-use Filament\Forms;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
-use App\Models\Accounting\DocumentLineItemGroup;
-
 
 #[CollectedBy(DocumentCollection::class)]
 #[ObservedBy(InvoiceObserver::class)]
@@ -660,7 +658,7 @@ class Invoice extends Document
                 Forms\Components\Textarea::make('message')
                     ->required()
                     ->rows(5)
-                    ->default(fn (self $record) => "Dear " . ($record->client?->name ?? 'Client') . ",\n\nPlease find the attached invoice " . $record->invoice_number . ".\n\nBest regards."),
+                    ->default(fn (self $record) => 'Dear ' . ($record->client?->name ?? 'Client') . ",\n\nPlease find the attached invoice " . $record->invoice_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, MountableAction $action) {
                 Mail::to($data['email'])->send(new InvoiceMail($record, $data['message'], $data['subject']));
@@ -744,11 +742,11 @@ class Invoice extends Document
                 'created_by',
                 'updated_by',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ]);
             $replicaGroup->documentable_id = $target->id;
             $replicaGroup->documentable_type = $target->getMorphClass();
-            
+
             if ($group->parent_id && isset($groupMap[$group->parent_id])) {
                 $replicaGroup->parent_id = $groupMap[$group->parent_id];
             } else {

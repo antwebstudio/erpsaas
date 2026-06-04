@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\Accounting\DocumentType;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
-use App\Enums\Accounting\DocumentType;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class InitTemplates extends Command
 {
     protected $signature = 'app:init-templates';
+
     protected $description = 'Import templates and set document defaults for companies.';
 
     private array $skipped = [];
@@ -44,19 +45,23 @@ class InitTemplates extends Command
         $this->info('Function 1: Importing Estimate Templates...');
 
         $path = storage_path('template/raw');
-        if (!File::isDirectory($path)) {
+        if (! File::isDirectory($path)) {
             $this->skipped[] = "Directory missing: {$path}";
+
             return;
         }
 
         $files = File::files($path);
         if (empty($files)) {
             $this->skipped[] = "No files found in: {$path}";
+
             return;
         }
 
         foreach ($files as $file) {
-            if ($file->getExtension() !== 'xlsx') continue;
+            if ($file->getExtension() !== 'xlsx') {
+                continue;
+            }
 
             $filename = $file->getFilename();
             $relativePath = 'template/raw/' . $filename;
@@ -67,7 +72,7 @@ class InitTemplates extends Command
             $exitCode = Artisan::call('app:import-estimate-template', [
                 'filename' => $relativePath,
                 '--company' => 1,
-                '--name' => $name
+                '--name' => $name,
             ], $this->output);
 
             if ($exitCode !== 0) {
@@ -86,23 +91,25 @@ class InitTemplates extends Command
         if (File::isDirectory($dirPath)) {
             $files = File::files($dirPath);
             foreach ($files as $file) {
-                if ($file->getExtension() !== 'xlsx') continue;
+                if ($file->getExtension() !== 'xlsx') {
+                    continue;
+                }
                 $filename = $file->getFilename();
                 $relativePath = 'template/works/' . $filename;
                 $this->info("Importing Job Scope: {$filename}");
                 Artisan::call('app:import-job-scope', [
                     'filename' => $relativePath,
-                    '--company' => 1
+                    '--company' => 1,
                 ]);
             }
             if (empty($files)) {
                 $this->skipped[] = "No files found in directory: {$dirPath}";
             }
         } elseif (File::exists($filePath)) {
-            $this->info("Importing Job Scope: template/works.xlsx");
+            $this->info('Importing Job Scope: template/works.xlsx');
             Artisan::call('app:import-job-scope', [
                 'filename' => 'template/works.xlsx',
-                '--company' => 1
+                '--company' => 1,
             ], $this->output);
         } else {
             $this->skipped[] = "Neither directory 'template/works' nor file 'template/works.xlsx' found.";
@@ -121,8 +128,9 @@ class InitTemplates extends Command
 
         foreach ($companyMap as $id => $filename) {
             $sourcePath = storage_path("template/background/{$filename}");
-            if (!File::exists($sourcePath)) {
+            if (! File::exists($sourcePath)) {
                 $this->skipped[] = "Background image missing for company {$id}: {$filename}";
+
                 continue;
             }
 
@@ -134,16 +142,16 @@ class InitTemplates extends Command
                     ->where('type', $type)
                     ->update(['background_image' => $storagePath]);
 
-                if (!$updated) {
+                if (! $updated) {
                     DocumentDefault::updateOrCreate([
                         'company_id' => $id,
                         'type' => $type,
                     ], [
-                        'background_image' => $storagePath
+                        'background_image' => $storagePath,
                     ]);
                 }
             }
-            
+
             $this->info("Updated background for company {$id} (Estimate)");
         }
     }
@@ -160,8 +168,9 @@ class InitTemplates extends Command
 
         foreach ($companyMap as $id => $filename) {
             $sourcePath = storage_path("template/logo/{$filename}");
-            if (!File::exists($sourcePath)) {
+            if (! File::exists($sourcePath)) {
                 $this->skipped[] = "Logo image missing for company {$id}: {$filename}";
+
                 continue;
             }
 
@@ -193,8 +202,9 @@ class InitTemplates extends Command
 
         foreach ($companyMap as $id => $filename) {
             $sourcePath = storage_path("template/cover/{$filename}");
-            if (!File::exists($sourcePath)) {
+            if (! File::exists($sourcePath)) {
                 $this->skipped[] = "Cover image missing for company {$id}: {$filename}";
+
                 continue;
             }
 
@@ -205,12 +215,12 @@ class InitTemplates extends Command
                 ->where('type', DocumentType::Estimate)
                 ->update(['cover_pdf' => $storagePath]);
 
-            if (!$updated) {
-                 DocumentDefault::updateOrCreate([
+            if (! $updated) {
+                DocumentDefault::updateOrCreate([
                     'company_id' => $id,
                     'type' => DocumentType::Estimate,
-                 ], [
-                    'cover_pdf' => $storagePath
+                ], [
+                    'cover_pdf' => $storagePath,
                 ]);
             }
             $this->info("Updated cover for company {$id} (Estimate)");
@@ -222,8 +232,9 @@ class InitTemplates extends Command
         $this->info('Function 6: Setting Default Terms & Materials Guide HTML...');
 
         $path = storage_path('template/document');
-        if (!File::isDirectory($path)) {
+        if (! File::isDirectory($path)) {
             $this->skipped[] = "Directory missing: {$path}";
+
             return;
         }
 
@@ -252,7 +263,7 @@ class InitTemplates extends Command
                 $this->skipped[] = "Materials guide file missing for company {$id}: {$guideFile}";
             }
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 DocumentDefault::updateOrCreate(
                     ['company_id' => $id, 'type' => DocumentType::Estimate],
                     $updateData
@@ -267,6 +278,7 @@ class InitTemplates extends Command
         $this->newLine();
         if (empty($this->skipped)) {
             $this->info('All files processed successfully, nothing skipped.');
+
             return;
         }
 
@@ -276,4 +288,3 @@ class InitTemplates extends Command
         }
     }
 }
-

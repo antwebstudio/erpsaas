@@ -3,8 +3,6 @@
 namespace App\Providers\Filament;
 
 use App\Actions\FilamentCompanies\AddCompanyEmployee;
-use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Actions\FilamentCompanies\CreateConnectedAccount;
 use App\Actions\FilamentCompanies\CreateNewUser;
 use App\Actions\FilamentCompanies\CreateUserFromProvider;
@@ -22,31 +20,35 @@ use App\Actions\FilamentCompanies\UpdateUserProfileInformation;
 use App\Filament\Company\Clusters\Settings;
 use App\Filament\Company\Pages\Accounting\AccountChart;
 use App\Filament\Company\Pages\CreateCompany;
+use App\Filament\Company\Pages\MailDashboard;
 use App\Filament\Company\Pages\ManageCompany;
-use App\Filament\Company\Pages\WelcomePage;
+use App\Filament\Company\Pages\OfferingCategory;
 use App\Filament\Company\Pages\Reports;
 use App\Filament\Company\Pages\Service\ConnectedAccount;
 use App\Filament\Company\Pages\Service\LiveCurrency;
+use App\Filament\Company\Pages\WelcomePage;
 use App\Filament\Company\Resources\Accounting\BudgetResource;
 use App\Filament\Company\Resources\Accounting\TransactionResource;
 use App\Filament\Company\Resources\Banking\AccountResource;
-use App\Filament\Company\Resources\Common\OfferingResource;
-use App\Filament\Company\Resources\Core\UserResource;
-use App\Filament\Company\Resources\Common\OfferingCategoryResource;
-use App\Filament\Company\Pages\OfferingCategory;
-use App\Filament\Company\Resources\Common\JobScopeResource;
 use App\Filament\Company\Resources\Common\JobScopeDescriptionResource;
 use App\Filament\Company\Resources\Common\JobScopeOptionResource;
+use App\Filament\Company\Resources\Common\JobScopeResource;
+use App\Filament\Company\Resources\Common\OfferingCategoryResource;
+use App\Filament\Company\Resources\Common\OfferingResource;
+use App\Filament\Company\Resources\Core\UserResource;
+use App\Filament\Company\Resources\Mail\MailLogResource;
+use App\Filament\Company\Resources\Mail\MailSuppressionResource;
+use App\Filament\Company\Resources\Mail\MailTemplateResource;
 use App\Filament\Company\Resources\Purchases\BillResource;
 use App\Filament\Company\Resources\Purchases\VendorResource;
-use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\AllClientResource;
-use App\Filament\Company\Resources\Sales\LeadResource;
-use App\Filament\Company\Resources\Sales\LeadSourceResource;
-use App\Filament\Company\Resources\Sales\EstimateResource;
+use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ContractResource;
+use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\EstimateTemplateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
+use App\Filament\Company\Resources\Sales\LeadResource;
+use App\Filament\Company\Resources\Sales\LeadSourceResource;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource;
 use App\Filament\Company\Resources\Sales\VariationOrderResource;
 use App\Filament\Components\PanelShiftDropdown;
@@ -54,14 +56,12 @@ use App\Filament\Pages\Auth\Login;
 use App\Filament\User\Clusters\Account;
 use App\Http\Middleware\ConfigureCurrentCompany;
 use App\Livewire\UpdatePassword;
-use App\Filament\Company\Resources\Mail\MailLogResource;
-use App\Filament\Company\Resources\Mail\MailTemplateResource;
-use App\Filament\Company\Resources\Mail\MailSuppressionResource;
-use App\Filament\Company\Pages\MailDashboard;
 use App\Livewire\UpdateProfileInformation;
 use App\Models\Company;
 use App\Services\CompanySettingsService;
 use App\Support\FilamentComponentConfigurator;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use BezhanSalleh\FilamentShield\Middleware\SyncShieldTenant;
 use Exception;
 use Filament\Actions;
 use Filament\Forms;
@@ -154,9 +154,8 @@ class CompanyPanelProvider extends PanelProvider
                     ->dashboard(false)            // Disabled — using App\Filament\Company\Pages\MailDashboard instead
                     ->tenantScoping(),             // Enable/disable tenant scoping
 
-                    
                 \Filament\SpatieLaravelTranslatablePlugin::make()
-                    ->defaultLocales(['en']),            
+                    ->defaultLocales(['en']),
             ])
             ->colors([
                 'primary' => Color::Indigo,
@@ -182,8 +181,8 @@ class CompanyPanelProvider extends PanelProvider
                             ...AllClientResource::getNavigationItems(),
                             ...EstimateResource::getNavigationItems(),
                             ...ContractResource::getNavigationItems(),
-                            ...(!$isErpCompany ? InvoiceResource::getNavigationItems() : []),
-                            ...(!$isErpCompany ? RecurringInvoiceResource::getNavigationItems() : []),
+                            ...(! $isErpCompany ? InvoiceResource::getNavigationItems() : []),
+                            ...(! $isErpCompany ? RecurringInvoiceResource::getNavigationItems() : []),
                             ...VariationOrderResource::getNavigationItems(),
                         ]),
                     NavigationGroup::make('Purchases')

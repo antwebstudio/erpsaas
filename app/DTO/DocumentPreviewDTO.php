@@ -5,7 +5,6 @@ namespace App\DTO;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
 use App\Enums\Setting\PaymentTerms;
-use App\Enums\Setting\Template;
 use App\Models\Setting\DocumentDefault;
 use App\Utilities\Currency\CurrencyAccessor;
 use Illuminate\Support\Facades\Storage;

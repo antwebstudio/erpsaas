@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\DocumentType;
-use App\Models\Mail\MailLog;
-use App\Models\Mail\MailSuppression;
-use App\Models\Mail\MailTemplate;
 use App\Models\Accounting\AccountSubtype;
 use App\Models\Banking\BankAccount;
 use App\Models\Banking\ConnectedBankAccount;
 use App\Models\Common\Client;
 use App\Models\Common\Contact;
-use App\Models\Common\Offering;
 use App\Models\Common\LeadSource;
+use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
 use App\Models\Core\Department;
+use App\Models\Mail\MailLog;
+use App\Models\Mail\MailSuppression;
+use App\Models\Mail\MailTemplate;
 use App\Models\Setting\CompanyDefault;
 use App\Models\Setting\CompanyProfile;
 use App\Models\Setting\Currency;
@@ -94,10 +93,9 @@ class Company extends FilamentCompaniesCompany implements HasAvatar
             }
 
             setPermissionsTeamId($sessionCompanyId);
-           
+
         });
     }
-
 
     public function getFilamentAvatarUrl(): ?string
     {

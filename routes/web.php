@@ -113,7 +113,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/download-quotation-pdf', function () {
     $html = file_get_contents(resource_path('quotation-template.html'));
-    
+
     return Pdf::html($html)
         ->withBrowsershot(function ($browsershot) {
             $browsershot->setNodeBinary('C:\Program Files\nodejs\node.exe')

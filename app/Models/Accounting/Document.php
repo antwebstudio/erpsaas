@@ -4,9 +4,11 @@ namespace App\Models\Accounting;
 
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
+use App\Enums\Accounting\AdjustmentCategory;
+use App\Enums\Accounting\AdjustmentType;
 use App\Enums\Accounting\DocumentType;
-use App\Models\Setting\Currency;
 use App\Filament\Infolists\Components\DocumentPreview;
+use App\Models\Setting\Currency;
 use Filament\Actions\Action;
 use Filament\Actions\MountableAction;
 use Filament\Infolists\Infolist;
@@ -16,8 +18,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use App\Enums\Accounting\AdjustmentCategory;
-use App\Enums\Accounting\AdjustmentType;
 use Livewire\Component;
 
 abstract class Document extends Model
@@ -102,11 +102,12 @@ abstract class Document extends Model
         return $action::make($name)
             ->label('Preview')
             ->icon('heroicon-o-eye')
-            ->infolist(fn (Infolist $infolist) => $infolist
-                ->schema([
-                    DocumentPreview::make()
-                        ->type(static::documentType()),
-                ])
+            ->infolist(
+                fn (Infolist $infolist) => $infolist
+                    ->schema([
+                        DocumentPreview::make()
+                            ->type(static::documentType()),
+                    ])
             )
             ->modalSubmitAction(false)
             ->modalWidth(MaxWidth::SixExtraLarge);

@@ -4,11 +4,11 @@ namespace App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Models\Accounting\Invoice;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class InvoicesRelationManager extends RelationManager
 {

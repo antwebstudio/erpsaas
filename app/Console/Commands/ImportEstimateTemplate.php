@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Common\Offering;
-use App\Models\Common\OfferingCategory;
-use App\Models\Accounting\Estimate;
+use App\Enums\Accounting\AdjustmentComputation;
+use App\Enums\Accounting\DocumentDiscountMethod;
+use App\Enums\Accounting\EstimateStatus;
 use App\Models\Accounting\DocumentLineItem;
 use App\Models\Accounting\DocumentLineItemGroup;
-use App\Enums\Accounting\EstimateStatus;
-use App\Enums\Accounting\DocumentDiscountMethod;
-use App\Enums\Accounting\AdjustmentComputation;
+use App\Models\Accounting\Estimate;
+use App\Models\Common\Offering;
+use App\Models\Common\OfferingCategory;
 use App\Models\Company;
 use Illuminate\Console\Command;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ImportEstimateTemplate extends Command
 {
@@ -41,19 +41,22 @@ class ImportEstimateTemplate extends Command
         $companyId = $this->option('company');
         $templateName = $this->option('name');
 
-        if (!$companyId) {
+        if (! $companyId) {
             $this->error('The --company option is required.');
+
             return 1;
         }
 
         $company = Company::find($companyId);
-        if (!$company) {
+        if (! $company) {
             $this->error("Company with ID {$companyId} not found.");
+
             return 1;
         }
 
-        if (!file_exists($filename)) {
+        if (! file_exists($filename)) {
             $this->error("File {$filename} not found.");
+
             return 1;
         }
 
@@ -68,6 +71,7 @@ class ImportEstimateTemplate extends Command
 
             if (empty($rows)) {
                 $this->warn('The Excel file is empty.');
+
                 return 0;
             }
 
@@ -142,6 +146,7 @@ class ImportEstimateTemplate extends Command
                         $subGroupOrder = 1;
                         $counts['groups']++;
                         $this->line("  + Main Group: {$text}");
+
                         continue;
                     }
 
@@ -192,6 +197,7 @@ class ImportEstimateTemplate extends Command
                             $counts['groups']++;
                             $this->line("    + Sub-Group: {$text}");
                         }
+
                         continue;
                     }
 
@@ -222,17 +228,18 @@ class ImportEstimateTemplate extends Command
                             ]);
 
                             $counts['items']++;
-                            $this->line("      + Item: {$text} (in " . ($currentSubGroup ? "sub-group" : "main group") . ")");
+                            $this->line("      + Item: {$text} (in " . ($currentSubGroup ? 'sub-group' : 'main group') . ')');
                         } else {
                             $counts['skipped']++;
-                            $this->warn("    Row " . ($index + 1) . ": Level 3 Offering \"{$text}\" not found. Skipped.");
+                            $this->warn('    Row ' . ($index + 1) . ": Level 3 Offering \"{$text}\" not found. Skipped.");
                         }
+
                         continue;
                     }
 
                     // No match found or unknown level
                     $counts['skipped']++;
-                    $this->warn("  Row " . ($index + 1) . ": Level {$level} \"{$text}\" skipped (unknown level or no match).");
+                    $this->warn('  Row ' . ($index + 1) . ": Level {$level} \"{$text}\" skipped (unknown level or no match).");
                 }
 
                 // Recalculate totals
@@ -252,8 +259,9 @@ class ImportEstimateTemplate extends Command
             ]);
 
         } catch (\Exception $e) {
-            $this->error("An error occurred during import: " . $e->getMessage());
+            $this->error('An error occurred during import: ' . $e->getMessage());
             $this->error($e->getTraceAsString());
+
             return 1;
         }
 

@@ -1,15 +1,12 @@
 <?php
 
-use App\Models\Accounting\Estimate;
-use App\Models\Accounting\DocumentLineItemGroup;
-use App\Models\Accounting\DocumentLineItem;
-use App\Filament\Company\Resources\Sales\EstimateResource\Pages\EditEstimate;
-use App\Models\Company;
-use App\Models\User;
-use App\Models\Common\Offering;
-use App\Models\Common\Client;
-use App\Models\Common\ClientAndLead;
 use App\Enums\Accounting\EstimateStatus;
+use App\Filament\Company\Resources\Sales\EstimateResource\Pages\EditEstimate;
+use App\Models\Accounting\DocumentLineItem;
+use App\Models\Accounting\DocumentLineItemGroup;
+use App\Models\Accounting\Estimate;
+use App\Models\Common\Client;
+use App\Models\Common\Offering;
 use Livewire\Livewire;
 
 test('it deletes removed line item groups', function () {
@@ -18,7 +15,7 @@ test('it deletes removed line item groups', function () {
     $offering = Offering::factory()->for($company)->create(['price' => 100]);
     $client = Client::factory()->for($company)->create();
 
-    $estimate = new Estimate();
+    $estimate = new Estimate;
     $estimate->company_id = $company->id;
     $estimate->client_id = $client->id;
     $estimate->estimate_number = 'EST-001';
@@ -68,7 +65,7 @@ test('it deletes removed line item groups', function () {
     $formGroups = $livewire->instance()->data['lineItemGroups'] ?? [];
     $formGroups = array_filter(
         $formGroups,
-        fn ($group) => (int)($group['id'] ?? 0) !== (int) $groupA->id
+        fn ($group) => (int) ($group['id'] ?? 0) !== (int) $groupA->id
     );
 
     $livewire->set('data.lineItemGroups', $formGroups)

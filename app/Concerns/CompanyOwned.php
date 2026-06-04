@@ -47,7 +47,7 @@ trait CompanyOwned
             }
         });
 
-        if (!app()->runningInConsole() || app()->runningUnitTests()) {
+        if (! app()->runningInConsole() || app()->runningUnitTests()) {
             static::addGlobalScope(new CurrentCompanyScope);
         }
     }

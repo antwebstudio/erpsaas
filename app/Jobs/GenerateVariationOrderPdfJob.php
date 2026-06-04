@@ -15,7 +15,10 @@ use Illuminate\Support\Facades\Storage;
 
 class GenerateVariationOrderPdfJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -39,12 +42,12 @@ class GenerateVariationOrderPdfJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $pdfService = new \App\Services\VariationOrderPdfService();
+            $pdfService = new \App\Services\VariationOrderPdfService;
             $finalPdfOutput = $pdfService->generate($this->variationOrder);
-            
+
             $fileName = "variation_orders/VariationOrder-{$this->variationOrder->documentNumber()}.pdf";
             Storage::disk('public')->put($fileName, $finalPdfOutput);
-            
+
             $fileUrl = Storage::url($fileName);
 
             if ($this->jobId) {

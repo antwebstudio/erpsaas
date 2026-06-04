@@ -2,13 +2,13 @@
 
 namespace App\Filament\Company\Pages;
 
+use Filament\Forms;
 use Kalnoy\Nestedset\QueryBuilder;
 use Studio15\FilamentTree\Components\TreePage;
-use Filament\Forms;
 
 class OfferingCategory extends TreePage
 {
-    public static function getModel(): string|QueryBuilder
+    public static function getModel(): string | QueryBuilder
     {
         return \App\Models\Common\OfferingCategory::class;
     }
@@ -17,7 +17,7 @@ class OfferingCategory extends TreePage
     {
         /** @var \App\Models\User|null $user */
         $user = \Illuminate\Support\Facades\Auth::user();
-        
+
         return $user ? $user->can('view_any_common::offering::category') : false;
     }
 

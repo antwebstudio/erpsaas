@@ -2,8 +2,9 @@
 
 namespace App\Filament\Company\Resources\Sales;
 
-use App\Filament\Company\Resources\Sales\LeadResource\Pages;
+use App\Enums\Common\ClientStatus;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
+use App\Filament\Company\Resources\Sales\LeadResource\Pages;
 use App\Filament\Exports\Common\ClientExporter;
 use App\Filament\Forms\Components\AddressFields;
 use App\Filament\Forms\Components\CreateCurrencySelect;
@@ -11,12 +12,9 @@ use App\Filament\Forms\Components\CustomSection;
 use App\Filament\Forms\Components\PhoneBuilder;
 use App\Filament\Tables\Actions\BulkSendEmailAction;
 use App\Filament\Tables\Columns;
-use App\Enums\Common\ClientStatus;
 use App\Models\Common\Address;
 use App\Models\Common\Client;
 use App\Models\Common\Lead;
-use App\Models\Common\LeadSource;
-use App\Models\User;
 use App\Utilities\Currency\CurrencyConverter;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -380,6 +378,7 @@ class LeadResource extends Resource
                                 ->required()
                                 ->options(function () {
                                     $company = auth()->user()->currentCompany;
+
                                     return $company->allUsers()->pluck('name', 'id');
                                 })
                                 ->searchable(),
@@ -435,7 +434,7 @@ class LeadResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (Auth::user()->can('view_mine_sales::lead') && !Auth::user()->can('view_any_sales::lead')) {
+        if (Auth::user()->can('view_mine_sales::lead') && ! Auth::user()->can('view_any_sales::lead')) {
             $query->where('created_by', Auth::id());
         }
 

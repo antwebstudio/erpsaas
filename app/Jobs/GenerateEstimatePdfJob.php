@@ -15,7 +15,10 @@ use Illuminate\Support\Facades\Storage;
 
 class GenerateEstimatePdfJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -39,12 +42,12 @@ class GenerateEstimatePdfJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $pdfService = new \App\Services\EstimatePdfService();
+            $pdfService = new \App\Services\EstimatePdfService;
             $finalPdfOutput = $pdfService->generate($this->estimate);
-            
+
             $fileName = "estimates/Estimate-{$this->estimate->documentNumber()}.pdf";
             Storage::disk('public')->put($fileName, $finalPdfOutput);
-            
+
             $fileUrl = Storage::url($fileName);
 
             if ($this->jobId) {

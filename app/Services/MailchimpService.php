@@ -37,8 +37,9 @@ class MailchimpService
     /**
      * Sync a contact to Mailchimp and verify via a follow-up GET.
      *
-     * @return array{email_address: string, status: string, id: string}  Member data from Mailchimp.
-     * @throws \RuntimeException  When a required merge field cannot be populated.
+     * @return array{email_address: string, status: string, id: string} Member data from Mailchimp.
+     *
+     * @throws \RuntimeException When a required merge field cannot be populated.
      */
     public function syncContact(Client $client, Contact $contact, ?string $previousEmail = null): array
     {
@@ -47,6 +48,7 @@ class MailchimpService
 
         if ($emailChanged) {
             $oldHash = md5(strtolower($previousEmail));
+
             try {
                 // Archive the old subscriber so Mailchimp doesn't reject the new email as a duplicate.
                 $this->http()->delete("{$this->baseUrl}/lists/{$this->contactsListId}/members/{$oldHash}");
@@ -125,6 +127,7 @@ class MailchimpService
 
                     throw new \RuntimeException("Required merge field {$tag} has no value.");
                 }
+
                 continue;
             }
 

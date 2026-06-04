@@ -15,7 +15,7 @@ class MailchimpContactObserver
 
     public function updated(Client $client): void
     {
-        \Log::debug('mailchimp contact updated'); 
+        \Log::debug('mailchimp contact updated');
         SyncContactToMailchimp::dispatch($client);
     }
 

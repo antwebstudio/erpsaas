@@ -38,7 +38,7 @@ class DesignServicesJobScopeSeeder extends Seeder
         session(['current_company_id' => $company->id]);
 
         $category = OfferingCategory::firstOrCreate([
-            'name'       => self::JOB_SCOPE_NAME,
+            'name' => self::JOB_SCOPE_NAME,
             'company_id' => $company->id,
         ]);
 
@@ -51,15 +51,15 @@ class DesignServicesJobScopeSeeder extends Seeder
         foreach (self::OPTIONS as $data) {
             $offering = Offering::updateOrCreate(
                 [
-                    'name'       => $data['name'],
+                    'name' => $data['name'],
                     'company_id' => $company->id,
                 ],
                 [
-                    'type'        => OfferingType::Service,
-                    'price'       => 0,
-                    'sellable'    => true,
+                    'type' => OfferingType::Service,
+                    'price' => 0,
+                    'sellable' => true,
                     'purchasable' => false,
-                    'sort_order'  => $data['sort_order'],
+                    'sort_order' => $data['sort_order'],
                 ]
             );
 

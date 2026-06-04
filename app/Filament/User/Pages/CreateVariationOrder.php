@@ -2,19 +2,15 @@
 
 namespace App\Filament\User\Pages;
 
-use App\Models\Common\OfferingCategory;
-use App\Models\Accounting\VariationOrder;
-use App\Models\Accounting\DocumentLineItemGroup;
-use App\Filament\Company\Resources\Sales\VariationOrderResource;
+use App\Enums\Accounting\AdjustmentComputation;
+use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\VariationOrderStatus;
-use App\Models\Setting\DocumentDefault;
+use App\Filament\Company\Resources\Sales\VariationOrderResource;
+use App\Models\Accounting\VariationOrder;
+use App\Models\Common\OfferingCategory;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Wallo\FilamentCompanies\FilamentCompanies;
-use Filament\Notifications\Notification;
-use App\Enums\Accounting\DocumentDiscountMethod;
-use App\Enums\Accounting\AdjustmentComputation;
 
 class CreateVariationOrder extends Page
 {
@@ -32,6 +28,7 @@ class CreateVariationOrder extends Page
     protected static ?string $title = 'Variation Order Builder';
 
     public array $data = [];
+
     public ?int $variationOrderId = null;
 
     public function mount()
@@ -48,7 +45,7 @@ class CreateVariationOrder extends Page
         $scopes = OfferingCategory::query()
             ->whereNull('parent_id')
             ->defaultOrder()
-            ->with(['children' => fn($q) => $q->defaultOrder(), 'children.offerings'])
+            ->with(['children' => fn ($q) => $q->defaultOrder(), 'children.offerings'])
             ->get();
 
         $clients = \App\Models\Common\Client::query()
@@ -110,9 +107,9 @@ class CreateVariationOrder extends Page
                                 'price' => isset($item->price) ? $item->price / 100 : 0,
                                 'selected' => false,
                             ];
-                        })->toArray()
+                        })->toArray(),
                     ];
-                })->toArray()
+                })->toArray(),
             ];
         })->toArray();
     }
@@ -125,6 +122,7 @@ class CreateVariationOrder extends Page
                 ->body('Please select a client to create a variation order.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -136,6 +134,7 @@ class CreateVariationOrder extends Page
                 ->body('Please select at least one work scope.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -183,7 +182,7 @@ class CreateVariationOrder extends Page
         // Remove groups that are no longer selected
         $groupsToDelete = $managedGroups->whereNotIn('offering_category_id', $selectedScopeIds);
         foreach ($groupsToDelete as $group) {
-            $group->children()->each(function($child) {
+            $group->children()->each(function ($child) {
                 $child->items()->delete();
                 $child->delete();
             });

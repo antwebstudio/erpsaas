@@ -3,18 +3,16 @@
 namespace App\Filament\Company\Resources\Sales;
 
 use App\Enums\Accounting\DocumentDiscountMethod;
-use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
-use App\Models\Accounting\Transaction;
-use App\Models\Common\Offering;
-use App\Models\Common\OfferingCategory;
 use App\Filament\Company\Resources\Sales\ContractResource\Pages\ViewContract;
-use App\Filament\Company\Resources\Sales\EstimateResource\Pages\ViewEstimate;
 use App\Models\Accounting\Contract;
 use App\Models\Accounting\DocumentLineItemGroup;
 use App\Models\Accounting\Estimate;
 use App\Models\Accounting\Invoice;
+use App\Models\Accounting\Transaction;
+use App\Models\Common\Offering;
+use App\Models\Common\OfferingCategory;
 use App\Models\Company;
 use App\Models\Setting\CompanyProfile;
 use App\Scopes\CurrentCompanyScope;
@@ -26,6 +24,7 @@ use Filament\Forms\Form;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
@@ -33,10 +32,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Filament\Notifications\Notification;
-use App\Filament\Company\Resources\Sales\AllClientResource;
-use App\Filament\Company\Resources\Sales\ClientResource;
-use App\Filament\Company\Resources\Sales\LeadResource;
 
 class ContractResource extends Resource
 {
@@ -52,7 +47,6 @@ class ContractResource extends Resource
 
         return static::canViewAny();
     }
-
 
     protected static ?string $slug = 'sales/contracts';
 
@@ -105,11 +99,11 @@ class ContractResource extends Resource
 
                         return [
                             'invoice_number' => $t->transactionable?->invoice_number ?? '-',
-                            'posted_at'      => $t->posted_at?->format($dateFormat) ?? '-',
+                            'posted_at' => $t->posted_at?->format($dateFormat) ?? '-',
                             'payment_method' => $t->payment_method?->getLabel() ?? '-',
-                            'amount'         => CurrencyConverter::formatCentsToMoney($t->amount, $currency),
-                            'description'    => $t->description ?? '-',
-                            'reference'      => $t->reference ?? '-',
+                            'amount' => CurrencyConverter::formatCentsToMoney($t->amount, $currency),
+                            'description' => $t->description ?? '-',
+                            'reference' => $t->reference ?? '-',
                         ];
                     })
                     ->toArray();
@@ -146,9 +140,9 @@ class ContractResource extends Resource
         if ($user && ! $user->can('view_any_sales::contract') && $user->can('view_mine_sales::contract')) {
             $query->where(function (Builder $q) use ($user) {
                 $q->where('created_by', $user->id)
-                  ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
-                      $q->where('created_by', $user->id);
-                  });
+                    ->orWhereHas('clientAndLead', function (Builder $q) use ($user) {
+                        $q->where('created_by', $user->id);
+                    });
             });
         }
 
@@ -212,12 +206,12 @@ class ContractResource extends Resource
 
         // Fallback when offerings have not been seeded yet
         return [
-            'invoiceDeposit'          => 'Deposit payment',
+            'invoiceDeposit' => 'Deposit payment',
             'invoiceWorkCommencement' => 'Work commencement payment',
-            'invoiceProgressive'      => 'Progressive payment',
-            'invoiceVariationOrder'   => 'Variation order payment',
-            'invoiceWiringWork'       => 'Wiring work payment',
-            'invoiceFinal'            => 'Final payment',
+            'invoiceProgressive' => 'Progressive payment',
+            'invoiceVariationOrder' => 'Variation order payment',
+            'invoiceWiringWork' => 'Wiring work payment',
+            'invoiceFinal' => 'Final payment',
         ];
     }
 
@@ -228,39 +222,39 @@ class ContractResource extends Resource
         $defaultInvoice = $company->defaultInvoice;
 
         $invoice = Invoice::create([
-            'company_id'      => $company->id,
-            'client_id'       => $record->client_id,
-            'estimate_id'     => $record->id,
-            'currency_code'   => $record->currency_code,
-            'invoice_number'  => Invoice::getNextDocumentNumber($company),
-            'date'            => company_today(),
-            'due_date'        => company_today(),
-            'status'          => InvoiceStatus::Draft,
+            'company_id' => $company->id,
+            'client_id' => $record->client_id,
+            'estimate_id' => $record->id,
+            'currency_code' => $record->currency_code,
+            'invoice_number' => Invoice::getNextDocumentNumber($company),
+            'date' => company_today(),
+            'due_date' => company_today(),
+            'status' => InvoiceStatus::Draft,
             'discount_method' => DocumentDiscountMethod::PerLineItem,
-            'header'          => $defaultInvoice->header ?? '',
-            'subheader'       => $defaultInvoice->subheader ?? '',
-            'subtotal'        => 0,
-            'tax_total'       => 0,
-            'discount_total'  => 0,
-            'total'           => 0,
-            'created_by'      => auth()->id(),
-            'updated_by'      => auth()->id(),
+            'header' => $defaultInvoice->header ?? '',
+            'subheader' => $defaultInvoice->subheader ?? '',
+            'subtotal' => 0,
+            'tax_total' => 0,
+            'discount_total' => 0,
+            'total' => 0,
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
         ]);
 
         $group = DocumentLineItemGroup::create([
-            'company_id'        => $company->id,
+            'company_id' => $company->id,
             'documentable_type' => $invoice->getMorphClass(),
-            'documentable_id'   => $invoice->id,
-            'name'              => '',
-            'order'             => 1,
+            'documentable_id' => $invoice->id,
+            'name' => '',
+            'order' => 1,
         ]);
 
         $lineItemData = [
-            'company_id'  => $company->id,
-            'group_id'    => $group->id,
+            'company_id' => $company->id,
+            'group_id' => $group->id,
             'description' => $offeringId ? null : $description,
-            'quantity'    => 1,
-            'unit_price'  => 0,
+            'quantity' => 1,
+            'unit_price' => 0,
             'line_number' => 1,
         ];
 
@@ -272,6 +266,7 @@ class ContractResource extends Resource
 
         return $invoice;
     }
+
     /**
      * Build the "Generate Invoice" action list for payment types.
      * Extracts offering_id from seeded offerings when available.
@@ -354,7 +349,7 @@ class ContractResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('client.name')
-					->hidden()
+                    ->hidden()
                     ->sortable()
                     ->searchable()
                     ->url(static function (Contract $record) {
@@ -400,27 +395,27 @@ class ContractResource extends Resource
                         Forms\Components\Select::make('state')
                             ->label('State')
                             ->options([
-                                'active'    => 'Active',
+                                'active' => 'Active',
                                 'completed' => 'Completed',
-                                'archived'  => 'Archived',
-                                'all'       => 'All Contracts',
+                                'archived' => 'Archived',
+                                'all' => 'All Contracts',
                             ])
                             ->default('active'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['state'] ?? 'active') {
                             'completed' => $query->completed()->notArchived(),
-                            'archived'  => $query->archived(),
-                            'all'       => $query,
-                            default     => $query->notCompleted()->notArchived(),
+                            'archived' => $query->archived(),
+                            'all' => $query,
+                            default => $query->notCompleted()->notArchived(),
                         };
                     })
                     ->indicateUsing(function (array $data): ?string {
                         return match ($data['state'] ?? 'active') {
                             'completed' => 'State: Completed',
-                            'archived'  => 'State: Archived',
-                            'all'       => 'State: All Contracts',
-                            default     => null,
+                            'archived' => 'State: Archived',
+                            'all' => 'State: All Contracts',
+                            default => null,
                         };
                     }),
             ])

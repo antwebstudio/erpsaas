@@ -13,7 +13,8 @@ use Illuminate\Queue\SerializesModels;
 
 class InvoiceMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public Invoice $invoice,
@@ -40,7 +41,7 @@ class InvoiceMail extends Mailable
 
     public function attachments(): array
     {
-        $pdfService = new InvoicePdfService();
+        $pdfService = new InvoicePdfService;
         $pdf = $pdfService->generate($this->invoice);
 
         return [

@@ -2,16 +2,13 @@
 
 namespace App\Filament\Traits;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-
 trait HasNavigationPermission
 {
-
     public static function shouldRegisterNavigation(): bool
     {
         return static::canViewAny();
     }
+
     public static function getNavigationItems(): array
     {
         return [

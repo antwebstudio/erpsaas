@@ -30,18 +30,19 @@ class CheckDocumentDefault extends Command
 
         if ($defaults->isEmpty()) {
             $this->warn('No document defaults found.');
+
             return self::FAILURE;
         }
 
         $headers = ['Company', 'Type', 'BG Image Path', 'BG Image URL', 'Cover PDF Path', 'Cover PDF URL'];
         $data = $defaults->map(function (DocumentDefault $default) {
             return [
-                'Company'        => $default->company?->name ?? 'N/A',
-                'Type'           => $default->type->value,
-                'BG Image Path'  => $default->getRawOriginal('background_image') ?? 'N/A', // Using getRawOriginal to show actual column value
-                'BG Image URL'   => $default->background_image_url ?? 'N/A',
+                'Company' => $default->company?->name ?? 'N/A',
+                'Type' => $default->type->value,
+                'BG Image Path' => $default->getRawOriginal('background_image') ?? 'N/A', // Using getRawOriginal to show actual column value
+                'BG Image URL' => $default->background_image_url ?? 'N/A',
                 'Cover PDF Path' => $default->getRawOriginal('cover_pdf') ?? 'N/A',    // Using getRawOriginal to show actual column value
-                'Cover PDF URL'  => $default->cover_pdf_url ?? 'N/A'
+                'Cover PDF URL' => $default->cover_pdf_url ?? 'N/A',
             ];
         });
 

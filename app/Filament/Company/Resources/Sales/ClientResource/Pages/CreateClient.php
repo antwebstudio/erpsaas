@@ -23,6 +23,7 @@ class CreateClient extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $data['type'] = 'client';
+
         return Client::createWithRelations($data);
     }
 }

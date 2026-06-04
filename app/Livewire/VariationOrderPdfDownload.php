@@ -11,16 +11,20 @@ use Livewire\Component;
 class VariationOrderPdfDownload extends Component
 {
     public ?VariationOrder $record = null;
+
     public string $jobId;
+
     public string $status = 'pending';
+
     public ?string $downloadUrl = null;
+
     public ?string $errorMessage = null;
 
     public function mount(VariationOrder $record)
     {
         $this->record = $record;
         $this->jobId = (string) Str::uuid();
-        
+
         Cache::put("pdf_job_{$this->jobId}", [
             'status' => 'pending',
         ], now()->addMinutes(10));

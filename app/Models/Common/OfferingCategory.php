@@ -4,7 +4,6 @@ namespace App\Models\Common;
 
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
-use App\Models\Common\Offering;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +14,6 @@ class OfferingCategory extends Model
     use Blamable;
     use CompanyOwned;
     use HasFactory;
-    
     use \Kalnoy\Nestedset\NodeTrait;
     use \Studio15\FilamentTree\Concerns\InteractsWithTree;
 
@@ -27,7 +25,7 @@ class OfferingCategory extends Model
             if (! $companyId && ($user = Auth::user()) && ($companyId = $user->current_company_id)) {
                 session(['current_company_id' => $companyId]);
             }
-            
+
             if ($companyId) {
                 $this->company_id = $companyId;
             }
@@ -79,13 +77,13 @@ class OfferingCategory extends Model
 
         foreach ($scoped as $attribute) {
             $value = $this->getAttributeValue($attribute);
-            
+
             if ($value !== null) {
-                $query->where($table.'.'.$attribute, '=', $value);
+                $query->where($table . '.' . $attribute, '=', $value);
             } else {
-                // If value covers null, we assume we are inside a subquery (like withDepth) 
+                // If value covers null, we assume we are inside a subquery (like withDepth)
                 // and need to correlate with the main table
-                $query->whereColumn($table.'.'.$attribute, '=', $this->getTable().'.'.$attribute);
+                $query->whereColumn($table . '.' . $attribute, '=', $this->getTable() . '.' . $attribute);
             }
         }
 

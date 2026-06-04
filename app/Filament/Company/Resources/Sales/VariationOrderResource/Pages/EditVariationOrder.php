@@ -68,6 +68,7 @@ class EditVariationOrder extends EditRecord
                                     $selected[] = (int) $group['offering_category_id'];
                                 }
                             }
+
                             return $selected;
                         })
                         ->required(),
@@ -214,6 +215,7 @@ class EditVariationOrder extends EditRecord
                         $this->commitDatabaseTransaction();
                     } catch (\Throwable $exception) {
                         $this->rollBackDatabaseTransaction();
+
                         throw $exception;
                     }
 
@@ -229,7 +231,7 @@ class EditVariationOrder extends EditRecord
 
                     $this->fillForm();
 
-                    $pdfService = new \App\Services\VariationOrderPdfService();
+                    $pdfService = new \App\Services\VariationOrderPdfService;
                     $finalPdfOutput = $pdfService->generate($record);
 
                     $filename = "VariationOrder-{$record->vo_number}.pdf";

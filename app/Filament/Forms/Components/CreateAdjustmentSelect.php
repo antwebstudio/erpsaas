@@ -15,11 +15,9 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class CreateAdjustmentSelect extends Select
 {
@@ -30,7 +28,7 @@ class CreateAdjustmentSelect extends Select
     protected bool $includeInactive = false;
 
     protected string $adjustmentsRelationship = 'adjustments';
-    
+
     protected bool $forceEnabled = false;
 
     public bool $isRelationshipDisabled = false;
@@ -170,7 +168,7 @@ class CreateAdjustmentSelect extends Select
 
                     $query->where(function (Builder $query) use ($existingAdjustmentIds) {
                         $query->where('status', AdjustmentStatus::Active);
-                        if (!empty($existingAdjustmentIds)) {
+                        if (! empty($existingAdjustmentIds)) {
                             $query->orWhereIn('adjustments.id', $existingAdjustmentIds);
                         }
                     });

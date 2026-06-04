@@ -36,7 +36,7 @@ class JobScopeOptionResource extends Resource
                             ->default(true),
                         Forms\Components\Hidden::make('purchasable')
                             ->default(false),
-                        
+
                         Forms\Components\TextInput::make('name')
                             ->autofocus()
                             ->required()
@@ -99,9 +99,9 @@ class JobScopeOptionResource extends Resource
                             ->live(),
                         Forms\Components\Select::make('child_id')
                             ->label('Job Scope Description')
-                            ->options(fn (Forms\Get $get) => 
-                                $get('parent_id') 
-                                    ? \App\Models\Common\OfferingCategory::where('parent_id', $get('parent_id'))->pluck('name', 'id') 
+                            ->options(
+                                fn (Forms\Get $get) => $get('parent_id')
+                                    ? \App\Models\Common\OfferingCategory::where('parent_id', $get('parent_id'))->pluck('name', 'id')
                                     : []
                             )
                             ->placeholder('All Descriptions')
@@ -120,8 +120,9 @@ class JobScopeOptionResource extends Resource
                                     ->where($category->getRgtName(), '<=', $category->getRgt())
                                     ->pluck('id');
 
-                                return $query->whereHas('categories', fn (Builder $q) => 
-                                    $q->whereIn('offering_categories.id', $categoryIds)
+                                return $query->whereHas(
+                                    'categories',
+                                    fn (Builder $q) => $q->whereIn('offering_categories.id', $categoryIds)
                                 );
                             }
                         }
@@ -136,6 +137,7 @@ class JobScopeOptionResource extends Resource
                         if ($data['child_id'] ?? null) {
                             $indicators[] = 'Description: ' . \App\Models\Common\OfferingCategory::find($data['child_id'])?->name;
                         }
+
                         return $indicators;
                     }),
             ])
@@ -149,12 +151,12 @@ class JobScopeOptionResource extends Resource
                 ]),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->where('type', OfferingType::Service)->where('sellable', true));
-            // You might want to filter further to only show those created via this resource if there's a distinction, 
-            // but for now "Services that are Sellable" seems like the definition of JobScopeOption based on request.
-            // Actually, "JobScopeOption" is just a simplified view. 
-            // But verify if we need to distinguish them from other Services.
-            // The user said "JobScopeOption resource which actually Offering... default offering type as Service, and sellable".
-            // So filtering by Type::Service and Sellable::true seems appropriate for the list view to reduce noise if Products/Purchasable exist.
+        // You might want to filter further to only show those created via this resource if there's a distinction,
+        // but for now "Services that are Sellable" seems like the definition of JobScopeOption based on request.
+        // Actually, "JobScopeOption" is just a simplified view.
+        // But verify if we need to distinguish them from other Services.
+        // The user said "JobScopeOption resource which actually Offering... default offering type as Service, and sellable".
+        // So filtering by Type::Service and Sellable::true seems appropriate for the list view to reduce noise if Products/Purchasable exist.
     }
 
     public static function getRelations(): array

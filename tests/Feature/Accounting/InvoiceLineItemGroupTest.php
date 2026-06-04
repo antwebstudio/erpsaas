@@ -10,7 +10,6 @@ use App\Models\Accounting\DocumentLineItemGroup;
 use App\Models\Accounting\Invoice;
 use App\Models\Common\Client;
 use App\Models\Common\Offering;
-use Livewire\Livewire;
 use Illuminate\Support\Str;
 
 use function Pest\Livewire\livewire;
@@ -64,11 +63,11 @@ it('can create an invoice with grouped line items', function () {
     expect($invoice)->not->toBeNull();
     $groups = $invoice->lineItemGroups;
     expect($groups)->toHaveCount(1);
-    
+
     $group = $groups->firstWhere('name', 'Test Group 1');
     expect($group)->not->toBeNull();
     expect($group->items)->toHaveCount(2);
-    
+
     $item1 = $group->items->first();
     expect($item1->offering_id)->toBe($offering1->id);
     // Cast to float/int to match potential string output from DB
@@ -81,7 +80,7 @@ it('can update an invoice with grouped line items', function () {
     $invoice = Invoice::factory()->for($this->testCompany)->create();
     $offering1 = Offering::factory()->state(['sellable' => true])->for($this->testCompany)->create();
     $offering2 = Offering::factory()->state(['sellable' => true])->for($this->testCompany)->create();
-    
+
     // Create initial group and item
     $group = DocumentLineItemGroup::create([
         'company_id' => $invoice->company_id,
@@ -90,7 +89,7 @@ it('can update an invoice with grouped line items', function () {
         'name' => 'Initial Group',
         'order' => 1,
     ]);
-    
+
     $item = DocumentLineItem::create([
         'company_id' => $invoice->company_id,
         'documentable_type' => $invoice->getMorphClass(),
@@ -110,10 +109,10 @@ it('can update an invoice with grouped line items', function () {
         ->set("data.lineItemGroups.{$existingKey}.name", 'Updated Group Name')
         ->call('save')
         ->assertHasNoErrors();
-        
+
     $invoice->refresh();
     $group->refresh();
-    
+
     expect($invoice->lineItemGroups)->toHaveCount(1);
     expect($group->name)->toBe('Updated Group Name');
 });

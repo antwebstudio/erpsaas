@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 
 class RolePolicy
 {

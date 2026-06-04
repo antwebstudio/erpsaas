@@ -17,11 +17,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 use Wallo\FilamentCompanies\HasCompanies;
 use Wallo\FilamentCompanies\HasConnectedAccounts;
 use Wallo\FilamentCompanies\HasProfilePhoto;
 use Wallo\FilamentCompanies\SetsProfilePhotoFromUrl;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaultTenant, HasTenants
 {
@@ -30,11 +30,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     use HasConnectedAccounts;
     use HasFactory;
     use HasProfilePhoto;
-    use Notifiable;
-    use SetsProfilePhotoFromUrl;    
     use HasRoles {
         roles as traitRoles;
     }
+    use Notifiable;
+    use SetsProfilePhotoFromUrl;
 
     public function canForCompany($companyId, $permission)
     {
@@ -63,7 +63,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     {
         $sessionCompanyId = getPermissionsTeamId();
         setPermissionsTeamId($companyId);
-        
+
         if ($roles instanceof Model) {
             $rolesToAssign = collect([$roles]);
         } else {
@@ -78,10 +78,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         }
 
         setPermissionsTeamId($sessionCompanyId);
+
         return $this;
     }
-
-
 
     public function getRolesForCompany($companyId)
     {
@@ -89,6 +88,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         setPermissionsTeamId($companyId);
         $roles = $this->roles()->withoutGlobalScopes()->get();
         setPermissionsTeamId($sessionCompanyId);
+
         return $roles;
     }
 
@@ -98,6 +98,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
         setPermissionsTeamId($companyId);
         $permissions = $this->getAllPermissions();
         setPermissionsTeamId($sessionCompanyId);
+
         return $permissions;
     }
 
@@ -212,5 +213,4 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasDefaul
     {
         return $this->hasRole(config('filament-shield.super_admin.name'));
     }
-
 }

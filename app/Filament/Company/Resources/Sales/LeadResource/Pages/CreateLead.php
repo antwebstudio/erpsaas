@@ -23,6 +23,7 @@ class CreateLead extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         $data['type'] = 'lead';
+
         return Lead::createWithRelations($data);
     }
 }

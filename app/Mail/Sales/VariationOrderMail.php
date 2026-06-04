@@ -3,17 +3,18 @@
 namespace App\Mail\Sales;
 
 use App\Models\Accounting\VariationOrder;
+use App\Services\VariationOrderPdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Services\VariationOrderPdfService;
 
 class VariationOrderMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public VariationOrder $variationOrder,
@@ -40,7 +41,7 @@ class VariationOrderMail extends Mailable
 
     public function attachments(): array
     {
-        $pdfService = new VariationOrderPdfService();
+        $pdfService = new VariationOrderPdfService;
         $pdf = $pdfService->generate($this->variationOrder);
 
         return [

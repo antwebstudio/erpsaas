@@ -5,14 +5,12 @@ namespace Database\Seeders;
 use App\Enums\Accounting\AdjustmentCategory;
 use App\Enums\Accounting\AdjustmentComputation;
 use App\Enums\Accounting\AdjustmentType;
+use App\Enums\Setting\EntityType;
 use App\Models\Accounting\Adjustment;
 use App\Models\Company;
 use App\Models\Setting\CompanyProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
-use App\Enums\Setting\EntityType;
-use Illuminate\Support\Facades\Storage;
 
 class UserCompanySeeder extends Seeder
 {
@@ -86,14 +84,14 @@ class UserCompanySeeder extends Seeder
             ['name' => 'Muyi Carpenters Pte Ltd', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
             ['name' => 'Stylemyspace Design Studio', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en'],
             ['name' => 'Stylemyspace', 'country' => 'SG', 'currency' => 'SGD', 'locale' => 'en', 'default_sales_tax' => [
-                        'name' => 'GST Tax',
-                        'description' => 'Goods and Services Tax - 9%',
-                        'rate' => 90000, // 9% (9 * 10000 scaling factor)
-                        'computation' => AdjustmentComputation::Percentage,
-                        'category' => AdjustmentCategory::Tax,
-                        'type' => AdjustmentType::Sales,
-                        'scope' => null,
-                    ]],
+                'name' => 'GST Tax',
+                'description' => 'Goods and Services Tax - 9%',
+                'rate' => 90000, // 9% (9 * 10000 scaling factor)
+                'computation' => AdjustmentComputation::Percentage,
+                'category' => AdjustmentCategory::Tax,
+                'type' => AdjustmentType::Sales,
+                'scope' => null,
+            ]],
         ];
 
         foreach ($additionalCompanies as $companyData) {
@@ -125,4 +123,3 @@ class UserCompanySeeder extends Seeder
         }
     }
 }
-

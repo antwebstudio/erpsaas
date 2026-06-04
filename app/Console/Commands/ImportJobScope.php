@@ -2,13 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\Common\OfferingType;
 use App\Models\Common\Offering;
 use App\Models\Common\OfferingCategory;
-use App\Enums\Common\OfferingType;
 use App\Models\Company;
 use Illuminate\Console\Command;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ImportJobScope extends Command
 {
@@ -35,19 +35,22 @@ class ImportJobScope extends Command
         $filename = storage_path($filename);
         $companyId = $this->option('company');
 
-        if (!$companyId) {
+        if (! $companyId) {
             $this->error('The --company option is required.');
+
             return 1;
         }
 
         $company = Company::find($companyId);
-        if (!$company) {
+        if (! $company) {
             $this->error("Company with ID {$companyId} not found.");
+
             return 1;
         }
 
-        if (!file_exists($filename)) {
+        if (! file_exists($filename)) {
             $this->error("File {$filename} not found.");
+
             return 1;
         }
 
@@ -62,6 +65,7 @@ class ImportJobScope extends Command
 
             if (empty($rows)) {
                 $this->warn('The Excel file is empty.');
+
                 return 0;
             }
 
@@ -90,7 +94,8 @@ class ImportJobScope extends Command
                     }
 
                     if (empty($name)) {
-                        $this->warn("Row " . ($index + 1) . ": Name is empty. Skipping.");
+                        $this->warn('Row ' . ($index + 1) . ': Name is empty. Skipping.');
+
                         continue;
                     }
 
@@ -98,25 +103,27 @@ class ImportJobScope extends Command
 
                     switch ($type) {
                         case 1: // JobScope (Root Category)
-                            $currentJobScope = new OfferingCategory();
+                            $currentJobScope = new OfferingCategory;
                             $currentJobScope->company_id = $companyId;
                             $currentJobScope->name = $name;
                             $currentJobScope->parent_id = null;
-                            
+
                             $currentJobScope->description = $description;
                             $currentJobScope->save();
 
                             $currentJobScopeDescription = null; // Reset description context
                             $importCount['JobScope']++;
+
                             break;
 
                         case 2: // JobScopeDescription (Child Category)
-                            if (!$currentJobScope) {
-                                $this->warn("Row " . ($index + 1) . ": Item type 2 found before any type 1. Skipping.");
+                            if (! $currentJobScope) {
+                                $this->warn('Row ' . ($index + 1) . ': Item type 2 found before any type 1. Skipping.');
+
                                 continue 2;
                             }
 
-                            $currentJobScopeDescription = new OfferingCategory();
+                            $currentJobScopeDescription = new OfferingCategory;
                             $currentJobScopeDescription->company_id = $companyId;
                             $currentJobScopeDescription->name = $name;
                             $currentJobScopeDescription->parent_id = $currentJobScope->id;
@@ -125,20 +132,22 @@ class ImportJobScope extends Command
                             $currentJobScopeDescription->save();
 
                             $importCount['JobScopeDescription']++;
+
                             break;
 
                         case 3: // JobScopeOption (Offering)
                             $targetCategory = $currentJobScopeDescription ?: $currentJobScope;
 
-                            if (!$targetCategory) {
-                                $this->warn("Row " . ($index + 1) . ": Item type 3 found before any type 1 or 2. Skipping.");
+                            if (! $targetCategory) {
+                                $this->warn('Row ' . ($index + 1) . ': Item type 3 found before any type 1 or 2. Skipping.');
+
                                 continue 2;
                             }
 
                             $price = $row[3] ?? 0;
                             $unit = $row[4] ?? null;
 
-                            $offering = new Offering();
+                            $offering = new Offering;
                             $offering->company_id = $companyId;
                             $offering->name = $name;
                             $offering->type = OfferingType::Service;
@@ -153,14 +162,16 @@ class ImportJobScope extends Command
 
                             // Link to category if not already linked
                             $offering->categories()->attach($targetCategory->id);
-                            
+
                             $importCount['JobScopeOption']++;
+
                             break;
 
                         default:
                             if ($type > 0) {
-                                $this->warn("Row " . ($index + 1) . ": Unknown type {$type}. Skipping.");
+                                $this->warn('Row ' . ($index + 1) . ": Unknown type {$type}. Skipping.");
                             }
+
                             break;
                     }
                 }
@@ -178,7 +189,7 @@ class ImportJobScope extends Command
                 }
             });
 
-            $this->info("Import completed successfully!");
+            $this->info('Import completed successfully!');
             $this->table(['Type', 'Count'], [
                 ['JobScope', $importCount['JobScope']],
                 ['JobScopeDescription', $importCount['JobScopeDescription']],
@@ -186,7 +197,8 @@ class ImportJobScope extends Command
             ]);
 
         } catch (\Exception $e) {
-            $this->error("An error occurred during import: " . $e->getMessage());
+            $this->error('An error occurred during import: ' . $e->getMessage());
+
             return 1;
         }
 

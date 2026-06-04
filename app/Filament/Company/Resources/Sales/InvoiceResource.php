@@ -388,25 +388,25 @@ class InvoiceResource extends Resource
                                                     $companyAdjustments[$companyId] = Adjustment::where('company_id', $companyId)->get()->keyBy('id');
                                                 }
 
-                                                 $taxAmountInCents = 0;
-                                                 foreach ($salesTaxes as $id) {
-                                                     $adjustment = $companyAdjustments[$companyId]->get($id);
-                                                     if ($adjustment) {
-                                                         $taxAmountInCents += $adjustment->computation->isPercentage()
-                                                             ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
-                                                             : $adjustment->getRawOriginal('rate');
-                                                     }
-                                                 }
+                                                $taxAmountInCents = 0;
+                                                foreach ($salesTaxes as $id) {
+                                                    $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                    if ($adjustment) {
+                                                        $taxAmountInCents += $adjustment->computation->isPercentage()
+                                                            ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                            : $adjustment->getRawOriginal('rate');
+                                                    }
+                                                }
 
-                                                 $discountAmountInCents = 0;
-                                                 foreach ($salesDiscounts as $id) {
-                                                     $adjustment = $companyAdjustments[$companyId]->get($id);
-                                                     if ($adjustment) {
-                                                         $discountAmountInCents += $adjustment->computation->isPercentage()
-                                                             ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
-                                                             : $adjustment->getRawOriginal('rate');
-                                                     }
-                                                 }
+                                                $discountAmountInCents = 0;
+                                                foreach ($salesDiscounts as $id) {
+                                                    $adjustment = $companyAdjustments[$companyId]->get($id);
+                                                    if ($adjustment) {
+                                                        $discountAmountInCents += $adjustment->computation->isPercentage()
+                                                            ? RateCalculator::calculatePercentage($subtotalInCents, $adjustment->getRawOriginal('rate'))
+                                                            : $adjustment->getRawOriginal('rate');
+                                                    }
+                                                }
 
                                                 // Final total
                                                 $totalInCents = $subtotalInCents + ($taxAmountInCents - $discountAmountInCents);

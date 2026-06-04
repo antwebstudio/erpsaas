@@ -34,7 +34,7 @@ function createParentCategory(int $companyId, string $name): OfferingCategory
 {
     return OfferingCategory::create([
         'company_id' => $companyId,
-        'name'       => $name,
+        'name' => $name,
     ]);
 }
 
@@ -55,20 +55,20 @@ describe('EditEstimate selectWork / add_job_scope', function () {
         $this->estimate = Estimate::factory()
             ->for($this->testCompany)
             ->create([
-                'client_id'     => $this->client->id,
+                'client_id' => $this->client->id,
                 'currency_code' => 'USD',
-                'created_by'    => $this->testUser->id,
-                'updated_by'    => $this->testUser->id,
+                'created_by' => $this->testUser->id,
+                'updated_by' => $this->testUser->id,
             ]);
 
         // Existing group linked to Category A (simulates a group already in the form)
         DocumentLineItemGroup::create([
-            'company_id'         => $this->testCompany->id,
-            'documentable_type'  => $this->estimate->getMorphClass(),
-            'documentable_id'    => $this->estimate->id,
+            'company_id' => $this->testCompany->id,
+            'documentable_type' => $this->estimate->getMorphClass(),
+            'documentable_id' => $this->estimate->id,
             'offering_category_id' => $this->catA->id,
-            'name'               => $this->catA->name,
-            'order'              => 1,
+            'name' => $this->catA->name,
+            'order' => 1,
         ]);
     });
 
@@ -125,9 +125,9 @@ describe('EditEstimate selectWork / add_job_scope', function () {
             ->callMountedAction()
             ->assertHasNoActionErrors();
 
-        $groups    = $component->get('data.lineItemGroups');
-        $newGroup  = collect($groups)->firstWhere('offering_category_id', $this->catB->id);
-        $newKey    = array_search($newGroup, $groups);
+        $groups = $component->get('data.lineItemGroups');
+        $newGroup = collect($groups)->firstWhere('offering_category_id', $this->catB->id);
+        $newKey = array_search($newGroup, $groups);
 
         // Before the fix this silently did nothing (numeric key lookup in Repeater state failed).
         // After the fix the modal must open, which mountFormComponentAction asserts internally.
@@ -151,21 +151,21 @@ describe('EditVariationOrder selectWork / add_job_scope', function () {
         $this->catB = createParentCategory($this->testCompany->id, 'VO Category B');
 
         $this->variationOrder = VariationOrder::create([
-            'company_id'    => $this->testCompany->id,
+            'company_id' => $this->testCompany->id,
             'currency_code' => 'USD',
-            'date'          => now()->toDateString(),
-            'status'        => \App\Enums\Accounting\VariationOrderStatus::Draft,
-            'created_by'    => $this->testUser->id,
-            'updated_by'    => $this->testUser->id,
+            'date' => now()->toDateString(),
+            'status' => \App\Enums\Accounting\VariationOrderStatus::Draft,
+            'created_by' => $this->testUser->id,
+            'updated_by' => $this->testUser->id,
         ]);
 
         DocumentLineItemGroup::create([
-            'company_id'           => $this->testCompany->id,
-            'documentable_type'    => $this->variationOrder->getMorphClass(),
-            'documentable_id'      => $this->variationOrder->id,
+            'company_id' => $this->testCompany->id,
+            'documentable_type' => $this->variationOrder->getMorphClass(),
+            'documentable_id' => $this->variationOrder->id,
             'offering_category_id' => $this->catA->id,
-            'name'                 => $this->catA->name,
-            'order'                => 1,
+            'name' => $this->catA->name,
+            'order' => 1,
         ]);
     });
 
@@ -198,7 +198,7 @@ describe('EditVariationOrder selectWork / add_job_scope', function () {
             ->callMountedAction()
             ->assertHasNoActionErrors();
 
-        $groups   = $component->get('data.lineItemGroups');
+        $groups = $component->get('data.lineItemGroups');
         $newGroup = collect($groups)->firstWhere('offering_category_id', $this->catB->id);
 
         expect($newGroup)->not->toBeNull('Expected a new group for VO Category B after selectWork.')
@@ -219,9 +219,9 @@ describe('EditVariationOrder selectWork / add_job_scope', function () {
             ->callMountedAction()
             ->assertHasNoActionErrors();
 
-        $groups   = $component->get('data.lineItemGroups');
+        $groups = $component->get('data.lineItemGroups');
         $newGroup = collect($groups)->firstWhere('offering_category_id', $this->catB->id);
-        $newKey   = array_search($newGroup, $groups);
+        $newKey = array_search($newGroup, $groups);
 
         $component->mountFormComponentAction(
             'data.lineItemGroups',

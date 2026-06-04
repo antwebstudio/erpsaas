@@ -3,17 +3,18 @@
 namespace App\Mail\Sales;
 
 use App\Models\Accounting\Estimate;
+use App\Services\EstimatePdfService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Services\EstimatePdfService;
 
 class EstimateMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public Estimate $estimate,
@@ -40,7 +41,7 @@ class EstimateMail extends Mailable
 
     public function attachments(): array
     {
-        $pdfService = new EstimatePdfService();
+        $pdfService = new EstimatePdfService;
         $pdf = $pdfService->generate($this->estimate);
 
         return [

@@ -3,7 +3,6 @@
 use App\Filament\Company\Resources\Sales\EstimateResource\Pages\EditEstimate;
 use App\Models\Accounting\Estimate;
 use Livewire\Livewire;
-use Illuminate\Support\Facades\DB;
 
 it('saves real estimate id 2 under 10 seconds without truncation', function () {
     $estimate = Estimate::on('mysql')->find(2);

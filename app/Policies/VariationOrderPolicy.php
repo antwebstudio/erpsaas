@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Accounting\VariationOrder;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class VariationOrderPolicy
 {

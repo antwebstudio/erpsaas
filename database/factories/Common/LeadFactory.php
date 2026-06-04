@@ -3,7 +3,6 @@
 namespace Database\Factories\Common;
 
 use App\Models\Common\Address;
-use App\Models\Common\Client;
 use App\Models\Common\Contact;
 use App\Models\Common\Lead;
 use App\Models\Company;

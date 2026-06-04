@@ -6,8 +6,6 @@ use App\Filament\Company\Resources\Sales\ClientResource;
 use App\Filament\Company\Resources\Sales\ClientResource\RelationManagers;
 use App\Filament\Company\Resources\Sales\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Company\Resources\Sales\RecurringInvoiceResource\Pages\CreateRecurringInvoice;
-use App\Filament\User\Pages\CreateQuotation;
-use App\Filament\User\Pages\CreateVariationOrder;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;

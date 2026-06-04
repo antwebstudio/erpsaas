@@ -51,6 +51,7 @@ class CreateEstimateTemplate extends CreateRecord
                             ->pluck('name', 'id'))
                         ->default(function () {
                             $currentGroups = collect($this->data['lineItemGroups'] ?? []);
+
                             return $currentGroups->whereNotNull('offering_category_id')
                                 ->pluck('offering_category_id')
                                 ->toArray();
@@ -59,7 +60,7 @@ class CreateEstimateTemplate extends CreateRecord
                 ])
                 ->action(function (array $data) {
                     $selectedIds = array_map('intval', $data['categories']);
-                    
+
                     // Fetch categories in correct order (Nested Set order for parents)
                     $sortedCategories = OfferingCategory::whereIn('id', $selectedIds)
                         ->defaultOrder()
@@ -67,11 +68,11 @@ class CreateEstimateTemplate extends CreateRecord
 
                     // Current state of groups in the form
                     $currentGroups = collect($this->data['lineItemGroups'] ?? []);
-                    
+
                     // Map existing groups by category ID for easy lookup
-                    $existingGroupsByCat = $currentGroups->filter(fn($g) => filled($g['offering_category_id'] ?? null))
-                        ->keyBy(fn($g) => (int) $g['offering_category_id']);
-                    
+                    $existingGroupsByCat = $currentGroups->filter(fn ($g) => filled($g['offering_category_id'] ?? null))
+                        ->keyBy(fn ($g) => (int) $g['offering_category_id']);
+
                     $newGroupsList = [];
                     $orderCounter = 1;
 
@@ -97,11 +98,11 @@ class CreateEstimateTemplate extends CreateRecord
                             ];
                         }
                     }
-                    
+
                     // Maintain custom groups (without offering_category_id) at the end
-                    $customGroups = $currentGroups->filter(fn($g) => blank($g['offering_category_id'] ?? null))
+                    $customGroups = $currentGroups->filter(fn ($g) => blank($g['offering_category_id'] ?? null))
                         ->sortBy('order');
-                        
+
                     foreach ($customGroups as $group) {
                         $group['order'] = $orderCounter++;
                         $newGroupsList[] = $group;
@@ -134,7 +135,7 @@ class CreateEstimateTemplate extends CreateRecord
         $this->handleLineItems($record, $lineItems);
 
         $totals = $this->updateDocumentTotals($record, $data);
-        
+
         $record->update($totals);
 
         return $record;

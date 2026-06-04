@@ -2,8 +2,8 @@
 
 namespace App\Policies\Common;
 
-use App\Models\User;
 use App\Models\Common\JobScopeOption;
+use App\Models\User;
 
 class JobScopeOptionPolicy
 {

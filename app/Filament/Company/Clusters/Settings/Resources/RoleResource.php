@@ -2,9 +2,10 @@
 
 namespace App\Filament\Company\Clusters\Settings\Resources;
 
+use App\Filament\Company\Clusters\Settings;
+use App\Filament\Company\Clusters\Settings\Resources\RoleResource\Pages;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use BezhanSalleh\FilamentShield\Forms\ShieldSelectAllToggle;
-use App\Filament\Company\Clusters\Settings\Resources\RoleResource\Pages;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use BezhanSalleh\FilamentShield\Traits\HasShieldFormComponents;
 use Filament\Facades\Filament;
@@ -18,12 +19,10 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Unique;
-use App\Filament\Company\Clusters\Settings;
 
 class RoleResource extends Resource implements HasShieldPermissions
 {
     use \App\Filament\Traits\HasNavigationPermission;
-
     use HasShieldFormComponents;
 
     protected static ?string $recordTitleAttribute = 'name';

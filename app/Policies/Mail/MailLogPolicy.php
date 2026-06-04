@@ -2,8 +2,8 @@
 
 namespace App\Policies\Mail;
 
-use App\Models\User;
 use App\Models\Mail\MailLog;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class MailLogPolicy

@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Mail;
 
 class SendTemplateEmailJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * @param  array<string, mixed>  $variables

@@ -20,8 +20,8 @@ enum VariationOrderStatus: string implements HasColor, HasLabel
     public function getColor(): string | array | null
     {
         return match ($this) {
-            self::Draft  => 'gray',
-            self::Sent   => 'primary',
+            self::Draft => 'gray',
+            self::Sent => 'primary',
             self::Approved => 'success',
             self::Rejected => 'danger',
         };

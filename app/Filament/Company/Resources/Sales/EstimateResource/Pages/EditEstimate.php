@@ -92,6 +92,7 @@ class EditEstimate extends EditRecord
                                     $selected[] = (int) $group['offering_category_id'];
                                 }
                             }
+
                             return $selected;
                         })
                         ->required(),
@@ -248,6 +249,7 @@ class EditEstimate extends EditRecord
                         $this->commitDatabaseTransaction();
                     } catch (\Throwable $exception) {
                         $this->rollBackDatabaseTransaction();
+
                         throw $exception;
                     }
 
@@ -269,7 +271,7 @@ class EditEstimate extends EditRecord
                     $this->fillForm();
 
                     // Generate the PDF
-                    $pdfService = new \App\Services\EstimatePdfService();
+                    $pdfService = new \App\Services\EstimatePdfService;
                     $finalPdfOutput = $pdfService->generate($record);
 
                     $filename = "Quotation-{$record->estimate_number}.pdf";

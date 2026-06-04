@@ -15,6 +15,7 @@ class TemplateEmailMailable extends TemplateNotificationMailable
     {
         return preg_replace_callback('/\{\{\s*([\w.]+)\s*\}\}/', function ($matches) use ($data) {
             $key = $matches[1];
+
             return array_key_exists($key, $data) ? (string) $data[$key] : '';
         }, $template) ?? $template;
     }
