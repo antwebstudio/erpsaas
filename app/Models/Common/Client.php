@@ -59,34 +59,52 @@ class Client extends Model
         /** @var Client $client */
         $client = static::create($data);
 
-        if (isset($data['primaryContact'], $data['primaryContact']['first_name'])) {
+        if (isset($data['primaryContact']) && (
+            filled($data['primaryContact']['first_name'] ?? null) ||
+            filled($data['primaryContact']['last_name'] ?? null) ||
+            filled($data['primaryContact']['email'] ?? null) ||
+            ! empty($data['primaryContact']['phones'] ?? [])
+        )) {
             $client->primaryContact()->create([
+                'company_id' => $client->company_id,
                 'is_primary' => true,
-                'first_name' => $data['primaryContact']['first_name'],
-                'last_name' => $data['primaryContact']['last_name'],
-                'email' => $data['primaryContact']['email'],
+                'first_name' => $data['primaryContact']['first_name'] ?? '',
+                'last_name' => $data['primaryContact']['last_name'] ?? '',
+                'email' => $data['primaryContact']['email'] ?? null,
                 'phones' => $data['primaryContact']['phones'] ?? [],
             ]);
         }
 
         if (isset($data['secondaryContacts'])) {
             foreach ($data['secondaryContacts'] as $contactData) {
-                if (isset($contactData['first_name'])) {
+                if (
+                    filled($contactData['first_name'] ?? null) ||
+                    filled($contactData['last_name'] ?? null) ||
+                    filled($contactData['email'] ?? null) ||
+                    ! empty($contactData['phones'] ?? [])
+                ) {
                     $client->secondaryContacts()->create([
+                        'company_id' => $client->company_id,
                         'is_primary' => false,
-                        'first_name' => $contactData['first_name'],
-                        'last_name' => $contactData['last_name'],
-                        'email' => $contactData['email'],
+                        'first_name' => $contactData['first_name'] ?? '',
+                        'last_name' => $contactData['last_name'] ?? '',
+                        'email' => $contactData['email'] ?? null,
                         'phones' => $contactData['phones'] ?? [],
                     ]);
                 }
             }
         }
 
-        if (isset($data['billingAddress'], $data['billingAddress']['address_line_1'])) {
+        if (isset($data['billingAddress']) && (
+            filled($data['billingAddress']['address_line_1'] ?? null) ||
+            filled($data['billingAddress']['address_line_2'] ?? null) ||
+            filled($data['billingAddress']['city'] ?? null) ||
+            filled($data['billingAddress']['postal_code'] ?? null)
+        )) {
             $client->billingAddress()->create([
+                'company_id' => $client->company_id,
                 'type' => AddressType::Billing,
-                'address_line_1' => $data['billingAddress']['address_line_1'],
+                'address_line_1' => $data['billingAddress']['address_line_1'] ?? null,
                 'address_line_2' => $data['billingAddress']['address_line_2'] ?? null,
                 'country_code' => $data['billingAddress']['country_code'] ?? null,
                 'state_id' => $data['billingAddress']['state_id'] ?? null,
@@ -98,6 +116,7 @@ class Client extends Model
         if (isset($data['shippingAddress'])) {
             $shippingData = $data['shippingAddress'];
             $shippingAddress = [
+                'company_id' => $client->company_id,
                 'type' => AddressType::Shipping,
                 'recipient' => $shippingData['recipient'] ?? null,
                 'phone' => $shippingData['phone'] ?? null,
@@ -119,10 +138,15 @@ class Client extends Model
                     ];
                     $client->shippingAddress()->create($shippingAddress);
                 }
-            } elseif (isset($shippingData['address_line_1'])) {
+            } elseif (
+                filled($shippingData['address_line_1'] ?? null) ||
+                filled($shippingData['address_line_2'] ?? null) ||
+                filled($shippingData['city'] ?? null) ||
+                filled($shippingData['postal_code'] ?? null)
+            ) {
                 $shippingAddress = [
                     ...$shippingAddress,
-                    'address_line_1' => $shippingData['address_line_1'],
+                    'address_line_1' => $shippingData['address_line_1'] ?? null,
                     'address_line_2' => $shippingData['address_line_2'] ?? null,
                     'country_code' => $shippingData['country_code'] ?? null,
                     'state_id' => $shippingData['state_id'] ?? null,
@@ -142,13 +166,19 @@ class Client extends Model
         \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
             $this->update($data);
 
-            if (isset($data['primaryContact'], $data['primaryContact']['first_name'])) {
+            if (isset($data['primaryContact']) && (
+                filled($data['primaryContact']['first_name'] ?? null) ||
+                filled($data['primaryContact']['last_name'] ?? null) ||
+                filled($data['primaryContact']['email'] ?? null) ||
+                ! empty($data['primaryContact']['phones'] ?? [])
+            )) {
                 $this->primaryContact()->updateOrCreate(
                     ['is_primary' => true],
                     [
-                        'first_name' => $data['primaryContact']['first_name'],
-                        'last_name' => $data['primaryContact']['last_name'],
-                        'email' => $data['primaryContact']['email'],
+                        'company_id' => $this->company_id,
+                        'first_name' => $data['primaryContact']['first_name'] ?? '',
+                        'last_name' => $data['primaryContact']['last_name'] ?? '',
+                        'email' => $data['primaryContact']['email'] ?? null,
                         'phones' => $data['primaryContact']['phones'] ?? [],
                     ]
                 );
@@ -161,14 +191,20 @@ class Client extends Model
 
                 // Update or create contacts
                 foreach ($data['secondaryContacts'] as $contactData) {
-                    if (isset($contactData['first_name'])) {
+                    if (
+                        filled($contactData['first_name'] ?? null) ||
+                        filled($contactData['last_name'] ?? null) ||
+                        filled($contactData['email'] ?? null) ||
+                        ! empty($contactData['phones'] ?? [])
+                    ) {
                         $this->secondaryContacts()->updateOrCreate(
                             ['id' => $contactData['id'] ?? null],
                             [
+                                'company_id' => $this->company_id,
                                 'is_primary' => false,
-                                'first_name' => $contactData['first_name'],
-                                'last_name' => $contactData['last_name'],
-                                'email' => $contactData['email'],
+                                'first_name' => $contactData['first_name'] ?? '',
+                                'last_name' => $contactData['last_name'] ?? '',
+                                'email' => $contactData['email'] ?? null,
                                 'phones' => $contactData['phones'] ?? [],
                             ]
                         );
@@ -176,11 +212,17 @@ class Client extends Model
                 }
             }
 
-            if (isset($data['billingAddress'], $data['billingAddress']['address_line_1'])) {
+            if (isset($data['billingAddress']) && (
+                filled($data['billingAddress']['address_line_1'] ?? null) ||
+                filled($data['billingAddress']['address_line_2'] ?? null) ||
+                filled($data['billingAddress']['city'] ?? null) ||
+                filled($data['billingAddress']['postal_code'] ?? null)
+            )) {
                 $this->billingAddress()->updateOrCreate(
                     ['type' => AddressType::Billing],
                     [
-                        'address_line_1' => $data['billingAddress']['address_line_1'],
+                        'company_id' => $this->company_id,
+                        'address_line_1' => $data['billingAddress']['address_line_1'] ?? null,
                         'address_line_2' => $data['billingAddress']['address_line_2'] ?? null,
                         'country_code' => $data['billingAddress']['country_code'] ?? null,
                         'state_id' => $data['billingAddress']['state_id'] ?? null,
@@ -197,6 +239,7 @@ class Client extends Model
                     $billingAddress = $this->billingAddress;
                     if ($billingAddress) {
                         $shippingAddress = [
+                            'company_id' => $this->company_id,
                             'type' => AddressType::Shipping,
                             'recipient' => $shippingData['recipient'] ?? null,
                             'phone' => $shippingData['phone'] ?? null,
@@ -215,14 +258,20 @@ class Client extends Model
                             $shippingAddress
                         );
                     }
-                } elseif (isset($shippingData['address_line_1'])) {
+                } elseif (
+                    filled($shippingData['address_line_1'] ?? null) ||
+                    filled($shippingData['address_line_2'] ?? null) ||
+                    filled($shippingData['city'] ?? null) ||
+                    filled($shippingData['postal_code'] ?? null)
+                ) {
                     $shippingAddress = [
+                        'company_id' => $this->company_id,
                         'type' => AddressType::Shipping,
                         'recipient' => $shippingData['recipient'] ?? null,
                         'phone' => $shippingData['phone'] ?? null,
                         'notes' => $shippingData['notes'] ?? null,
                         'parent_address_id' => null,
-                        'address_line_1' => $shippingData['address_line_1'],
+                        'address_line_1' => $shippingData['address_line_1'] ?? null,
                         'address_line_2' => $shippingData['address_line_2'] ?? null,
                         'country_code' => $shippingData['country_code'] ?? null,
                         'state_id' => $shippingData['state_id'] ?? null,

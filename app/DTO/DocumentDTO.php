@@ -120,7 +120,7 @@ readonly class DocumentDTO
             subheader: $document->subheader,
             footer: $document->footer,
             terms: $document->terms,
-            logo: $document->logo_url ?? $settings?->logo_url,
+            logo: self::getBase64Image($document->logo ?? $settings?->logo) ?? $document->logo_url ?? $settings?->logo_url,
             number: $document->documentNumber(),
             referenceNumber: $document->referenceNumber(),
             date: $document->documentDate(),
@@ -140,7 +140,7 @@ readonly class DocumentDTO
             accentColor: $settings?->accent_color ?? '#000000',
             showLogo: $settings?->show_logo ?? false,
             font: $settings?->font ?? Font::Inter,
-            backgroundImage: $settings?->background_image_url,
+            backgroundImage: self::getBase64Image($settings?->background_image) ?? $settings?->background_image_url,
             materialsGuide: $settings?->materials_guide,
             termsAndConditions: $settings?->terms_and_conditions,
             colorSecondary: $settings?->color_secondary ?? '#f7f1eb',
@@ -183,5 +183,36 @@ readonly class DocumentDTO
     public function getFontHtml(): Htmlable
     {
         return app(BunnyFontProvider::class)->getHtml($this->font->getLabel());
+    }
+
+    /**
+     * Helper to convert storage path to base64 data URI
+     */
+    protected static function getBase64Image(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        try {
+            $disk = \Illuminate\Support\Facades\Storage::disk('public');
+            if ($disk->exists($path)) {
+                $content = $disk->get($path);
+                $mime = $disk->mimeType($path);
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+        } catch (\Exception $e) {
+            // Log or ignore
+        }
+
+        return null;
     }
 }

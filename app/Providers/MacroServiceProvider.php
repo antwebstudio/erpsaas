@@ -565,5 +565,11 @@ class MacroServiceProvider extends ServiceProvider
 
             return $this;
         });
+
+        \Spatie\LaravelPdf\PdfBuilder::macro('onLambdaWeasyPrint', function () {
+            $this->setDriver(new \App\Sidecar\WeasyPrintDriver());
+
+            return $this;
+        });
     }
 }
