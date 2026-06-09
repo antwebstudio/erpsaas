@@ -1,5 +1,5 @@
 <td colspan="4" style="height: 180px; vertical-align: top; padding-top: 8mm; padding-bottom: 5mm; font-weight: normal;">
-    <table style="width: 100%; border-collapse: collapse; border: none; font-family: 'DOTFUB+Open Sans Regular', sans-serif; font-size: 10px; color: #000; font-weight: normal;">
+    <table style="width: 100%; border-collapse: collapse; border: none; font-family: 'Open Sans', sans-serif; font-size: 10px; color: #000; font-weight: normal;">
         <tr>
             <!-- Left Column: Company Details -->
             <td style="width: 50%; vertical-align: top; text-align: left; padding-left: 10mm;">

@@ -1,8 +1,8 @@
 import json
 import os
+import sys
 import base64
 import traceback
-from weasyprint import HTML
 
 def lambda_handler(event, context):
     try:

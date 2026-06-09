@@ -64,7 +64,7 @@ class WeasyPrint extends LambdaFunction
      */
     public function layers()
     {
-        $layerArn = env('WEASYPRINT_LAYER_ARN');
+        $layerArn = config('erp.weasyprint_layer_arn');
         
         if (empty($layerArn)) {
             // Provide a fallback or descriptive warning if env is missing

@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         @page {
@@ -11,7 +14,7 @@
         body {
             margin: 0;
             padding: 12mm 15mm 15mm 15mm;
-            font-family: Arial, sans-serif;
+            font-family: 'Arimo', Arial, sans-serif;
             font-size: 11px;
             color: #000;
             -webkit-print-color-adjust: exact !important;

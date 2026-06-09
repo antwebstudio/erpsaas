@@ -28,4 +28,6 @@ return [
     'main_group_header_bg_color_dark' => env('MAIN_GROUP_HEADER_BG_COLOR_DARK'),
     'main_group_header_font_color' => env('MAIN_GROUP_HEADER_FONT_COLOR'),
     'main_group_header_font_color_dark' => env('MAIN_GROUP_HEADER_FONT_COLOR_DARK'),
+
+    'weasyprint_layer_arn' => env('WEASYPRINT_LAYER_ARN'),
 ];
