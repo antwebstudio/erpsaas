@@ -108,7 +108,6 @@ class CompanyPanelProvider extends PanelProvider
             ->login(Login::class)
             ->when(! $isDemoEnvironment, function (Panel $panel) {
                 return $panel
-                    ->registration(Register::class)
                     ->passwordReset();
             })
             ->tenantMenu(false)
@@ -120,7 +119,7 @@ class CompanyPanelProvider extends PanelProvider
                     ->updateProfileInformation(component: UpdateProfileInformation::class)
                     ->updatePasswords(component: UpdatePassword::class)
                     ->setPasswords()
-                    ->connectedAccounts()
+                    // ->connectedAccounts()
                     ->manageBrowserSessions()
                     ->accountDeletion()
                     ->profilePhotos()
@@ -129,12 +128,12 @@ class CompanyPanelProvider extends PanelProvider
                     ->autoAcceptInvitations()
                     ->termsAndPrivacyPolicy()
                     ->notifications()
-                    ->modals()
-                    ->socialite(
-                        condition: ! $isDemoEnvironment,
-                        providers: [Provider::Github],
-                        features: [Feature::RememberSession, Feature::ProviderAvatars],
-                    ),
+                    ->modals(),
+                    // ->socialite(
+                    //     condition: ! $isDemoEnvironment,
+                    //     providers: [Provider::Github],
+                    //     features: [Feature::RememberSession, Feature::ProviderAvatars],
+                    // ),
                 PanelShiftDropdown::make()
                     ->logoutItem()
                     ->companySettings()
@@ -299,13 +298,13 @@ class CompanyPanelProvider extends PanelProvider
         FilamentCompanies::deleteCompaniesUsing(DeleteCompany::class);
         FilamentCompanies::deleteUsersUsing(DeleteUser::class);
 
-        FilamentCompanies::resolvesSocialiteUsersUsing(ResolveSocialiteUser::class);
-        FilamentCompanies::createUsersFromProviderUsing(CreateUserFromProvider::class);
-        FilamentCompanies::createConnectedAccountsUsing(CreateConnectedAccount::class);
-        FilamentCompanies::updateConnectedAccountsUsing(UpdateConnectedAccount::class);
-        FilamentCompanies::setUserPasswordsUsing(SetUserPassword::class);
-        FilamentCompanies::handlesInvalidStateUsing(HandleInvalidState::class);
-        FilamentCompanies::generatesProvidersRedirectsUsing(GenerateRedirectForProvider::class);
+        // FilamentCompanies::resolvesSocialiteUsersUsing(ResolveSocialiteUser::class);
+        // FilamentCompanies::createUsersFromProviderUsing(CreateUserFromProvider::class);
+        // FilamentCompanies::createConnectedAccountsUsing(CreateConnectedAccount::class);
+        // FilamentCompanies::updateConnectedAccountsUsing(UpdateConnectedAccount::class);
+        // FilamentCompanies::setUserPasswordsUsing(SetUserPassword::class);
+        // FilamentCompanies::handlesInvalidStateUsing(HandleInvalidState::class);
+        // FilamentCompanies::generatesProvidersRedirectsUsing(GenerateRedirectForProvider::class);
     }
 
     /**
