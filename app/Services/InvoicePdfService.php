@@ -33,7 +33,9 @@ class InvoicePdfService
             'issuingCompany' => $issuingCompany,
         ])->render();
 
-        $pdfBase64 = Pdf::html($html)->format('a4')->base64();
+        $pdfBase64 = Pdf::html($html)
+            ->onLambdaWeasyPrint(\App\Sidecar\WeasyPrint::isSetup())
+            ->format('a4')->base64();
 
         return base64_decode($pdfBase64);
     }

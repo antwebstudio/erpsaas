@@ -34,7 +34,7 @@ class EstimatePdfService
         ])->render();
 
         $pdfBase64 = Pdf::html($html)
-            ->onLambdaWeasyPrint()
+            ->onLambdaWeasyPrint(\App\Sidecar\WeasyPrint::isSetup())
             // ->withBrowsershot(function ($browsershot) {
             //     $browsershot->setNodeBinary('C:\Program Files\nodejs\node.exe')
             //         ->setNodeModulePath('C:\Users\chy19\AppData\Roaming\npm\node_modules')

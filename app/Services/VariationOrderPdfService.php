@@ -34,14 +34,15 @@ class VariationOrderPdfService
         ])->render();
 
         $pdfBase64 = Pdf::html($html)
-            ->withBrowsershot(function ($browsershot) {
-                $browsershot->setNodeBinary('C:\Program Files\nodejs\node.exe')
-                    ->setNodeModulePath('C:\Users\chy19\AppData\Roaming\npm\node_modules')
-                    ->timeout(120)
-                    ->showBackground()
-                    ->margins(0, 0, 0, 0)
-                    ->addChromiumArguments(['no-sandbox', 'disable-setuid-sandbox']);
-            })
+            ->onLambdaWeasyPrint(\App\Sidecar\WeasyPrint::isSetup())
+            // ->withBrowsershot(function ($browsershot) {
+            //     $browsershot->setNodeBinary('C:\Program Files\nodejs\node.exe')
+            //         ->setNodeModulePath('C:\Users\chy19\AppData\Roaming\npm\node_modules')
+            //         ->timeout(120)
+            //         ->showBackground()
+            //         ->margins(0, 0, 0, 0)
+            //         ->addChromiumArguments(['no-sandbox', 'disable-setuid-sandbox']);
+            // })
             ->format('a4')
             ->base64();
 

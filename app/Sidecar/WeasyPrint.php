@@ -65,14 +65,14 @@ class WeasyPrint extends LambdaFunction
     public function layers()
     {
         $layerArn = config('erp.weasyprint_layer_arn');
-        
+
         if (empty($layerArn)) {
             // Provide a fallback or descriptive warning if env is missing
-            throw new \Exception("WEASYPRINT_LAYER_ARN is not configured in your .env file.");
+            throw new \Exception('WEASYPRINT_LAYER_ARN is not configured in your .env file.');
         }
 
         return [
-            $layerArn
+            $layerArn,
         ];
     }
 
@@ -99,5 +99,15 @@ class WeasyPrint extends LambdaFunction
         return [
             'resources/sidecar/weasyprint',
         ];
+    }
+
+    /**
+     * Checks if the AWS Lambda WeasyPrint is fully setup and configured.
+     */
+    public static function isSetup(): bool
+    {
+        return ! app()->runningUnitTests()
+            && ! empty(config('erp.weasyprint_layer_arn'))
+            && ! empty(config('sidecar.aws_key'));
     }
 }
