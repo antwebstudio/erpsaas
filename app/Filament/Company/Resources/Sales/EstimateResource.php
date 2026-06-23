@@ -1378,6 +1378,12 @@ class EstimateResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->hiddenOn(EstimatesRelationManager::class),
+                Tables\Columns\TextColumn::make('createdBy.name')
+                    ->label('Salesman')
+                    ->sortable()
+                    ->searchable()
+                    ->default('—')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('total')
                     ->currencyWithConversion(static fn (Estimate $record) => $record->currency_code)
                     ->sortable()

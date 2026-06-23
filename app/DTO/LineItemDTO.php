@@ -36,10 +36,10 @@ readonly class LineItemDTO
         );
     }
 
-    protected static function formatToMoney(float | string | int $value, ?string $currencyCode, bool $allowFoc = false): string
+    protected static function formatToMoney(float | string | int $value, ?string $currencyCode, bool $allowIncluded = false): string
     {
-        if ($allowFoc && (float) $value == 0) {
-            return 'FOC';
+        if ($allowIncluded && (float) $value == 0) {
+            return 'INCLUDED';
         }
 
         if (is_int($value)) {

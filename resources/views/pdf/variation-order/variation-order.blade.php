@@ -217,7 +217,7 @@
                                                 {{ $item->quantity }} {{ $item->unit }}
                                             @endif
                                         </td>
-                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['FOC', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
+                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['INCLUDED', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -253,7 +253,7 @@
                                                 {{ $item->quantity }} {{ $item->unit }}
                                             @endif
                                         </td>
-                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['FOC', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
+                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['INCLUDED', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -302,7 +302,7 @@
                                                 {{ $item->quantity }} {{ $item->unit }}
                                             @endif
                                         </td>
-                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['FOC', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
+                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['INCLUDED', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -338,7 +338,7 @@
                                                 {{ $item->quantity }} {{ $item->unit }}
                                             @endif
                                         </td>
-                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['FOC', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
+                                        <td class="items-td" style="width:15%; text-align: {{ in_array(trim($item->subtotal), ['INCLUDED', 'KIV']) ? 'center' : 'right' }};">{{ $item->subtotal }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

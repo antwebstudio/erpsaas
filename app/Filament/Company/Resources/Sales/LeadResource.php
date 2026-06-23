@@ -280,6 +280,12 @@ class LeadResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('createdBy.name')
+                    ->label('Assigned To')
+                    ->searchable()
+                    ->sortable()
+                    ->default('—')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('leadSource.name')
                     ->label('Lead Source')
                     ->searchable()

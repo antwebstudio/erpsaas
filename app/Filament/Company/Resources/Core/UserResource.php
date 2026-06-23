@@ -284,8 +284,10 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->copyable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->copyable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()

@@ -1881,31 +1881,31 @@ class OfferingCategorySeeder extends Seeder
                                 'price' => 0,
                             ],
                             7 => [
-                                'name' => 'FOC Stainless steel dishrack x 1',
+                                'name' => 'INCLUDED Stainless steel dishrack x 1',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
                             ],
                             8 => [
-                                'name' => 'FOC Aluminium glass door x 1',
+                                'name' => 'INCLUDED Aluminium glass door x 1',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
                             ],
                             9 => [
-                                'name' => 'FOC PVC cutlery tray',
+                                'name' => 'INCLUDED PVC cutlery tray',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
                             ],
                             10 => [
-                                'name' => 'FOC Blum soft close runner x 4 set',
+                                'name' => 'INCLUDED Blum soft close runner x 4 set',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
                             ],
                             11 => [
-                                'name' => 'FOC Blum HK soft close lift system x 1 set',
+                                'name' => 'INCLUDED Blum HK soft close lift system x 1 set',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
@@ -1933,7 +1933,7 @@ class OfferingCategorySeeder extends Seeder
                         'text' => '(Casement / 30mm thick sliding / Aluminium frame glass) door wardrobe include of:',
                         'items' => [
                             0 => [
-                                'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
+                                'name' => 'INCLUDED Hanging rods / shelves / max 4 set drawers',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
@@ -1990,7 +1990,7 @@ class OfferingCategorySeeder extends Seeder
                         'text' => '(Casement / 30mm thick sliding / Aluminium frame glass) door wardrobe include of:',
                         'items' => [
                             0 => [
-                                'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
+                                'name' => 'INCLUDED Hanging rods / shelves / max 4 set drawers',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
@@ -2065,7 +2065,7 @@ class OfferingCategorySeeder extends Seeder
                         'text' => '(Casement / 30mm thick sliding / Aluminium frame glass) door wardrobe include of:',
                         'items' => [
                             0 => [
-                                'name' => 'FOC Hanging rods / shelves / max 4 set drawers',
+                                'name' => 'INCLUDED Hanging rods / shelves / max 4 set drawers',
                                 'qty' => 1,
                                 'uom' => null,
                                 'price' => 0,
