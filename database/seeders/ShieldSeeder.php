@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 class ShieldSeeder extends Seeder
 {
-    protected $adminEmail = [
-        2 => 'muyi@example.com',
-        3 => 'designstudio@example.com',
-        4 => 'stylemyspace@example.com',
-    ];
+
 
     /**
      * Run the database seeds.
@@ -237,121 +233,110 @@ class ShieldSeeder extends Seeder
             $this->command->info("Sales role and permissions synced for company: {$company->name}");
         }
 
-        // Create/Assign user
-        $adminEmail = 'admin@example.com';
-        $user = User::where('email', $adminEmail)->first();
-
-        if (! $user) {
-            $user = User::create([
-                'name' => 'Super Admin',
-                'email' => $adminEmail,
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'current_company_id' => 1,  // Assuming this will be the ID of the created company
-            ]);
-            $this->command->info("User {$adminEmail} created.");
-        }
-
         $firstCompany = $companies->first();
-        if ($firstCompany) {
-            $user->switchCompany($firstCompany);
-        }
 
-        foreach ($companies as $company) {
-            if (! $user->belongsToCompany($company)) {
-                $user->companies()->attach($company, ['role' => 'admin']);
-            }
-
-            $user->assignRolesForCompany($company->id, $superAdminName);
-            $this->command->info("User {$adminEmail} assigned the {$superAdminName} role in company: {$company->name}");
-        }
-
-        // Assign Admin role to admin@erpsaas.com for all companies
-        $erpsaasAdminEmail = 'admin@erpsaas.com';
-        $erpsaasAdmin = User::where('email', $erpsaasAdminEmail)->first();
-
-        if (! $erpsaasAdmin) {
-            $erpsaasAdmin = User::create([
+        // 1. Seed Super Admin users
+        $superAdmins = [
+            [
                 'name' => 'Admin',
-                'email' => $erpsaasAdminEmail,
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'current_company_id' => 1,
-            ]);
-            $this->command->info("User {$erpsaasAdminEmail} created.");
-        }
+                'email' => 'admin@erpsaas.com',
+            ],
+            [
+                'name' => 'Super Admin Stylemyspace',
+                'email' => 'enquiry@stylemyspace.com.sg',
+            ],
+            [
+                'name' => 'Back Up Super Admin',
+                'email' => 'addison.chai@hotmail.com',
+            ],
+        ];
 
-        if ($firstCompany && ! $erpsaasAdmin->current_company_id) {
-            $erpsaasAdmin->switchCompany($firstCompany);
-        }
+        foreach ($superAdmins as $adminData) {
+            $adminUser = User::where('email', $adminData['email'])->first();
 
-        foreach ($companies as $company) {
-            if (! $erpsaasAdmin->belongsToCompany($company)) {
-                $erpsaasAdmin->companies()->attach($company, ['role' => 'admin']);
-            }
-
-            $erpsaasAdmin->assignRolesForCompany($company->id, 'Admin');
-            $this->command->info("User {$erpsaasAdminEmail} assigned the Admin role in company: {$company->name}");
-        }
-
-        // Create an individual Admin for each company
-        foreach ($companies as $company) {
-            $companyAdminEmail = $this->adminEmail[$company->id] ?? "admin{$company->id}@example.com";
-            $companyAdmin = User::where('email', $companyAdminEmail)->first();
-
-            if (! $companyAdmin) {
-                $companyAdmin = User::create([
-                    'name' => 'Admin ' . $company->name,
-                    'email' => $companyAdminEmail,
+            if (! $adminUser) {
+                $adminUser = User::create([
+                    'name' => $adminData['name'],
+                    'email' => $adminData['email'],
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
-                    'current_company_id' => $company->id,
+                    'current_company_id' => $firstCompany?->id ?? 1,
                 ]);
-                $this->command->info("User {$companyAdminEmail} created.");
+                $this->command->info("User {$adminData['email']} created.");
+            } else {
+                $adminUser->update(['name' => $adminData['name']]);
             }
 
-            if (! $companyAdmin->current_company_id) {
-                $companyAdmin->switchCompany($company);
+            if ($firstCompany && ! $adminUser->current_company_id) {
+                $adminUser->switchCompany($firstCompany);
             }
 
-            if (! $companyAdmin->belongsToCompany($company)) {
-                $companyAdmin->companies()->attach($company, ['role' => 'admin']);
-            }
+            foreach ($companies as $company) {
+                if (! $adminUser->belongsToCompany($company)) {
+                    $adminUser->companies()->attach($company, ['role' => 'admin']);
+                }
 
-            $companyAdmin->assignRolesForCompany($company->id, 'Admin');
-            $this->command->info("User {$companyAdminEmail} assigned the Admin role exclusively for company: {$company->name}");
+                $adminUser->assignRolesForCompany($company->id, $superAdminName);
+                $this->command->info("User {$adminData['email']} assigned the {$superAdminName} role in company: {$company->name}");
+            }
         }
 
-        // Create 2 Sales users — assigned to erp_system_company only
-        $erpSystemCompanyId = config('erp.erp_system_company_id');
-        $erpSystemCompany = $erpSystemCompanyId ? Company::find($erpSystemCompanyId) : $firstCompany;
+        // 2. Seed Sales users
+        $salesUsers = [
+            [
+                'name' => 'Addison',
+                'email' => 'addison@stylemyspace.com.sg',
+            ],
+            [
+                'name' => 'Brian',
+                'email' => 'brian@stylemyspace.com.sg',
+            ],
+            [
+                'name' => 'Macauly',
+                'email' => 'macyap@stylemyspace.com.sg',
+            ],
+            [
+                'name' => 'SC Leang',
+                'email' => 'scleang@stylemyspace.com.sg',
+            ],
+        ];
 
-        foreach (['sales1@erpsaas.com', 'sales2@erpsaas.com'] as $index => $salesEmail) {
-            $salesUser = User::where('email', $salesEmail)->first();
+        foreach ($salesUsers as $salesData) {
+            $salesUser = User::where('email', $salesData['email'])->first();
 
             if (! $salesUser) {
                 $salesUser = User::create([
-                    'name' => 'Sales User ' . ($index + 1),
-                    'email' => $salesEmail,
+                    'name' => $salesData['name'],
+                    'email' => $salesData['email'],
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
-                    'current_company_id' => $erpSystemCompany?->id ?? 1,
+                    'current_company_id' => $firstCompany?->id ?? 1,
                 ]);
-                $this->command->info("User {$salesEmail} created.");
+                $this->command->info("User {$salesData['email']} created.");
+            } else {
+                $salesUser->update(['name' => $salesData['name']]);
             }
 
-            if ($erpSystemCompany && ! $salesUser->current_company_id) {
-                $salesUser->switchCompany($erpSystemCompany);
+            if ($firstCompany && ! $salesUser->current_company_id) {
+                $salesUser->switchCompany($firstCompany);
             }
 
-            if ($erpSystemCompany) {
-                if (! $salesUser->belongsToCompany($erpSystemCompany)) {
-                    $salesUser->companies()->attach($erpSystemCompany, ['role' => 'user']);
+            foreach ($companies as $company) {
+                if (! $salesUser->belongsToCompany($company)) {
+                    $salesUser->companies()->attach($company, ['role' => 'user']);
                 }
 
-                $salesUser->assignRolesForCompany($erpSystemCompany->id, 'Sales');
-                $this->command->info("User {$salesEmail} assigned the Sales role in company: {$erpSystemCompany->name}");
+                $salesUser->assignRolesForCompany($company->id, 'Sales');
+                $this->command->info("User {$salesData['email']} assigned the Sales role in company: {$company->name}");
             }
         }
+
+        // 3. Delete any other users to ensure we ONLY have the above allowed users
+        $allowedEmails = array_merge(
+            array_column($superAdmins, 'email'),
+            array_column($salesUsers, 'email')
+        );
+        User::whereNotIn('email', $allowedEmails)->delete();
+        $this->command->info("Cleaned up any unauthorized users.");
     }
 }
