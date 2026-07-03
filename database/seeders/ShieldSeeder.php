@@ -321,13 +321,14 @@ class ShieldSeeder extends Seeder
                 $salesUser->switchCompany($firstCompany);
             }
 
-            foreach ($companies as $company) {
-                if (! $salesUser->belongsToCompany($company)) {
-                    $salesUser->companies()->attach($company, ['role' => 'user']);
+            // Sales users should only belong to the ERP system company (first company)
+            if ($firstCompany) {
+                if (! $salesUser->belongsToCompany($firstCompany)) {
+                    $salesUser->companies()->attach($firstCompany, ['role' => 'user']);
                 }
 
-                $salesUser->assignRolesForCompany($company->id, 'Sales');
-                $this->command->info("User {$salesData['email']} assigned the Sales role in company: {$company->name}");
+                $salesUser->assignRolesForCompany($firstCompany->id, 'Sales');
+                $this->command->info("User {$salesData['email']} assigned the Sales role in company: {$firstCompany->name}");
             }
         }
 

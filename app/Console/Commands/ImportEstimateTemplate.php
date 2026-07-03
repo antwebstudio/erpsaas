@@ -119,77 +119,46 @@ class ImportEstimateTemplate extends Command
                         continue;
                     }
 
-                    $level = (int) ($row[0] ?? 0);
+                    $rawLevel = (int) ($row[0] ?? 0);
                     $text = trim($row[1] ?? '');
 
                     if (empty($text)) {
                         continue;
                     }
 
-                    if ($level === 1) {
-                        // Level 1: Main Group (OfferingCategory)
-                        $category = OfferingCategory::where('company_id', $companyId)
-                            ->where('name', $text)
-                            ->first();
+                    // The raw file's level column is not trustworthy — it can disagree with the
+                    // structure already established in works.xlsx (JobScope/JobScopeDescription/
+                    // JobScopeOption). Instead, resolve the actual level from the matching
+                    // OfferingCategory/Offering records imported from works.xlsx.
+                    $category = OfferingCategory::where('company_id', $companyId)
+                        ->where('name', $text)
+                        ->first();
 
-                        $currentParentGroup = DocumentLineItemGroup::create([
-                            'documentable_type' => $estimate->getMorphClass(),
-                            'documentable_id' => $estimate->id,
-                            'company_id' => $companyId,
-                            'offering_category_id' => $category?->id,
-                            'name' => $category?->name ?? $text,
-                            'order' => $groupOrder++,
-                            'parent_id' => null,
-                        ]);
-
-                        $currentSubGroup = null;
-                        $subGroupOrder = 1;
-                        $counts['groups']++;
-                        $this->line("  + Main Group: {$text}");
-
-                        continue;
-                    }
-
-                    if ($level === 2) {
-                        // Level 2: Item in Main Group (Offering) OR Sub-Group (OfferingCategory)
-                        $offering = Offering::where('company_id', $companyId)
-                            ->where('name', $text)
-                            ->first();
-
-                        if ($offering) {
-                            // Add as a line item to currentParentGroup
-                            DocumentLineItem::create([
+                    if ($category) {
+                        if ($category->parent_id === null) {
+                            // Root category -> Main Group
+                            $currentParentGroup = DocumentLineItemGroup::create([
                                 'documentable_type' => $estimate->getMorphClass(),
                                 'documentable_id' => $estimate->id,
                                 'company_id' => $companyId,
-                                'group_id' => $currentParentGroup?->id,
-                                'offering_id' => $offering->id,
-                                'description' => $offering->description ?? $offering->name,
-                                'quantity' => 1,
-                                'unit_price' => $offering->price ?? 0,
-                                'subtotal' => $offering->price ?? 0,
-                                'total' => $offering->price ?? 0,
-                                'unit' => $offering->unit,
-                                'line_number' => $lineNumber++,
-                                'tax_total' => 0,
-                                'discount_total' => 0,
-                                'is_locked' => 1,
+                                'offering_category_id' => $category->id,
+                                'name' => $category->name,
+                                'order' => $groupOrder++,
+                                'parent_id' => null,
                             ]);
 
-                            $counts['items']++;
-                            $this->line("    + Item: {$text} (in main group)");
+                            $currentSubGroup = null;
+                            $subGroupOrder = 1;
+                            $counts['groups']++;
+                            $this->line("  + Main Group: {$text}");
                         } else {
-                            // Try matching as Sub-Group (OfferingCategory)
-                            $category = OfferingCategory::where('company_id', $companyId)
-                                ->where('name', $text)
-                                ->first();
-
+                            // Child category -> Sub-Group
                             $currentSubGroup = DocumentLineItemGroup::create([
                                 'documentable_type' => $estimate->getMorphClass(),
                                 'documentable_id' => $estimate->id,
                                 'company_id' => $companyId,
-                                'offering_category_id' => $category?->id,
-                                'name' => $category?->name ?? $text,
+                                'offering_category_id' => $category->id,
+                                'name' => $category->name,
                                 'order' => $subGroupOrder++,
                                 'parent_id' => $currentParentGroup?->id,
                             ]);
@@ -201,45 +170,40 @@ class ImportEstimateTemplate extends Command
                         continue;
                     }
 
-                    if ($level === 3) {
-                        // Level 3: Item in Sub-Group (Offering)
-                        $offering = Offering::where('company_id', $companyId)
-                            ->where('name', $text)
-                            ->first();
+                    $offering = Offering::where('company_id', $companyId)
+                        ->where('name', $text)
+                        ->first();
 
-                        if ($offering) {
-                            // Add as a line item to currentSubGroup or currentParentGroup if no sub-group exists
-                            DocumentLineItem::create([
-                                'documentable_type' => $estimate->getMorphClass(),
-                                'documentable_id' => $estimate->id,
-                                'company_id' => $companyId,
-                                'group_id' => $currentSubGroup?->id ?? $currentParentGroup?->id,
-                                'offering_id' => $offering->id,
-                                'description' => $offering->description ?? $offering->name,
-                                'quantity' => 1,
-                                'unit_price' => $offering->price ?? 0,
-                                'subtotal' => $offering->price ?? 0,
-                                'total' => $offering->price ?? 0,
-                                'unit' => $offering->unit,
-                                'line_number' => $lineNumber++,
-                                'tax_total' => 0,
-                                'discount_total' => 0,
-                                'is_locked' => 1,
-                            ]);
+                    if ($offering) {
+                        // Offering -> line item, nested under the current sub-group if one is open,
+                        // otherwise under the current main group.
+                        DocumentLineItem::create([
+                            'documentable_type' => $estimate->getMorphClass(),
+                            'documentable_id' => $estimate->id,
+                            'company_id' => $companyId,
+                            'group_id' => $currentSubGroup?->id ?? $currentParentGroup?->id,
+                            'offering_id' => $offering->id,
+                            'description' => $offering->description ?? $offering->name,
+                            'quantity' => 1,
+                            'unit_price' => $offering->price ?? 0,
+                            'subtotal' => $offering->price ?? 0,
+                            'total' => $offering->price ?? 0,
+                            'unit' => $offering->unit,
+                            'line_number' => $lineNumber++,
+                            'tax_total' => 0,
+                            'discount_total' => 0,
+                            'is_locked' => 1,
+                        ]);
 
-                            $counts['items']++;
-                            $this->line("      + Item: {$text} (in " . ($currentSubGroup ? 'sub-group' : 'main group') . ')');
-                        } else {
-                            $counts['skipped']++;
-                            $this->warn('    Row ' . ($index + 1) . ": Level 3 Offering \"{$text}\" not found. Skipped.");
-                        }
+                        $counts['items']++;
+                        $this->line("    + Item: {$text} (in " . ($currentSubGroup ? 'sub-group' : 'main group') . ')');
 
                         continue;
                     }
 
-                    // No match found or unknown level
+                    // No matching Offering/OfferingCategory found in works.xlsx-derived data.
                     $counts['skipped']++;
-                    $this->warn('  Row ' . ($index + 1) . ": Level {$level} \"{$text}\" skipped (unknown level or no match).");
+                    $this->warn('  Row ' . ($index + 1) . ": \"{$text}\" skipped (no matching Offering/OfferingCategory found; raw file level={$rawLevel}).");
                 }
 
                 // Recalculate totals

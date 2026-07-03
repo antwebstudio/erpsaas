@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PaymentOfferingSeeder::class,
             LeadSourceSeeder::class,
             ShieldSeeder::class,
+            RevokeSalesLeadSourcePermissionSeeder::class,
             DocumentDefaultColorSeeder::class,
             DesignServicesJobScopeSeeder::class,
         ]);

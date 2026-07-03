@@ -48,8 +48,25 @@ class CreateQuotation extends Page
             ->with(['children' => fn ($q) => $q->defaultOrder(), 'children.offerings'])
             ->get();
 
+        $user = Auth::user();
+
         $clients = \App\Models\Common\Client::query()
             ->withoutGlobalScope('type')
+            ->where(function ($query) use ($user) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('type', 'client');
+                    if ($user->can('view_mine_sales::client') && ! $user->can('view_any_sales::client')) {
+                        $q->where('created_by', $user->id);
+                    }
+                });
+
+                $query->orWhere(function ($q) use ($user) {
+                    $q->where('type', 'lead');
+                    if ($user->can('view_mine_sales::lead') && ! $user->can('view_any_sales::lead')) {
+                        $q->where('created_by', $user->id);
+                    }
+                });
+            })
             ->orderBy('type')
             ->orderBy('name')
             ->get(['id', 'name', 'type']);

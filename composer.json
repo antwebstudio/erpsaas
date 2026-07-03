@@ -26,6 +26,7 @@
         "filament/spatie-laravel-translatable-plugin": "*",
         "guava/filament-clusters": "^1.1",
         "hammerstone/sidecar": "^0.8.0",
+        "hayderhatem/filament-excel-import": "dev-main",
         "jaocero/radio-deck": "^1.4",
         "jeffersongoncalves/filament-mail": "*",
         "jeffersongoncalves/laravel-mail": "*",

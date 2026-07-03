@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "75478157fbbfec6ea72ac282561ad3f3",
+    "content-hash": "7e2079d1b59c639b22adb5048736932f",
     "packages": [
         {
             "name": "15web/filament-tree",
@@ -3381,6 +3381,65 @@
                 "source": "https://github.com/aarondfrancis/sidecar/tree/v0.8.0"
             },
             "time": "2026-05-31T07:20:41+00:00"
+        },
+        {
+            "name": "hayderhatem/filament-excel-import",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HayderHatem/filament-excel-import.git",
+                "reference": "a099b29c40d1eb54305f6f588a3f64b0114fca45"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HayderHatem/filament-excel-import/zipball/a099b29c40d1eb54305f6f588a3f64b0114fca45",
+                "reference": "a099b29c40d1eb54305f6f588a3f64b0114fca45",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^3.2",
+                "laravel/framework": "^10.0|^11.0|^12.0",
+                "php": "^8.1",
+                "phpoffice/phpspreadsheet": "^1.29.9|^2.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^8.0|^9.0",
+                "phpstan/phpstan": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpunit/phpunit": "^10.0|^11.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "HayderHatem\\FilamentExcelImport\\FilamentExcelImportServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "HayderHatem\\FilamentExcelImport\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hayder Hatem",
+                    "email": "hayderhatem@example.com"
+                }
+            ],
+            "description": "Filament Excel import trait for Laravel",
+            "support": {
+                "issues": "https://github.com/HayderHatem/filament-excel-import/issues",
+                "source": "https://github.com/HayderHatem/filament-excel-import/tree/main"
+            },
+            "time": "2025-07-30T06:28:56+00:00"
         },
         {
             "name": "jaocero/radio-deck",
@@ -16279,7 +16338,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "hayderhatem/filament-excel-import": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -16287,6 +16348,6 @@
         "ext-bcmath": "*",
         "ext-intl": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
