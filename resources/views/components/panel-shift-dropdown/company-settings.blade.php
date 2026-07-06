@@ -24,24 +24,30 @@
             <h2 class="text-gray-800 dark:text-gray-200 text-base font-semibold">
                 {{ $currentTenantName }}
             </h2>
-            <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                {{ $currentCompanyOwner->email }}
-            </p>
+            @if (filament()->hasTenantProfile() && filament()->getTenantProfilePage()::canView($currentTenant))
+                <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    {{ $currentCompanyOwner->email }}
+                </p>
+            @endif
         </div>
     </div>
 </li>
 
-<x-panel-shift-dropdown.item
-    :url="\App\Filament\Company\Clusters\Settings::getUrl()"
-    label="All Settings"
-    icon="heroicon-m-cog-6-tooth"
-/>
+@if (\App\Filament\Company\Clusters\Settings::canAccess())
+    <x-panel-shift-dropdown.item
+        :url="\App\Filament\Company\Clusters\Settings::getUrl()"
+        label="All Settings"
+        icon="heroicon-m-cog-6-tooth"
+    />
+@endif
 
-<x-panel-shift-dropdown.item
-    :url="$profileItemUrl ?? filament()->getTenantProfileUrl()"
-    :label="$profileItem?->getLabel() ?? filament()->getTenantProfilePage()::getLabel()"
-    icon="heroicon-m-briefcase"
-/>
+@if (filament()->hasTenantProfile() && filament()->getTenantProfilePage()::canView($currentTenant))
+    <x-panel-shift-dropdown.item
+        :url="$profileItemUrl ?? filament()->getTenantProfileUrl()"
+        :label="$profileItem?->getLabel() ?? filament()->getTenantProfilePage()::getLabel()"
+        icon="heroicon-m-briefcase"
+    />
+@endif
 
 <x-panel-shift-dropdown.toggle
     label="Switch Company"

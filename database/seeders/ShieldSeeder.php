@@ -95,6 +95,7 @@ class ShieldSeeder extends Seeder
             'Dashboard' => 'page_Dashboard',
             'ConnectedAccount' => 'page_ConnectedAccount',
             'LiveCurrency' => 'page_LiveCurrency',
+            'ManageCompany' => 'page_ManageCompany',
 
             // "page_OfferingCategory",
             // "page_AccountBalances",
@@ -112,7 +113,6 @@ class ShieldSeeder extends Seeder
             // "page_CreateQuotation",
             // "page_PersonalAccessTokens",
             // "page_Profile",
-            // "page_ManageCompany",
         ];
 
         $pagePermissions = [];
@@ -165,9 +165,11 @@ class ShieldSeeder extends Seeder
                 'company_id' => $company->id,
             ]);
 
+            $companyManagementPerms = array_values(array_filter($companyResourcePermissions, fn ($p) => str_contains($p, 'core::company') && ! str_contains($p, 'connected_account')));
+
             if ($company->id == 1) {
                 $documentDefaultPerms = array_values(array_filter($companyResourcePermissions, fn ($p) => str_contains($p, 'document::default') || str_contains($p, 'mail::')));
-                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $documentDefaultPerms, $customPermissions);
+                $adminPermissions = array_merge($pagePermissions, $globalResourcePermissions, $documentDefaultPerms, $companyManagementPerms, $customPermissions);
             } else {
                 // Admin sees AllClient (cross-company) instead of Client (company-scoped)
                 $nonClientPerms = array_values(array_filter($companyResourcePermissions, fn ($p) => ! str_contains($p, 'sales::client')));
@@ -185,7 +187,7 @@ class ShieldSeeder extends Seeder
                 'company_id' => $company->id,
             ]);
 
-            $settingsPagePermissions = ['page_Reports', 'page_AccountChart', 'page_CompanyProfile', 'page_Localization', 'page_CompanyDefault', 'page_Quotation'];
+            $settingsPagePermissions = ['page_Reports', 'page_AccountChart', 'page_CompanyProfile', 'page_Localization', 'page_CompanyDefault', 'page_Quotation', 'page_ManageCompany'];
             $salesPagePermissions = array_values(array_filter($pagePermissions, static fn ($p) => ! in_array($p, $settingsPagePermissions)));
             $salesPermissions = array_merge($salesPagePermissions, [
                 'view_mine_sales::lead',

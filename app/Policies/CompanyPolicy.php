@@ -35,7 +35,7 @@ class CompanyPolicy
             return false;
         }
 
-        return true;
+        return $user->can('create_core::company');
     }
 
     /**
@@ -47,7 +47,7 @@ class CompanyPolicy
             return false;
         }
 
-        return $user->ownsCompany($company);
+        return $user->can('page_ManageCompany');
     }
 
     /**
