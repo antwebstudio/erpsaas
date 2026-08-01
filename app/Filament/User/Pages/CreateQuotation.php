@@ -81,7 +81,10 @@ class CreateQuotation extends Page
         // Initialize from existing estimate if provided
         $existingEstimate = null;
         if ($this->estimateId) {
-            $existingEstimate = Estimate::with(['lineItemGroups', 'lineItems'])->find($this->estimateId);
+            $existingEstimate = Estimate::with([
+                'lineItemGroups' => fn ($query) => $query->whereNull('parent_id'),
+                'lineItems',
+            ])->find($this->estimateId);
             if ($existingEstimate) {
                 $clientId = $existingEstimate->client_id;
             }
@@ -253,7 +256,10 @@ class CreateQuotation extends Page
         }
 
         // 3. Update Managed Groups and Items
-        $managedGroups = $estimate->lineItemGroups()->whereNotNull('offering_category_id')->get();
+        // Restricted to top-level groups (parent_id null) so that child groups
+        // (e.g. sub-category "descriptions" with their own offering_category_id)
+        // aren't mistaken for orphaned scopes and deleted.
+        $managedGroups = $estimate->lineItemGroups()->whereNotNull('offering_category_id')->whereNull('parent_id')->get();
         $selectedScopeIds = $selectedScopes->pluck('id')->toArray();
 
         // 3.1 Remove groups that are no longer selected
@@ -295,7 +301,7 @@ class CreateQuotation extends Page
         }
 
         // 5. Update Order for Custom Groups (Push to end)
-        $customGroups = $estimate->lineItemGroups()->whereNull('offering_category_id')->orderBy('order')->get();
+        $customGroups = $estimate->lineItemGroups()->whereNull('offering_category_id')->whereNull('parent_id')->orderBy('order')->get();
         foreach ($customGroups as $group) {
             $group->update(['order' => $order++]);
         }
