@@ -10,6 +10,7 @@ use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\InvoiceStatus;
 use App\Enums\Accounting\JournalEntryType;
 use App\Enums\Accounting\TransactionType;
+use App\Enums\Setting\EmailAccountType;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
 use App\Mail\Sales\InvoiceMail;
 use App\Models\Banking\BankAccount;
@@ -17,6 +18,7 @@ use App\Models\Common\Client;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
 use App\Observers\InvoiceObserver;
+use App\Services\EmailAccountResolver;
 use App\Utilities\Currency\CurrencyAccessor;
 use App\Utilities\Currency\CurrencyConverter;
 use Filament\Actions\Action;
@@ -36,7 +38,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
@@ -661,7 +662,10 @@ class Invoice extends Document
                     ->default(fn (self $record) => 'Dear ' . ($record->client?->name ?? 'Client') . ",\n\nPlease find the attached invoice " . $record->invoice_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, MountableAction $action) {
-                Mail::to($data['email'])->send(new InvoiceMail($record, $data['message'], $data['subject']));
+                app(EmailAccountResolver::class)
+                    ->mailer(EmailAccountType::DefaultAccount, $record->company_id)
+                    ->to($data['email'])
+                    ->send(new InvoiceMail($record, $data['message'], $data['subject']));
 
                 $record->markAsSent();
 

@@ -2,14 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Enums\Setting\EmailAccountType;
 use App\Mail\TemplateEmailMailable;
 use App\Models\Mail\MailTemplate;
+use App\Services\EmailAccountResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Mail;
 
 class SendTemplateEmailJob implements ShouldQueue
 {
@@ -47,6 +48,9 @@ class SendTemplateEmailJob implements ShouldQueue
         $mailable = (new TemplateEmailMailable('', $this->variables))
             ->useTemplate($template);
 
-        Mail::to($this->email, $this->recipientName)->send($mailable);
+        app(EmailAccountResolver::class)
+            ->mailer(EmailAccountType::Marketing, $template->tenant_id)
+            ->to($this->email, $this->recipientName)
+            ->send($mailable);
     }
 }

@@ -5,17 +5,18 @@ namespace App\Models\Accounting;
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\VariationOrderStatus;
+use App\Enums\Setting\EmailAccountType;
 use App\Mail\Sales\VariationOrderMail;
 use App\Models\Common\Client;
 use App\Models\Common\Lead;
 use App\Models\Setting\Currency;
+use App\Services\EmailAccountResolver;
 use Filament\Forms;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
 
 class VariationOrder extends Document
 {
@@ -379,7 +380,10 @@ class VariationOrder extends Document
                     ->default(fn (self $record) => 'Dear ' . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached variation order " . $record->vo_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
-                Mail::to($data['email'])->send(new VariationOrderMail($record, $data['message'], $data['subject']));
+                app(EmailAccountResolver::class)
+                    ->mailer(EmailAccountType::DefaultAccount, $record->company_id)
+                    ->to($data['email'])
+                    ->send(new VariationOrderMail($record, $data['message'], $data['subject']));
 
                 $record->markAsSent();
 

@@ -92,6 +92,7 @@ class ShieldSeeder extends Seeder
             'CompanyProfile' => 'page_CompanyProfile',
             'CompanyDefault' => 'page_CompanyDefault',
             'Quotation' => 'page_Quotation',
+            'EmailAccounts' => 'page_EmailAccounts',
             'Dashboard' => 'page_Dashboard',
             'ConnectedAccount' => 'page_ConnectedAccount',
             'LiveCurrency' => 'page_LiveCurrency',
@@ -187,7 +188,7 @@ class ShieldSeeder extends Seeder
                 'company_id' => $company->id,
             ]);
 
-            $settingsPagePermissions = ['page_Reports', 'page_AccountChart', 'page_CompanyProfile', 'page_Localization', 'page_CompanyDefault', 'page_Quotation', 'page_ManageCompany'];
+            $settingsPagePermissions = ['page_Reports', 'page_AccountChart', 'page_CompanyProfile', 'page_Localization', 'page_CompanyDefault', 'page_Quotation', 'page_ManageCompany', 'page_EmailAccounts'];
             $salesPagePermissions = array_values(array_filter($pagePermissions, static fn ($p) => ! in_array($p, $settingsPagePermissions)));
             $salesPermissions = array_merge($salesPagePermissions, [
                 'view_mine_sales::lead',

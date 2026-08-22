@@ -2,13 +2,14 @@
 
 namespace App\Filament\Company\Resources\Mail\MailTemplateResource\Pages;
 
+use App\Enums\Setting\EmailAccountType;
 use App\Filament\Company\Resources\Mail\MailTemplateResource;
 use App\Mail\TemplateEmailMailable;
+use App\Services\EmailAccountResolver;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Mail;
 use JeffersonGoncalves\FilamentMail\Resources\MailTemplateResource\Pages\EditMailTemplate as BaseEditMailTemplate;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
@@ -64,7 +65,9 @@ class EditMailTemplate extends BaseEditMailTemplate
                         app()->setLocale($data['locale']);
                     }
 
-                    Mail::to($data['email'])
+                    app(EmailAccountResolver::class)
+                        ->mailer(EmailAccountType::Marketing, $this->record->tenant_id)
+                        ->to($data['email'])
                         ->send((new TemplateEmailMailable($this->record->key, $exampleData))
                             ->useTemplate($this->record));
 

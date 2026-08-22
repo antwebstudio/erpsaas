@@ -2,13 +2,14 @@
 
 namespace App\Actions\FilamentCompanies;
 
+use App\Enums\Setting\EmailAccountType;
 use App\Models\Company;
 use App\Models\User;
+use App\Services\EmailAccountResolver;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Wallo\FilamentCompanies\Contracts\InvitesCompanyEmployees;
@@ -37,7 +38,10 @@ class InviteCompanyEmployee implements InvitesCompanyEmployees
             'role' => $role,
         ]);
 
-        Mail::to($email)->send(new CompanyInvitation($invitation));
+        app(EmailAccountResolver::class)
+            ->mailer(EmailAccountType::DefaultAccount, $company->id)
+            ->to($email)
+            ->send(new CompanyInvitation($invitation));
     }
 
     /**

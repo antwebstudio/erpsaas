@@ -9,6 +9,7 @@ use App\Enums\Accounting\DocumentDiscountMethod;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Accounting\EstimateStatus;
 use App\Enums\Accounting\InvoiceStatus;
+use App\Enums\Setting\EmailAccountType;
 use App\Filament\Company\Resources\Sales\ContractResource;
 use App\Filament\Company\Resources\Sales\EstimateResource;
 use App\Filament\Company\Resources\Sales\InvoiceResource;
@@ -19,6 +20,7 @@ use App\Models\Common\Lead;
 use App\Models\Company;
 use App\Models\Setting\DocumentDefault;
 use App\Observers\EstimateObserver;
+use App\Services\EmailAccountResolver;
 use Filament\Actions\Action;
 use Filament\Actions\MountableAction;
 use Filament\Actions\ReplicateAction;
@@ -33,7 +35,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
@@ -420,7 +421,10 @@ class Estimate extends Document
                     ->default(fn (self $record) => 'Dear ' . ($record->clientOrLead?->name ?? 'Client') . ",\n\nPlease find the attached estimate " . $record->estimate_number . ".\n\nBest regards."),
             ])
             ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action) {
-                Mail::to($data['email'])->send(new EstimateMail($record, $data['message'], $data['subject']));
+                app(EmailAccountResolver::class)
+                    ->mailer(EmailAccountType::DefaultAccount, $record->company_id)
+                    ->to($data['email'])
+                    ->send(new EstimateMail($record, $data['message'], $data['subject']));
 
                 $record->markAsSent();
 
