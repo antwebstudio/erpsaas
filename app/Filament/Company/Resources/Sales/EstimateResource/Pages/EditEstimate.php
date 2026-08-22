@@ -71,7 +71,8 @@ class EditEstimate extends EditRecord
                 ->url(fn () => route('quotation-builder.switch-and-open', [
                     'estimate_id' => $this->getRecord()->id,
                     'client' => $this->getRecord()->client_id,
-                ])),
+                ]))
+                ->hidden(),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')

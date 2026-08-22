@@ -47,7 +47,8 @@ class EditVariationOrder extends EditRecord
                 ->url(fn () => route('variation-order-builder.switch-and-open', [
                     'variation_order_id' => $this->getRecord()->id,
                     'client' => $this->getRecord()->client_id,
-                ])),
+                ]))
+                ->hidden(),
             Actions\Action::make('selectWork')
                 ->label('Select Work')
                 ->icon('heroicon-o-briefcase')
