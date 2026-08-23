@@ -50,6 +50,9 @@ class LeadResource extends Resource
                                     ->label('Lead name')
                                     ->required()
                                     ->maxLength(255),
+                                Forms\Components\TextInput::make('nric')
+                                    ->label('NRIC last 4 digit')
+                                    ->maxLength(255),
                                 Forms\Components\Select::make('lead_source_id')
                                     ->label('Lead Source')
                                     ->relationship('leadSource', 'name')
