@@ -4,6 +4,7 @@ namespace App\DTO;
 
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
+use App\Enums\Setting\TextAlign;
 use App\Models\Accounting\Document;
 use App\Models\Setting\DocumentDefault;
 use App\Utilities\Currency\CurrencyAccessor;
@@ -55,6 +56,9 @@ readonly class DocumentDTO
         public string $colorSubgroupBg = '#f7f1eb',
         public string $colorSubgroupText = '#96693c',
         public string $colorText = '#293834',
+        public TextAlign $sectionHeaderAlign = TextAlign::Left,
+        public TextAlign $groupHeaderAlign = TextAlign::Left,
+        public TextAlign $subgroupHeaderAlign = TextAlign::Left,
     ) {}
 
     public static function fromModel(Document $document): self
@@ -152,6 +156,9 @@ readonly class DocumentDTO
             colorSubgroupBg: $settings?->color_subgroup_bg ?? '#f7f1eb',
             colorSubgroupText: $settings?->color_subgroup_text ?? '#96693c',
             colorText: $settings?->color_text ?? '#293834',
+            sectionHeaderAlign: $settings?->section_header_align ?? TextAlign::Left,
+            groupHeaderAlign: $settings?->group_header_align ?? TextAlign::Left,
+            subgroupHeaderAlign: $settings?->subgroup_header_align ?? TextAlign::Left,
             lineItemGroups: $document->lineItemGroups()->withoutGlobalScopes()->whereNull('parent_id')->get()->isNotEmpty()
                 ? $document->lineItemGroups()
                     ->withoutGlobalScopes()
@@ -207,6 +214,7 @@ readonly class DocumentDTO
             if ($disk->exists($path)) {
                 $content = $disk->get($path);
                 $mime = $disk->mimeType($path);
+
                 return 'data:' . $mime . ';base64,' . base64_encode($content);
             }
         } catch (\Exception $e) {

@@ -76,6 +76,10 @@ class DocumentTotalViewModel
         $lineDiscountTotalInCents = 0;
 
         foreach ($lineItems as $item) {
+            if (! empty($item['kiv'])) {
+                continue;
+            }
+
             $quantity = max((float) ($item['quantity'] ?? 0), 0);
             $unitPrice = CurrencyConverter::isValidAmount($item['unit_price'], 'USD')
                 ? CurrencyConverter::convertToFloat($item['unit_price'], 'USD')

@@ -87,16 +87,22 @@
             text-align: left;
             vertical-align: top;
             border: 1px solid {{ $document->accentColor }};
-            padding: 8px;
+            padding: 2px 8px;
         }
         .items-th {
             background-color: {{ $document->colorSecondary }};
             color: {{ $document->colorSecondaryText }};
             font-weight: bold;
+            padding: 8px;
         }
         .items-td {
-            font-size: 12px;
+            font-size: 11px;
+            line-height: 1.2;
             border-top: none;
+        }
+        .items-td.group-row,
+        .items-td.total-row {
+            padding: 6px 8px;
         }
 
         .signatures {
@@ -182,7 +188,7 @@
                 <tbody>
                     @if($group->name)
                         <tr class="header-row">
-                            <th class="items-td" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSubgroupBg }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSubgroupText }}; font-weight: bold;">{{ $group->name }}</th>
+                            <th class="items-td group-row" colspan="4" style="background-color: {{ $group->isMain ? $document->colorGroupBg : $document->colorSubgroupBg }}; color: {{ $group->isMain ? $document->colorGroupBgText : $document->colorSubgroupText }}; font-weight: bold; text-align: {{ ($group->isMain ? $document->groupHeaderAlign : $document->subgroupHeaderAlign)->value }};">{{ $group->name }}</th>
                         </tr>
                     @endif
                     @foreach($group->items as $item)
@@ -212,26 +218,26 @@
                 @if($document->subtotal || $document->discount || $document->tax)
                     @if($document->subtotal)
                         <tr>
-                            <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Subtotal</td>
-                            <td class="items-td" style="text-align: right;">{{ $document->subtotal }}</td>
+                            <td colspan="3" class="items-td total-row" style="text-align: right; font-weight: bold;">Subtotal</td>
+                            <td class="items-td total-row" style="text-align: right;">{{ $document->subtotal }}</td>
                         </tr>
                     @endif
                     @if($document->discount)
                         <tr>
-                            <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Discount</td>
-                            <td class="items-td" style="text-align: right;">{{ $document->discount }}</td>
+                            <td colspan="3" class="items-td total-row" style="text-align: right; font-weight: bold;">Discount</td>
+                            <td class="items-td total-row" style="text-align: right;">{{ $document->discount }}</td>
                         </tr>
                     @endif
                     @if($document->tax)
                         <tr>
-                            <td colspan="3" class="items-td" style="text-align: right; font-weight: bold;">Tax</td>
-                            <td class="items-td" style="text-align: right;">{{ $document->tax }}</td>
+                            <td colspan="3" class="items-td total-row" style="text-align: right; font-weight: bold;">Tax</td>
+                            <td class="items-td total-row" style="text-align: right;">{{ $document->tax }}</td>
                         </tr>
                     @endif
                 @endif
                 <tr>
-                    <td colspan="3" class="items-td" style="text-align: right; font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">Total</td>
-                    <td class="items-td" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; text-align: right;">{{ $document->total }}</td>
+                    <td colspan="3" class="items-td total-row" style="text-align: right; font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }};">Total</td>
+                    <td class="items-td total-row" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; text-align: right;">{{ $document->total }}</td>
                 </tr>
             </tbody>
             

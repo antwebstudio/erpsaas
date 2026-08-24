@@ -9,6 +9,7 @@ use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
 use App\Enums\Setting\PaymentTerms;
 use App\Enums\Setting\Template;
+use App\Enums\Setting\TextAlign;
 use Database\Factories\Setting\DocumentDefaultFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -53,6 +54,9 @@ class DocumentDefault extends Model
         'color_subgroup_bg',
         'color_subgroup_text',
         'color_text',
+        'section_header_align',
+        'group_header_align',
+        'subgroup_header_align',
         'font',
         'template',
         'item_name',
@@ -68,6 +72,9 @@ class DocumentDefault extends Model
         'show_logo' => 'boolean',
         'payment_terms' => PaymentTerms::class,
         'discount_method' => DocumentDiscountMethod::class,
+        'section_header_align' => TextAlign::class,
+        'group_header_align' => TextAlign::class,
+        'subgroup_header_align' => TextAlign::class,
         'font' => Font::class,
         'template' => Template::class,
         'item_name' => AsArrayObject::class,

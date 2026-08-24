@@ -417,7 +417,7 @@ trait ManagesLineItems
     protected function updateDocumentTotals(Model $record, array $data): array
     {
         $currencyCode = $data['currency_code'] ?? $record->currency_code ?? CurrencyAccessor::getDefaultCurrency();
-        $subtotalCents = $record->lineItems()->sum('subtotal');
+        $subtotalCents = $record->lineItems()->where('kiv', false)->sum('subtotal');
         $taxKey = $record::documentType()->getTaxKey();
         $taxIds = $data[$taxKey] ?? null;
 
@@ -444,7 +444,7 @@ trait ManagesLineItems
 
         $documentTaxTotalCents = $this->calculateDocumentTaxTotal($taxIds, $subtotalCents);
 
-        $taxTotalCents = $record->lineItems()->sum('tax_total') + $documentTaxTotalCents;
+        $taxTotalCents = $record->lineItems()->where('kiv', false)->sum('tax_total') + $documentTaxTotalCents;
         $discountTotalCents = $this->calculateDiscountTotal(
             DocumentDiscountMethod::parse($data['discount_method'] ?? $record->discount_method ?? DocumentDiscountMethod::PerLineItem),
             AdjustmentComputation::parse($data['discount_computation'] ?? $record->discount_computation ?? AdjustmentComputation::Fixed),
@@ -490,7 +490,7 @@ trait ManagesLineItems
         string $currencyCode
     ): int {
         if ($discountMethod->isPerLineItem()) {
-            return $record->lineItems()->sum('discount_total');
+            return $record->lineItems()->where('kiv', false)->sum('discount_total');
         }
 
         if ($discountComputation?->isPercentage()) {

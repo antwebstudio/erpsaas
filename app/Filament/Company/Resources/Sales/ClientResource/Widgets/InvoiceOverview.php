@@ -64,6 +64,14 @@ class InvoiceOverview extends EnhancedStatsOverviewWidget
 
         $averagePaymentTimeFormatted = Number::format($averagePaymentTime ?? 0, maxPrecision: 1);
 
+        $totalContractAmount = $this->record->contracts()
+            ->get()
+            ->sumMoneyInDefaultCurrency('total');
+
+        $totalVariationOrderAmount = $this->record->variationOrders()
+            ->get()
+            ->sumMoneyInDefaultCurrency('total');
+
         return [
             EnhancedStatsOverviewWidget\EnhancedStat::make('Total Unpaid', CurrencyConverter::formatCentsToMoney($amountUnpaid))
                 ->suffix(CurrencyAccessor::getDefaultCurrency())
@@ -75,6 +83,10 @@ class InvoiceOverview extends EnhancedStatsOverviewWidget
             EnhancedStatsOverviewWidget\EnhancedStat::make('Average Invoice Total', CurrencyConverter::formatCentsToMoney($averageInvoiceTotal))
                 ->suffix(CurrencyAccessor::getDefaultCurrency())
                 ->description('Excludes draft and voided invoices'),
+            EnhancedStatsOverviewWidget\EnhancedStat::make('Contract Total', CurrencyConverter::formatCentsToMoney($totalContractAmount))
+                ->suffix(CurrencyAccessor::getDefaultCurrency()),
+            EnhancedStatsOverviewWidget\EnhancedStat::make('Variation Order Total', CurrencyConverter::formatCentsToMoney($totalVariationOrderAmount))
+                ->suffix(CurrencyAccessor::getDefaultCurrency()),
         ];
     }
 }

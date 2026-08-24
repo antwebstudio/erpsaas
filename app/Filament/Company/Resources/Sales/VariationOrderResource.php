@@ -759,6 +759,7 @@ class VariationOrderResource extends Resource
                                                 Forms\Components\Checkbox::make('kiv')
                                                     ->label('KIV')
                                                     ->dehydrated(true)
+                                                    ->live()
                                                     ->default(false)
                                                     ->hidden(fn () => ! config('erp.show_variation_order_kiv', false)),
                                                 Forms\Components\Group::make([
@@ -963,6 +964,7 @@ class VariationOrderResource extends Resource
                                         Forms\Components\Checkbox::make('kiv')
                                             ->label('KIV')
                                             ->dehydrated(true)
+                                            ->live()
                                             ->default(false),
                                         Forms\Components\Group::make([
                                             CreateAdjustmentSelect::make('salesTaxes', true)

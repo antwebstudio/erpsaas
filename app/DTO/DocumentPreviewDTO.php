@@ -5,6 +5,7 @@ namespace App\DTO;
 use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
 use App\Enums\Setting\PaymentTerms;
+use App\Enums\Setting\TextAlign;
 use App\Models\Setting\DocumentDefault;
 use App\Utilities\Currency\CurrencyAccessor;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,18 @@ readonly class DocumentPreviewDTO extends DocumentDTO
             showLogo: $data['show_logo'] ?? $settings->show_logo ?? true,
             font: Font::tryFrom($data['font']) ?? $settings->font ?? Font::Inter,
             backgroundImage: self::getPreviewBackgroundImage($settings, $data),
+            colorSecondary: $data['color_secondary'] ?? $settings->color_secondary ?? '#f7f1eb',
+            colorSecondaryText: $data['color_secondary_text'] ?? $settings->color_secondary_text ?? '#96693c',
+            colorSectionBg: $data['color_section_bg'] ?? $settings->color_section_bg ?? '#e0b182',
+            colorSectionBgText: $data['color_section_bg_text'] ?? $settings->color_section_bg_text ?? '#293834',
+            colorGroupBg: $data['color_group_bg'] ?? $settings->color_group_bg ?? '#d4b896',
+            colorGroupBgText: $data['color_group_bg_text'] ?? $settings->color_group_bg_text ?? '#293834',
+            colorSubgroupBg: $data['color_subgroup_bg'] ?? $settings->color_subgroup_bg ?? '#f7f1eb',
+            colorSubgroupText: $data['color_subgroup_text'] ?? $settings->color_subgroup_text ?? '#96693c',
+            colorText: $data['color_text'] ?? $settings->color_text ?? '#293834',
+            sectionHeaderAlign: TextAlign::parse($data['section_header_align'] ?? null) ?? $settings->section_header_align ?? TextAlign::Left,
+            groupHeaderAlign: TextAlign::parse($data['group_header_align'] ?? null) ?? $settings->group_header_align ?? TextAlign::Left,
+            subgroupHeaderAlign: TextAlign::parse($data['subgroup_header_align'] ?? null) ?? $settings->subgroup_header_align ?? TextAlign::Left,
         );
     }
 

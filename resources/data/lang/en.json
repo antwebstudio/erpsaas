@@ -312,5 +312,8 @@
     "Default Account": "Default Account",
     "Used for invoices, estimates, variation orders, and all other system emails.": "Used for invoices, estimates, variation orders, and all other system emails.",
     "Marketing Account": "Marketing Account",
-    "Used for marketing emails, template emails, and emails sent to leads.": "Used for marketing emails, template emails, and emails sent to leads."
+    "Used for marketing emails, template emails, and emails sent to leads.": "Used for marketing emails, template emails, and emails sent to leads.",
+    "Left": "Left",
+    "Center": "Center",
+    "Right": "Right"
 }

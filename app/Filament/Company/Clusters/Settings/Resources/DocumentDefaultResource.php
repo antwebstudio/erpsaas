@@ -7,6 +7,7 @@ use App\Enums\Accounting\DocumentType;
 use App\Enums\Setting\Font;
 use App\Enums\Setting\PaymentTerms;
 use App\Enums\Setting\Template;
+use App\Enums\Setting\TextAlign;
 use App\Filament\Company\Clusters\Settings;
 use App\Filament\Company\Clusters\Settings\Resources\DocumentDefaultResource\Pages;
 use App\Filament\Forms\Components\DocumentPreview;
@@ -136,44 +137,76 @@ class DocumentDefaultResource extends Resource
                             ])
                             ->loadingIndicatorPosition('left')
                             ->removeUploadedFileButtonPosition('right'),
-                        Forms\Components\ColorPicker::make('accent_color')
-                            ->localizeLabel(),
-                        Forms\Components\ColorPicker::make('color_text')
-                            ->label('Text Color')
-                            ->helperText('Main body text colour')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_secondary')
-                            ->label('Secondary Background')
-                            ->helperText('Table header and total row background')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_secondary_text')
-                            ->label('Secondary Text')
-                            ->helperText('Font colour on secondary background rows')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_section_bg')
-                            ->label('Section Header Background')
-                            ->helperText('Background for "Removed / Added Items" section headers')
-                            ->hidden(static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder),
-                        Forms\Components\ColorPicker::make('color_section_bg_text')
-                            ->label('Section Header Text')
-                            ->helperText('Font colour on section header rows')
-                            ->hidden(static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder),
-                        Forms\Components\ColorPicker::make('color_group_bg')
-                            ->label('Group Header Background')
-                            ->helperText('Background for parent category group headers')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_group_bg_text')
-                            ->label('Group Header Text')
-                            ->helperText('Font colour on group header rows')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_subgroup_bg')
-                            ->label('Subgroup Header Background')
-                            ->helperText('Background for child group header rows')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
-                        Forms\Components\ColorPicker::make('color_subgroup_text')
-                            ->label('Subgroup Header Text')
-                            ->helperText('Font colour on child group header rows')
-                            ->hidden(static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder])),
+                        self::getColorPickerWithTransparency('accent_color'),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_text',
+                            label: 'Text Color',
+                            helperText: 'Main body text colour',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_secondary',
+                            label: 'Secondary Background',
+                            helperText: 'Table header and total row background',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_secondary_text',
+                            label: 'Secondary Text',
+                            helperText: 'Font colour on secondary background rows',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_section_bg',
+                            label: 'Section Header Background',
+                            helperText: 'Background for "Removed / Added Items" section headers',
+                            hidden: static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder,
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_section_bg_text',
+                            label: 'Section Header Text',
+                            helperText: 'Font colour on section header rows',
+                            hidden: static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder,
+                        ),
+                        self::getHeaderAlignSelect(
+                            name: 'section_header_align',
+                            label: 'Section Header Alignment',
+                            hidden: static fn (DocumentDefault $record) => $record->type !== DocumentType::VariationOrder,
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_group_bg',
+                            label: 'Group Header Background',
+                            helperText: 'Background for parent category group headers',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_group_bg_text',
+                            label: 'Group Header Text',
+                            helperText: 'Font colour on group header rows',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getHeaderAlignSelect(
+                            name: 'group_header_align',
+                            label: 'Group Header Alignment',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_subgroup_bg',
+                            label: 'Subgroup Header Background',
+                            helperText: 'Background for child group header rows',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getColorPickerWithTransparency(
+                            name: 'color_subgroup_text',
+                            label: 'Subgroup Header Text',
+                            helperText: 'Font colour on child group header rows',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
+                        self::getHeaderAlignSelect(
+                            name: 'subgroup_header_align',
+                            label: 'Subgroup Header Alignment',
+                            hidden: static fn (DocumentDefault $record) => ! \in_array($record->type, [DocumentType::Estimate, DocumentType::VariationOrder]),
+                        ),
                         Forms\Components\Select::make('font')
                             ->softRequired()
                             ->localizeLabel()
@@ -197,6 +230,85 @@ class DocumentDefaultResource extends Resource
                         'lg' => 2,
                     ]),
             ])->columns(3);
+    }
+
+    /**
+     * A ColorPicker paired with a "Transparent" checkbox, since the native
+     * color input cannot represent transparency itself. Checking the box
+     * disables the picker and sets the field's actual value to the literal
+     * string "transparent" (a valid CSS color, used as-is by the document
+     * templates), stashing the previous hex value in a non-persisted field
+     * so it's restored if the box is unchecked again in the same session.
+     */
+    public static function getColorPickerWithTransparency(
+        string $name,
+        ?string $label = null,
+        ?string $helperText = null,
+        ?\Closure $hidden = null,
+    ): Component {
+        $isTransparentField = "{$name}_is_transparent";
+        $lastColorField = "{$name}_last_color";
+
+        $colorPicker = Forms\Components\ColorPicker::make($name)
+            ->live()
+            ->helperText($helperText)
+            ->disabled(static fn (Get $get) => (bool) $get($isTransparentField))
+            // `disabled()` sets `dehydrated(false)` while disabled, which would drop the
+            // "transparent" value from the save payload — force it to always dehydrate.
+            ->dehydrated();
+
+        if ($label !== null) {
+            $colorPicker->label($label);
+        } else {
+            $colorPicker->localizeLabel();
+        }
+
+        $transparentToggle = Forms\Components\Checkbox::make($isTransparentField)
+            ->label('Transparent')
+            ->live()
+            ->dehydrated(false)
+            ->afterStateHydrated(static function (Forms\Components\Checkbox $component, Get $get) use ($name) {
+                $component->state($get($name) === 'transparent');
+            })
+            ->afterStateUpdated(static function (bool $state, Get $get, Set $set) use ($name, $lastColorField) {
+                if ($state) {
+                    $set($lastColorField, $get($name));
+                    $set($name, 'transparent');
+
+                    return;
+                }
+
+                $set($name, $get($lastColorField));
+            });
+
+        $group = Forms\Components\Group::make([
+            $colorPicker,
+            $transparentToggle,
+            Forms\Components\Hidden::make($lastColorField)->dehydrated(false),
+        ]);
+
+        if ($hidden !== null) {
+            $group->hidden($hidden);
+        }
+
+        return $group;
+    }
+
+    public static function getHeaderAlignSelect(
+        string $name,
+        string $label,
+        ?\Closure $hidden = null,
+    ): Component {
+        $select = Forms\Components\Select::make($name)
+            ->label($label)
+            ->options(TextAlign::class)
+            ->default(TextAlign::DEFAULT);
+
+        if ($hidden !== null) {
+            $select->hidden($hidden);
+        }
+
+        return $select;
     }
 
     public static function getBillColumnLabelsSection(): Component

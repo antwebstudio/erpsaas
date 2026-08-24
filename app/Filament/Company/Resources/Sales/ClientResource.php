@@ -322,6 +322,26 @@ class ClientResource extends Resource
                     })
                     ->currency(convert: false)
                     ->alignEnd(),
+                Tables\Columns\TextColumn::make('contract_total')
+                    ->label('Contract total')
+                    ->getStateUsing(function (Client $client) {
+                        return $client->contracts()
+                            ->get()
+                            ->sumMoneyInDefaultCurrency('total');
+                    })
+                    ->currency(convert: false)
+                    ->alignEnd()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('variation_order_total')
+                    ->label('Variation order total')
+                    ->getStateUsing(function (Client $client) {
+                        return $client->variationOrders()
+                            ->get()
+                            ->sumMoneyInDefaultCurrency('total');
+                    })
+                    ->currency(convert: false)
+                    ->alignEnd()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

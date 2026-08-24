@@ -874,6 +874,7 @@ class EstimateResource extends Resource
                                         Forms\Components\Checkbox::make('kiv')
                                             ->label('KIV')
                                             ->dehydrated(true)
+                                            ->live()
                                             ->default(false)
                                             ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
                                         Forms\Components\Group::make([
@@ -1180,6 +1181,7 @@ class EstimateResource extends Resource
                                                 Forms\Components\Checkbox::make('kiv')
                                                     ->label('KIV')
                                                     ->dehydrated(true)
+                                                    ->live()
                                                     ->default(false)
                                                     ->hidden(fn () => ! config('erp.show_estimate_kiv', false)),
                                                 Forms\Components\Group::make([

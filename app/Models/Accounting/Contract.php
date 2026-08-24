@@ -2,6 +2,10 @@
 
 namespace App\Models\Accounting;
 
+use App\Collections\Accounting\DocumentCollection;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+
+#[CollectedBy(DocumentCollection::class)]
 class Contract extends Estimate
 {
     protected $table = 'estimates';

@@ -2,6 +2,7 @@
 
 namespace App\Models\Accounting;
 
+use App\Collections\Accounting\DocumentCollection;
 use App\Concerns\Blamable;
 use App\Concerns\CompanyOwned;
 use App\Enums\Accounting\VariationOrderStatus;
@@ -12,12 +13,14 @@ use App\Models\Common\Lead;
 use App\Models\Setting\Currency;
 use App\Services\EmailAccountResolver;
 use Filament\Forms;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+#[CollectedBy(DocumentCollection::class)]
 class VariationOrder extends Document
 {
     use Blamable;
