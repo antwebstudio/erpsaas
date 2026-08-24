@@ -9,6 +9,7 @@ use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Mail\Mailer as ConcreteMailer;
 
 /**
  * Resolves which mailer to use when sending a company email.
@@ -33,13 +34,20 @@ class EmailAccountResolver
             return Mail::mailer(Config::get('mail.default'));
         }
 
-        $mailerName = "email_account_{$account->id}";
+        // Built fresh on every call (rather than registered under a stable
+        // config key and cached via Mail::mailer()) so that a long-running
+        // queue worker always picks up the latest saved credentials instead
+        // of reusing a stale mailer/transport from before the account was
+        // last edited.
+        $config = $account->toMailerConfig();
 
-        if (! Config::has("mail.mailers.{$mailerName}")) {
-            Config::set("mail.mailers.{$mailerName}", $account->toMailerConfig());
+        $mailer = Mail::build($config);
+
+        if ($mailer instanceof ConcreteMailer && isset($config['from']['address'])) {
+            $mailer->alwaysFrom($config['from']['address'], $config['from']['name'] ?? null);
         }
 
-        return Mail::mailer($mailerName);
+        return $mailer;
     }
 
     protected function resolveAccount(EmailAccountType $type, int $companyId): ?EmailAccount
