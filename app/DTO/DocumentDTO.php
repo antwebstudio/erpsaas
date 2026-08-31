@@ -70,7 +70,7 @@ readonly class DocumentDTO
         /** @var DocumentDefault $settings */
         $settings = $issuingCompany->documentDefaults()
             ->withoutGlobalScopes()
-            ->type($document::documentType())
+            ->type($document::settingsDocumentType())
             ->first() ?? $issuingCompany->defaultInvoice()->withoutGlobalScopes()->first();
 
         $currencyCode = $document->currency_code ?? CurrencyAccessor::getDefaultCurrency();

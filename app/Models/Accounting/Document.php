@@ -106,7 +106,7 @@ abstract class Document extends Model
                 fn (Infolist $infolist) => $infolist
                     ->schema([
                         DocumentPreview::make()
-                            ->type(static::documentType()),
+                            ->type(static::settingsDocumentType()),
                     ])
             )
             ->modalSubmitAction(false)
@@ -114,6 +114,18 @@ abstract class Document extends Model
     }
 
     abstract public static function documentType(): DocumentType;
+
+    /**
+     * The DocumentType whose DocumentDefault record supplies this document's
+     * appearance (colors, fonts, template, logo, header/footer text, column
+     * labels, etc). Defaults to documentType() itself; override when a
+     * document type should visually follow another type's settings instead
+     * of maintaining its own (e.g. Contract follows Estimate).
+     */
+    public static function settingsDocumentType(): DocumentType
+    {
+        return static::documentType();
+    }
 
     abstract public function documentNumber(): ?string;
 

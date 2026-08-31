@@ -19,9 +19,9 @@ class EstimatePdfService
     {
         ini_set('memory_limit', '2048M');
 
-        $documentTypeEnum = $estimate::documentType();
+        $settingsTypeEnum = $estimate::settingsDocumentType();
         $defaults = DocumentDefault::query()
-            ->type($documentTypeEnum)
+            ->type($settingsTypeEnum)
             ->first();
 
         $template = $defaults?->template ?? Template::Default;
@@ -57,7 +57,7 @@ class EstimatePdfService
         if ($estimate->template_company_id) {
             $templateDefaults = DocumentDefault::withoutGlobalScopes()
                 ->where('company_id', $estimate->template_company_id)
-                ->type($documentTypeEnum)
+                ->type($settingsTypeEnum)
                 ->first();
 
             if ($templateDefaults?->cover_pdf) {

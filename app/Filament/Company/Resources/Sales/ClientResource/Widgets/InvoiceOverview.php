@@ -64,13 +64,19 @@ class InvoiceOverview extends EnhancedStatsOverviewWidget
 
         $averagePaymentTimeFormatted = Number::format($averagePaymentTime ?? 0, maxPrecision: 1);
 
-        $totalContractAmount = $this->record->contracts()
-            ->get()
-            ->sumMoneyInDefaultCurrency('total');
+        $totalContractAmount = $this->record->getContractTotal();
 
-        $totalVariationOrderAmount = $this->record->variationOrders()
-            ->get()
-            ->sumMoneyInDefaultCurrency('total');
+        $totalVariationOrderAmount = $this->record->getApprovedVariationOrderTotal();
+
+        $adjustedContractTotal = $this->record->getAdjustedContractTotal();
+
+        $totalPaymentReceived = $this->record->getTotalPaymentReceived();
+
+        $paymentReceivedPercentage = $this->record->getPaymentReceivedPercentage();
+
+        $paymentReceivedPercentageFormatted = $paymentReceivedPercentage === null
+            ? '—'
+            : Number::format($paymentReceivedPercentage, maxPrecision: 1) . '%';
 
         return [
             EnhancedStatsOverviewWidget\EnhancedStat::make('Total Unpaid', CurrencyConverter::formatCentsToMoney($amountUnpaid))
@@ -84,9 +90,12 @@ class InvoiceOverview extends EnhancedStatsOverviewWidget
                 ->suffix(CurrencyAccessor::getDefaultCurrency())
                 ->description('Excludes draft and voided invoices'),
             EnhancedStatsOverviewWidget\EnhancedStat::make('Contract Total', CurrencyConverter::formatCentsToMoney($totalContractAmount))
+                ->suffix(CurrencyAccessor::getDefaultCurrency())
+                ->description('Adjusted total: ' . CurrencyConverter::formatCentsToMoney($adjustedContractTotal) . ' (incl. ' . CurrencyConverter::formatCentsToMoney($totalVariationOrderAmount) . ' approved VOs)'),
+            EnhancedStatsOverviewWidget\EnhancedStat::make('Total Payment Received', CurrencyConverter::formatCentsToMoney($totalPaymentReceived))
                 ->suffix(CurrencyAccessor::getDefaultCurrency()),
-            EnhancedStatsOverviewWidget\EnhancedStat::make('Variation Order Total', CurrencyConverter::formatCentsToMoney($totalVariationOrderAmount))
-                ->suffix(CurrencyAccessor::getDefaultCurrency()),
+            EnhancedStatsOverviewWidget\EnhancedStat::make('% of Contract Received', $paymentReceivedPercentageFormatted)
+                ->description('Payment received against the adjusted contract total'),
         ];
     }
 }

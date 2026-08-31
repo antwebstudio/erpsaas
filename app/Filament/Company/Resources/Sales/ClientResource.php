@@ -25,6 +25,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Number;
 
 class ClientResource extends Resource
 {
@@ -276,7 +277,7 @@ class ClientResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->description(static fn (Client $client) => $client->primaryContact?->full_name),
+                    ->description(static fn (Client $record) => $record->primaryContact?->full_name),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable(),
@@ -287,7 +288,7 @@ class ClientResource extends Resource
                 Tables\Columns\TextColumn::make('primaryContact.phones')
                     ->label('Phone')
                     ->toggleable()
-                    ->state(static fn (Client $client) => $client->primaryContact?->first_available_phone),
+                    ->state(static fn (Client $record) => $record->primaryContact?->first_available_phone),
                 Tables\Columns\TextColumn::make('billingAddress.address_string')
                     ->label('Billing address')
                     ->searchable()
@@ -295,14 +296,14 @@ class ClientResource extends Resource
                     ->listWithLineBreaks(),
                 Tables\Columns\TextColumn::make('balance')
                     ->label('Balance')
-                    ->getStateUsing(function (Client $client) {
-                        return $client->invoices()
+                    ->getStateUsing(function (Client $record) {
+                        return $record->invoices()
                             ->unpaid()
                             ->get()
                             ->sumMoneyInDefaultCurrency('amount_due');
                     })
-                    ->coloredDescription(function (Client $client) {
-                        $overdue = $client->invoices()
+                    ->coloredDescription(function (Client $record) {
+                        $overdue = $record->invoices()
                             ->overdue()
                             ->get()
                             ->sumMoneyInDefaultCurrency('amount_due');
@@ -324,22 +325,41 @@ class ClientResource extends Resource
                     ->alignEnd(),
                 Tables\Columns\TextColumn::make('contract_total')
                     ->label('Contract total')
-                    ->getStateUsing(function (Client $client) {
-                        return $client->contracts()
-                            ->get()
-                            ->sumMoneyInDefaultCurrency('total');
-                    })
+                    ->getStateUsing(static fn (Client $record) => $record->getContractTotal())
                     ->currency(convert: false)
                     ->alignEnd()
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('variation_order_total')
                     ->label('Variation order total')
-                    ->getStateUsing(function (Client $client) {
-                        return $client->variationOrders()
-                            ->get()
-                            ->sumMoneyInDefaultCurrency('total');
-                    })
+                    ->getStateUsing(static fn (Client $record) => $record->getApprovedVariationOrderTotal())
                     ->currency(convert: false)
+                    ->alignEnd()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('adjusted_contract_total')
+                    ->label('Total (incl. VOs)')
+                    ->getStateUsing(static fn (Client $record) => $record->getAdjustedContractTotal())
+                    ->currency(convert: false)
+                    ->alignEnd()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('total_payment_received')
+                    ->label('Total payment received')
+                    ->getStateUsing(static fn (Client $record) => $record->getTotalPaymentReceived())
+                    ->currency(convert: false)
+                    ->alignEnd()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('payment_received_percentage')
+                    ->label('% Received')
+                    ->getStateUsing(static fn (Client $record) => $record->getPaymentReceivedPercentage())
+                    ->formatStateUsing(static fn (?float $state) => $state === null ? '—' : Number::format($state, maxPrecision: 1) . '%')
+                    ->color(static function (Client $record): ?string {
+                        $percentage = $record->getPaymentReceivedPercentage();
+
+                        if ($percentage === null) {
+                            return null;
+                        }
+
+                        return $percentage < 100 ? 'warning' : 'success';
+                    })
                     ->alignEnd()
                     ->toggleable(),
             ])

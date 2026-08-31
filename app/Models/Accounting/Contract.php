@@ -20,6 +20,11 @@ class Contract extends Estimate
         return \App\Enums\Accounting\DocumentType::Contract;
     }
 
+    public static function settingsDocumentType(): \App\Enums\Accounting\DocumentType
+    {
+        return \App\Enums\Accounting\DocumentType::Estimate;
+    }
+
     public static function getNextDocumentNumber(?\App\Models\Company $company = null): string
     {
         $company ??= \Illuminate\Support\Facades\Auth::user()?->currentCompany;

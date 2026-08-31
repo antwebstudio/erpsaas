@@ -100,7 +100,6 @@
             line-height: 1.2;
             border-top: none;
         }
-        .items-td.group-row,
         .items-td.total-row {
             padding: 6px 8px;
         }

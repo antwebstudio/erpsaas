@@ -376,4 +376,60 @@ class Client extends Model
             ->isNotTemplate()
             ->withoutGlobalScopes([\App\Scopes\CurrentCompanyScope::class]);
     }
+
+    /**
+     * Sum of this client's contract totals (accepted/completed estimates only),
+     * converted to the company's default currency.
+     */
+    public function getContractTotal(): int
+    {
+        return $this->contracts()->get()->sumMoneyInDefaultCurrency('total');
+    }
+
+    /**
+     * Sum of this client's approved variation order totals (which may be
+     * negative, reducing the contract value), converted to the company's
+     * default currency. Draft, sent, and rejected variation orders are
+     * excluded since they haven't been formally agreed with the client.
+     */
+    public function getApprovedVariationOrderTotal(): int
+    {
+        return $this->variationOrders()
+            ->where('status', \App\Enums\Accounting\VariationOrderStatus::Approved)
+            ->get()
+            ->sumMoneyInDefaultCurrency('total');
+    }
+
+    /**
+     * The client's running contract value: the original contract total plus
+     * all approved variation orders (additions and deductions) to date.
+     */
+    public function getAdjustedContractTotal(): int
+    {
+        return $this->getContractTotal() + $this->getApprovedVariationOrderTotal();
+    }
+
+    /**
+     * Sum of amounts paid across this client's invoices, converted to the
+     * company's default currency.
+     */
+    public function getTotalPaymentReceived(): int
+    {
+        return $this->invoices()->get()->sumMoneyInDefaultCurrency('amount_paid');
+    }
+
+    /**
+     * Percentage of the adjusted contract total that has been paid so far.
+     * Returns null when there is no contract value to measure against.
+     */
+    public function getPaymentReceivedPercentage(): ?float
+    {
+        $adjustedContractTotal = $this->getAdjustedContractTotal();
+
+        if ($adjustedContractTotal <= 0) {
+            return null;
+        }
+
+        return ($this->getTotalPaymentReceived() / $adjustedContractTotal) * 100;
+    }
 }
