@@ -208,6 +208,12 @@ class VariationOrderResource extends Resource
                                     ->label('Discount method')
                                     ->options(DocumentDiscountMethod::class)
                                     ->hidden(fn () => config('erp.hide_discount_fields', false) || config('erp.hide_per_line_item_discount', false))
+                                    ->afterStateHydrated(function (Forms\Components\Select $component) {
+                                        if (config('erp.hide_per_line_item_discount', false)) {
+                                            $component->state(DocumentDiscountMethod::PerDocument);
+                                        }
+                                    })
+                                    ->dehydratedWhenHidden()
                                     ->softRequired()
                                     ->default(config('erp.hide_per_line_item_discount', false) ? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument : ($settings?->discount_method ?? \App\Enums\Accounting\DocumentDiscountMethod::PerDocument))
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {

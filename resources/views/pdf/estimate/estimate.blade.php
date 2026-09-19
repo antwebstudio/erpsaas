@@ -43,7 +43,13 @@
             page-break-after: avoid;
             break-after: avoid;
         }
-        
+
+        /* Keep the totals attached to the last item so they never land alone on an item-less page. */
+        tbody.totals tr {
+            page-break-before: avoid;
+            break-before: avoid;
+        }
+
         th {
             page-break-after: avoid;
             break-after: avoid;
@@ -142,7 +148,6 @@
         .term-desc { flex: 1; font-size: 8px; }
         
         thead { display: table-header-group; }
-        tfoot { display: table-row-group; }
 
         .acknowledge-text {
             margin-top: 20px;
@@ -212,7 +217,7 @@
                 </tbody>
             @endforeach
 
-            <tbody>
+            <tbody class="totals">
 
                 @if($document->subtotal || $document->discount || $document->tax)
                     @if($document->subtotal)
@@ -239,12 +244,6 @@
                     <td class="items-td total-row" style="font-weight: bold; background-color: {{ $document->colorSecondary }}; color: {{ $document->colorSecondaryText }}; text-align: right;">{{ $document->total }}</td>
                 </tr>
             </tbody>
-            
-            <tfoot>
-                <tr>
-                    <td colspan="4" style="height: 120px;"></td>
-                </tr>
-            </tfoot>
         </table>
 
         <!-- Materials and Terms Section -->

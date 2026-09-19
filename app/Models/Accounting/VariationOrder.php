@@ -286,6 +286,17 @@ class VariationOrder extends Document
         ]);
     }
 
+    /**
+     * Resolve the issue company from the host Livewire component's form state (edit pages),
+     * falling back to the record (e.g. relation managers, which have no `data` property).
+     */
+    protected function resolveTemplateCompanyId(\Livewire\Component $livewire): ?int
+    {
+        $fromForm = property_exists($livewire, 'data') ? ($livewire->data['template_company_id'] ?? null) : null;
+
+        return $fromForm ?? $this->template_company_id;
+    }
+
     public static function getApproveDraftAction(string $action = \Filament\Actions\Action::class): \Filament\Actions\MountableAction
     {
         return $action::make('approveDraft')
@@ -294,8 +305,8 @@ class VariationOrder extends Document
             ->visible(function (self $record) {
                 return $record->canBeApproved();
             })
-            ->form(function (self $record, \Filament\Forms\Component $livewire) {
-                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
+            ->form(function (self $record, \Livewire\Component $livewire) {
+                $templateCompanyId = $record->resolveTemplateCompanyId($livewire);
 
                 return $templateCompanyId ? [] : [
                     Forms\Components\Select::make('template_company_id')
@@ -305,13 +316,11 @@ class VariationOrder extends Document
                         ->default(fn (self $record) => $record->template_company_id),
                 ];
             })
-            ->modalHidden(function (self $record, \Filament\Forms\Component $livewire) {
-                $templateCompanyId = $livewire->data['template_company_id'] ?? $record->template_company_id;
-
-                return $templateCompanyId !== null;
+            ->modalHidden(function (self $record, \Livewire\Component $livewire) {
+                return $record->resolveTemplateCompanyId($livewire) !== null;
             })
-            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action, \Filament\Forms\Component $livewire) {
-                $templateCompanyId = $data['template_company_id'] ?? ($livewire->data['template_company_id'] ?? $record->template_company_id);
+            ->action(function (self $record, array $data, \Filament\Actions\MountableAction $action, \Livewire\Component $livewire) {
+                $templateCompanyId = $data['template_company_id'] ?? $record->resolveTemplateCompanyId($livewire);
 
                 if (! $templateCompanyId) {
                     \Filament\Notifications\Notification::make()
