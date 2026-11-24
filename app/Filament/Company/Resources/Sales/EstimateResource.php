@@ -33,6 +33,7 @@ use App\Utilities\Currency\CurrencyAccessor;
 use App\Utilities\Currency\CurrencyConverter;
 use App\Utilities\RateCalculator;
 use Awcodes\TableRepeater\Header;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -46,9 +47,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-class EstimateResource extends Resource
+class EstimateResource extends Resource implements HasShieldPermissions
 {
     use \App\Filament\Traits\HasNavigationPermission;
+    use \App\Filament\Traits\HasViewIndexPermission;
+
+    /** Controls access to the estimate list (index) page only. */
+    public const VIEW_INDEX_PERMISSION = 'view_index_sales::estimate';
 
     protected static ?string $model = Estimate::class;
 
@@ -58,7 +63,7 @@ class EstimateResource extends Resource
             return false;
         }
 
-        return static::canViewAny();
+        return static::canViewIndex();
     }
 
     public static function getEloquentQuery(): Builder

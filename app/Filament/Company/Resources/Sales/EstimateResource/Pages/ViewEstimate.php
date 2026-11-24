@@ -20,6 +20,8 @@ use Illuminate\Support\HtmlString;
 
 class ViewEstimate extends ViewRecord
 {
+    use \App\Filament\Traits\GuardsResourceIndexLink;
+
     protected static string $resource = EstimateResource::class;
 
     protected $listeners = [
@@ -46,7 +48,8 @@ class ViewEstimate extends ViewRecord
                     Estimate::getReplicateAction(),
                     Estimate::getConvertToInvoiceAction(),
                 ])->dropdown(false),
-                Actions\DeleteAction::make(),
+                Actions\DeleteAction::make()
+                    ->successRedirectUrl(fn () => EstimateResource::getIndexOrFallbackUrl()),
             ])
                 ->label('Actions')
                 ->button()

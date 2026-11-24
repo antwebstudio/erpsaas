@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditVariationOrder extends EditRecord
 {
+    use \App\Filament\Traits\GuardsResourceIndexLink;
     use HandlePageRedirect;
     use HasAutosave;
     use ManagesLineItems;
@@ -134,7 +135,8 @@ class EditVariationOrder extends EditRecord
                 }),
             VariationOrder::getPreviewAction(),
             Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successRedirectUrl(fn () => VariationOrderResource::getIndexOrFallbackUrl()),
         ];
     }
 

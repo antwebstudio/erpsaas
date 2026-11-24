@@ -133,6 +133,10 @@ class ShieldSeeder extends Seeder
             'archive_sales::lead',
         ];
 
+        // List (index) page permissions: only Super Admin by default; grant per role from the Roles page.
+        $permissions[] = 'view_index_sales::estimate';
+        $permissions[] = 'view_index_sales::variation::order';
+
         foreach ($customPermissions as $permissionName) {
             $permissions[] = $permissionName;
         }

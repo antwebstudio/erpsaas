@@ -11,6 +11,11 @@ class ListVariationOrders extends ListRecords
 {
     protected static string $resource = VariationOrderResource::class;
 
+    protected function authorizeAccess(): void
+    {
+        abort_unless(VariationOrderResource::canViewIndex(), 403);
+    }
+
     protected function getHeaderActions(): array
     {
         return [

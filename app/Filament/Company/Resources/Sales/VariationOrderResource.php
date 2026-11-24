@@ -26,6 +26,7 @@ use App\Utilities\Currency\CurrencyAccessor;
 use App\Utilities\Currency\CurrencyConverter;
 use App\Utilities\RateCalculator;
 use Awcodes\TableRepeater\Header;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -35,9 +36,13 @@ use Guava\FilamentClusters\Forms\Cluster;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
-class VariationOrderResource extends Resource
+class VariationOrderResource extends Resource implements HasShieldPermissions
 {
     use \App\Filament\Traits\HasNavigationPermission;
+    use \App\Filament\Traits\HasViewIndexPermission;
+
+    /** Controls access to the variation order list (index) page only. */
+    public const VIEW_INDEX_PERMISSION = 'view_index_sales::variation::order';
 
     protected static ?string $model = VariationOrder::class;
 
@@ -74,7 +79,7 @@ class VariationOrderResource extends Resource
             return false;
         }
 
-        return static::canViewAny();
+        return static::canViewIndex();
     }
 
     public static function form(Form $form): Form

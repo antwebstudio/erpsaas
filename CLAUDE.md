@@ -107,3 +107,4 @@ Queue, cache, and session all use the **database** driver.
 - Check if the code work as expected after implemented it
 - Ask question whenever there is any additional information needed
 - Don't hard code role when checking permission, use permission based on role instead, or use policy if policy existed 
+- Add files newly created to version control, and always stage (git add) every file created or modified, by exact path (never `git add -A`). Don't commit unless asked.

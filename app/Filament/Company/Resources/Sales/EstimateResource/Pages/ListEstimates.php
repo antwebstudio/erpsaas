@@ -18,6 +18,11 @@ class ListEstimates extends ListRecords
 
     protected static string $resource = EstimateResource::class;
 
+    protected function authorizeAccess(): void
+    {
+        abort_unless(EstimateResource::canViewIndex(), 403);
+    }
+
     protected function getHeaderActions(): array
     {
         return [

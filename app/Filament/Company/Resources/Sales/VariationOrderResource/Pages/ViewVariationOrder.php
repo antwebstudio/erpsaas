@@ -20,6 +20,8 @@ use Illuminate\Support\HtmlString;
 
 class ViewVariationOrder extends ViewRecord
 {
+    use \App\Filament\Traits\GuardsResourceIndexLink;
+
     protected static string $resource = VariationOrderResource::class;
 
     protected function getHeaderActions(): array
@@ -38,7 +40,8 @@ class ViewVariationOrder extends ViewRecord
                     VariationOrder::getDownloadMergedPdfAction(),
                     VariationOrder::getReplicateAction(),
                 ])->dropdown(false),
-                Actions\DeleteAction::make(),
+                Actions\DeleteAction::make()
+                    ->successRedirectUrl(fn () => VariationOrderResource::getIndexOrFallbackUrl()),
             ])
                 ->label('Actions')
                 ->button()

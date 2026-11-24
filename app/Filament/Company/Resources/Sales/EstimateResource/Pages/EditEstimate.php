@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EditEstimate extends EditRecord
 {
+    use \App\Filament\Traits\GuardsResourceIndexLink;
     use HandlePageRedirect;
     use HasAutosave;
     use ManagesLineItems;
@@ -159,7 +160,8 @@ class EditEstimate extends EditRecord
                         ->send();
                 }),
             Estimate::getPreviewAction(),
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successRedirectUrl(fn () => EstimateResource::getIndexOrFallbackUrl()),
         ];
     }
 
